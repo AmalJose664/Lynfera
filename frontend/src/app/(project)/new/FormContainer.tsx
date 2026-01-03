@@ -48,7 +48,7 @@ function ProjectForm() {
 		watch
 	} = form
 	const { errors,
-		isSubmitting, isSubmitSuccessful,
+		isSubmitting,
 	} = formState
 
 	const repoUrl = watch("repoURL")
@@ -72,12 +72,14 @@ function ProjectForm() {
 			const result = await createProject(data).unwrap()
 			router.push(`/projects/${result._id}`)
 
-			console.log("Form submitted ", data)
 		} catch (error: any) {
 			if (error.status === 401) {
 				router.push("/login")
 			}
 			console.log("Error!", error)
+			if (error.status === 400) {
+				return toast.error("Error on creating project, " + error.data.message || error.message)
+			}
 			toast.error("Error on creating project")
 		}
 
@@ -108,7 +110,7 @@ function ProjectForm() {
 						<BaseSettings form={form} branches={branches || []} />
 
 						<div className="px-4 my-4 group transition-all duration-200">
-							<span title="Show Advanced" className="transition-all duration-200 cursor-pointer hover:underline flex items-center gap-2"
+							<span title="Show Advanced" className="transition-all duration-200 cursor-pointer hover:underline flex items-center gap-2 "
 								onClick={() => setShowAdvanced(!showAdvanced)}
 							>
 								<CiSettings
@@ -121,11 +123,11 @@ function ProjectForm() {
 								<AdvancedSettings form={form} />
 							)}
 						</AnimatePresence>
-						<div className="mb-4  ">
+						<div className="mb-4">
 							<button
 								type="submit"
-								disabled={isSubmitting || isSubmitSuccessful}
-								className="w-full dark:bg-background bg-white  py-2 hover:bg-neutral-800 hover:text-white hover:dark:bg-neutral-200 hover:dark:text-black rounded font-semibold border !duration-100 transition"
+								disabled={isSubmitting}
+								className="disabled:cursor-not-allowed! w-full dark:bg-background bg-white  py-2 hover:bg-neutral-800 hover:text-white hover:dark:bg-neutral-200 hover:dark:text-black rounded font-semibold border !duration-100 transition"
 							>
 								{(isSubmitting || isLoading) ? "Loading..." : "Deploy"}
 							</button>

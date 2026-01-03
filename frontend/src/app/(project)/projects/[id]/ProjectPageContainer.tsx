@@ -34,7 +34,6 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 
 	const [createDeployment, { }] = useCreateDeploymentMutation()
 	const [showBuild, setShowBuild] = useState(false)
-	const [sseActive, setSseActive] = useState(false)
 	const handleCreateDeployment = async () => {
 		try {
 			await createDeployment(projectId).unwrap()
@@ -91,6 +90,10 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 		}
 		return () => { dispatch(clearLogs()) }
 	}, [initialLogs, dispatch])
+
+	const [sseActive, setSseActive] = useState(tempDeployment && (tempDeployment.status === ProjectStatus.BUILDING || tempDeployment.status === ProjectStatus.QUEUED) || false)
+
+
 	useDeploymentSSE(project, refetch, sseActive, setSseActive, tempDeployment)
 
 	const reDeploy = async () => {

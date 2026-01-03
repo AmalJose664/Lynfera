@@ -23,7 +23,7 @@ export const ProjectFormSchema = z.object({
 		.string()
 		.regex(/^(?:https?:\/\/(?:www\.)?github\.com\/)?[\w-]+\/[\w.-]+\/?$/, "Invalid repository format (expected: owner/repo or full GitHub URL)")
 	,
-	branch: z.string().optional().default("main").optional(),
+	branch: z.string().min(1, "Branch cannot be empty").default("main").optional(),
 
 	buildCommand: z
 		.string()

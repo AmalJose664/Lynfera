@@ -13,9 +13,9 @@ import archiver from "archiver";
 import FormData from "form-data";
 import axios from 'axios';
 
-let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "694cf50d4347fb01a283c80b"   // Received from env by apiserver or use backup for local testing
-let PROJECT_ID = process.env.PROJECT_ID || "694cf184342e333344ab521d"   // Received from env by apiserver or use backup for local testing
-
+let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "695829e2df318381d6048c5e"   // Received from env by apiserver or use backup for local testing
+let PROJECT_ID = process.env.PROJECT_ID || "6934502adfa2d8c1c254aabc"   // Received from env by apiserver or use backup for local testing
+const brandName = "Lynfera"
 const kafka = new Kafka({
 	clientId: `docker-build-server-${PROJECT_ID}-${DEPLOYMENT_ID}`,
 	brokers: ["pkc-l7pr2.ap-south-1.aws.confluent.cloud:9092"],
@@ -66,11 +66,16 @@ const deploymentStatus = {
 	FAILED: "FAILED",
 	CANCELED: "CANCELLED"
 }
+const logValues = {
+	INFO: "INFO",
+	SUCCESS: "SUCCESS",
+	ERROR: "ERROR",
+}
 
 const settings = {
 	customBuildPath: !true,
-	sendKafkaMessage: !true,
-	deleteSourcesAfter: true,
+	sendKafkaMessage: true,
+	deleteSourcesAfter: !true,
 	sendLocalDeploy: !true,
 	localDeploy: !true,
 	runCommands: true,            // for testing only 
@@ -79,7 +84,7 @@ const settings = {
 
 console.log(DEPLOYMENT_ID, PROJECT_ID, "<<<<<")
 
-let gitCommitData = process.env.GIT_COMMIT_DATA || "692a6b3a6fc8242ec791c8e99362d070408738d4||build: settings change feature"
+let gitCommitData = process.env.GIT_COMMIT_DATA || "----||-----"
 
 
 
@@ -147,6 +152,58 @@ const publishLogs = async (logData = {}) => {
 	} else {
 		flushTimer = setTimeout(sendLogsAsBatch, 300);
 	}
+}
+
+const repeat = (s, n) => Array.from({ length: n }).fill(s).join(" ")
+const line = (n) => Array.from({ length: n }).fill("\x1b[38;5;14m──\x1b[0m").join("")
+const printInfoLogs = () => {
+	const symbols = ["✮", "❁", "✧", "❃", "✾", "✣", "─", "❆", "❀", "✴"]
+	const deco = `\x1b[96m${symbols[3]}\x1b[0m`
+	const side = "\x1b[38;5;27m ➤  \x1b[0m "
+
+	const spaceValue = 3
+	const decorationsArray = [];
+	decorationsArray.push(repeat(" ", 25))
+
+	decorationsArray.push(repeat(deco, 120))
+	decorationsArray.push(" " + repeat(deco, 20) + `   \x1b[\x1b[1m\x1b[38;2;39;199;255m ${brandName.toUpperCase()} BUILD SERVER\x1b[0m   ` + repeat(deco, 20))
+	decorationsArray.push(repeat(deco, 120))
+	decorationsArray.push(line(100))
+	decorationsArray.push(repeat(" ", 25))
+
+	// ENVIRONMENT
+
+	decorationsArray.push(repeat(" ", 25))
+	decorationsArray.push(`${side} ${repeat(" ", spaceValue - 3)}\x1b[38;5;123m __ ENVIRONMENT\x1b[0m`)
+	decorationsArray.push(`${side} ${repeat(" ", spaceValue)}\x1b[38;5;27m Runtime             :\x1b[38;5;123m Node.js\x1b[0m`)
+	decorationsArray.push(`${side} ${repeat(" ", spaceValue)}\x1b[38;5;27m Node Version        :\x1b[38;5;123m 22.21.1\x1b[0m`)
+
+	decorationsArray.push(line(100))
+
+	// DEPLOY CONFIGS
+	decorationsArray.push(repeat(" ", 25))
+
+	decorationsArray.push(repeat(" ", 25))
+	decorationsArray.push(`${side} ${repeat(" ", spaceValue - 3)}\x1b[38;5;123m __ DEPLOY CONFIGS \x1b[0m`)
+	decorationsArray.push(`${side} ${repeat(" ", spaceValue)} \x1b[38;5;27m Install Command     : \x1b[38;5;123m npm install\x1b[0m`)
+	decorationsArray.push(`${side} ${repeat(" ", spaceValue)} \x1b[38;5;27m Build Command       : \x1b[38;5;123m npm run build\x1b[0m`)
+	decorationsArray.push(`${side} ${repeat(" ", spaceValue)} \x1b[38;5;27m Output Directory    : \x1b[38;5;123m dist/\x1b[0m`)
+	decorationsArray.push(`${side} ${repeat(" ", spaceValue)} \x1b[38;5;27m Root Directory      : \x1b[38;5;123m ./\x1b[0m`)
+
+	decorationsArray.push(line(100))
+	decorationsArray.push(repeat("  ", 25))
+
+	decorationsArray.push(repeat("  ", 25))
+	decorationsArray.push(repeat(deco, 4) + "  \x1b[96m ➤  BUILD PROCESS INITIALIZED\x1b[0m   " + repeat(deco, 4))
+	decorationsArray.push(repeat(deco, 25))
+
+	decorationsArray.push(repeat(" ", 25))
+
+	decorationsArray.map((v) => publishLogs({
+		DEPLOYMENT_ID, PROJECT_ID,
+		level: logValues.INFO,
+		message: v, stream: "system"
+	}))
 }
 
 const publishUpdates = async (updateData = {}) => {
@@ -263,7 +320,7 @@ async function fetchProjectData(deploymentId = "") {
 			console.log("Error on fetching Project data", error)
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
-				level: "ERROR",
+				level: logValues.ERROR,
 				message: `Error on fetching Project data, ${error.message}`,
 				stream: "data fetching"
 			});
@@ -436,7 +493,7 @@ async function runCommand(command, args, cwd, env = []) {
 			console.log(data.toString(), "--");
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
-				level: "INFO",
+				level: logValues.INFO,
 				message: data.toString(), stream: "stdout"
 			});
 		});
@@ -445,7 +502,7 @@ async function runCommand(command, args, cwd, env = []) {
 			console.error(data.toString());
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
-				level: "ERROR",
+				level: logValues.ERROR,
 				message: data.toString(), stream: "stderr"
 			});
 		});
@@ -457,7 +514,7 @@ async function runCommand(command, args, cwd, env = []) {
 		if (error.timedOut) {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
-				level: "ERROR",
+				level: logValues.ERROR,
 				message: `${command} timed out`, stream: "stderr"
 			})
 			throw new ContainerError(
@@ -470,7 +527,7 @@ async function runCommand(command, args, cwd, env = []) {
 			publishLogs({
 				DEPLOYMENT_ID,
 				PROJECT_ID,
-				level: "ERROR",
+				level: logValues.ERROR,
 				message: `${command} terminated by ${error.signal}`,
 				stream: "stderr",
 			});
@@ -483,7 +540,7 @@ async function runCommand(command, args, cwd, env = []) {
 		if (typeof error.exitCode === "number") {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
-				level: "ERROR",
+				level: logValues.ERROR,
 				message: `${command} exited with code ${code}`, stream: "stderr"
 			})
 			throw new ContainerError(
@@ -494,7 +551,7 @@ async function runCommand(command, args, cwd, env = []) {
 		publishLogs({
 			DEPLOYMENT_ID,
 			PROJECT_ID,
-			level: "ERROR",
+			level: logValues.ERROR,
 			message: error.message,
 			stream: "stderr",
 		});
@@ -537,7 +594,7 @@ async function uploadNonAws(dir, fileName) {
 		console.log("Error on uploading files", error)
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
-			level: "ERROR",
+			level: logValues.ERROR,
 			message: `Error on uploading files, ${error.message}`,
 			stream: "upload"
 		});
@@ -545,8 +602,8 @@ async function uploadNonAws(dir, fileName) {
 	}
 
 }
-async function validateAnduploadFiles(sourceDir, targetDir) {
-	console.log("trying to move", sourceDir, targetDir)
+async function validateAnduploadFiles(sourceDir) {
+	console.log("trying to move", sourceDir,)
 	const zipFileName = "output__" + Math.random().toString(36).slice(2, 12).replaceAll(".", "") + ".zip"
 	console.log("Creating as ", zipFileName)
 	const output = createWriteStream(path.join(sourceDir, zipFileName));
@@ -575,7 +632,13 @@ async function validateAnduploadFiles(sourceDir, targetDir) {
 					publishLogs({
 						DEPLOYMENT_ID, PROJECT_ID,
 						level: "WARN",
-						message: `Skipping suspicious file path: ${relPath}`,
+						message: `\x1b[38;5;9m Suspicious file path detected ${relPath} \x1b[0m`,
+						stream: "system"
+					});
+					publishLogs({
+						DEPLOYMENT_ID, PROJECT_ID,
+						level: "WARN",
+						message: `\x1b[38;5;9m Skipping suspicious file path: ${relPath} \x1b[0m`,
 						stream: "system"
 					});
 					continue;
@@ -584,12 +647,11 @@ async function validateAnduploadFiles(sourceDir, targetDir) {
 				totalSize += fileStat.size;
 				publishLogs({
 					DEPLOYMENT_ID, PROJECT_ID,
-					level: "INFO",
-					message: "uploading " + relPath,
+					level: logValues.INFO,
+					message: "\x1b[38;5;48m uploading " + relPath + "\x1b[0m",
 					stream: "system"
 				});
 				if (settings.localDeploy) {
-					const targetPath = path.join(targetDir, relPath);
 					archive.file(fullPath, { name: relPath });
 					// await rename(fullPath, targetPath);
 					console.log("Moved " + relPath)
@@ -606,7 +668,6 @@ async function validateAnduploadFiles(sourceDir, targetDir) {
 				}
 			}
 		}
-
 	}
 	await processDirectory(sourceDir);
 	await archive.finalize();
@@ -628,14 +689,15 @@ async function validateAnduploadFiles(sourceDir, targetDir) {
 // --------------------------------------------------------MAIN_TASK--------------------------------------------------
 
 async function init() {
+
 	if (settings.sendKafkaMessage) {
 		await producer.connect();
-	}
-	publishLogs({
+	};
+	[repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m BEGIN " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 100), `Starting deployment..`].map((v) => publishLogs({
 		DEPLOYMENT_ID, PROJECT_ID,
-		level: "INFO",
-		message: `Starting deployment..`, stream: "system"
-	})
+		level: logValues.INFO,
+		message: v, stream: "system"
+	}))
 	const timerStart = performance.now()
 	await publishUpdates({
 		DEPLOYMENT_ID, PROJECT_ID,
@@ -648,8 +710,14 @@ async function init() {
 		//logs
 		console.log("Executing script.js")
 
-		console.log("fetching project data")
-		const taskDir = path.join(__dirname, "../test-grounds/")             // UPDATE THIS ON DEPLOYMENT !!!!!!!!!!!!!!!!!
+		console.log("Fetching project data")
+		const taskDir = path.join(__dirname, "../test-grounds/");             // UPDATE THIS ON DEPLOYMENT !!!!!!!!!!!!!!!!!
+
+		["Directory set to " + taskDir, "Fetching project data "].map((v) => publishLogs({
+			DEPLOYMENT_ID, PROJECT_ID,
+			level: logValues.INFO,
+			message: `${v}`, stream: "system"
+		}))
 		const [projectData, deploymentData] = await fetchProjectData(DEPLOYMENT_ID)
 		DEPLOYMENT_ID = deploymentData._id
 		PROJECT_ID = projectData._id
@@ -662,10 +730,10 @@ async function init() {
 		console.log({ projectData, deploymentData, installCommand, buildCommand, outputFiles: outputFilesDir })
 
 		const runDir = path.join(taskDir, projectData.rootDir)
-		console.log(runDir)
+		// console.log(runDir)
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
-			level: "INFO",
+			level: logValues.INFO,
 			message: `cloning repo..`, stream: "system"
 		})
 
@@ -675,38 +743,54 @@ async function init() {
 
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
-			level: "INFO",
+			level: logValues.INFO,
 			message: `git repo cloned...`, stream: "system"
 		})
 
 		const framweworkIdentified = await validatePackageJsonAndGetFramework(runDir, projectData.rootDir)
 		const buildOptions = getDynamicBuildRoot(framweworkIdentified.tool)
-		console.log(framweworkIdentified, buildOptions)
+		console.log(framweworkIdentified, buildOptions);
 
-		publishLogs({
+		["Detected 1 framework", "Framework " + framweworkIdentified.framework + " identified",
+			repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m INSTALL " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 10)].map((v) => publishLogs({
+				DEPLOYMENT_ID, PROJECT_ID,
+				level: logValues.INFO,
+				message: v, stream: "system"
+			}))
+		printInfoLogs();
+		["\x1b[\x1b[1m\x1b[38;2;39;199;255m Installing packages...\x1b[0m", line(36)
+		].map((v) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
-			level: "INFO",
-			message: `Installing packages...`, stream: "system"
-		})
+			level: logValues.INFO,
+			message: v, stream: "system"
+		}))
 		const installTimer = performance.now()
 		let installTries = 0
 		while (installTries < 3) {
+			const extraFlags =
+				installTries === 1
+					? ["--legacy-peer-deps"]
+					: installTries >= 2
+						? ["--force"]
+						: []
 			try {
-				await runCommand("npm", [...installCommand.split(" "), ...(installTries > 0 ? installTries > 1 ? ["--force"] : ["--legacy-peer-deps"] : [])],
-					runDir, projectData.env || [])
+				publishLogs({
+					DEPLOYMENT_ID, PROJECT_ID,
+					level: logValues.INFO,
+					message: `\x1b[38;5;123m Installing with command $ npm ${installCommand} ${extraFlags.join(" ")}\x1b[0m`, stream: "system"
+				})
+				await runCommand("npm", [...installCommand.split(" "), ...extraFlags], runDir, projectData.env ?? [])
 				break
 			} catch (error) {
-				installTries++
-				publishLogs({
+				installTries++;
+				[`\x1b[38;5;220m Failed to install with command npm ${installCommand} \x1b[0m`, //\x1b[3m
+				`---------------Retrying install${installTries}-------------`,
+				`---------------Try No. ${installTries}-------------`
+				].map((v) => publishLogs({
 					DEPLOYMENT_ID, PROJECT_ID,
 					level: "WARN",
-					message: `Failed to install with command npm ${installCommand}`, stream: "system"
-				})
-				publishLogs({
-					DEPLOYMENT_ID, PROJECT_ID,
-					level: "WARN",
-					message: `---------------Retrying install no. ${installTries}-------------`, stream: "system"
-				})
+					message: v, stream: "system"
+				}))
 				if (installTries >= 3) throw error;
 				await new Promise(r => setTimeout(r, 2000));
 			}
@@ -718,12 +802,29 @@ async function init() {
 
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
-			level: "SUCCESS",
-			message: `Dependencies installed successfully  in ${(installEndTimer - installTimer).toFixed(2)} ms`, stream: "system"
-		})
+			level: logValues.INFO,
+			message: repeat(" ", 25), stream: "system"
+		});
 
-		const buildTimer = performance.now()
+		[
+			"\x1b[38;5;123m Install Success\x1b[0m",
+			`Dependencies installed successfully  in ${(installEndTimer - installTimer).toFixed(2)} ms`
+		].map((v) => publishLogs({
+			DEPLOYMENT_ID, PROJECT_ID,
+			level: logValues.SUCCESS,
+			message: v, stream: "system"
+		}))
 
+		const buildTimer = performance.now();
+
+		[repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m BUILD " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150),
+		repeat(" ", 10), "Starting build", `\x1b[1m\x1b[38;2;39;199;255m ${brandName} Build...\x1b[0m`, line(36),
+		"\x1b[38;5;123m Building with command $ npm run \x1b[38;5;220m" + buildCommand + "\x1b[0m"
+		].map((v) => publishLogs({
+			DEPLOYMENT_ID, PROJECT_ID,
+			level: logValues.INFO,
+			message: v, stream: "system"
+		}))
 		await runCommand(
 			"npm",
 			["run", ...buildCommand.split(" "), ...((settings.customBuildPath && framweworkIdentified.tool.toLowerCase() !== "cra") ? ["--", buildOptions] : [])],
@@ -733,26 +834,37 @@ async function init() {
 				: [...projectData.env]
 		)
 
-		const buildEndTimer = performance.now()
-		console.log("Build complete ", (buildEndTimer - buildTimer).toFixed(2), " ms")
-
-
-		publishLogs({
+		const buildEndTimer = performance.now();
+		console.log("Build complete ", (buildEndTimer - buildTimer).toFixed(2), " ms");
+		[
+			{ msg: repeat(" ", 25), state: logValues.INFO },
+			{ msg: "\x1b[38;5;123m Build Success\x1b[0m", state: logValues.SUCCESS },
+			{ msg: `Build complete in ${(buildEndTimer - buildTimer).toFixed(2)} ms`, state: logValues.SUCCESS },
+			{ msg: repeat(" ", 25), state: logValues.INFO },
+			{ msg: "Validating build files", state: logValues.INFO }
+		].map(({ msg, state }) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
-			level: "SUCCESS",
-			message: `Build complete    in ${(buildEndTimer - buildTimer).toFixed(2)} ms`, stream: "system"
-		})
+			level: state,
+			message: msg, stream: "system"
+		}))
 
 		const distFolderPath = path.join(runDir, outputFilesDir);
 		if (!existsSync(distFolderPath)) {
 			throw new ContainerError(outputFilesDir + ' folder not found after build', "system");
 		}
 		console.log("done.....");
-		console.log("Post build configurations running....")
+		console.log("Post build configurations running....");
 
-		const { fileStructure, totalSize } = await validateAnduploadFiles(distFolderPath,
-			path.join(`../test-server/public/user-projects/${PROJECT_ID}/${DEPLOYMENT_ID}/`)
-		)
+		["File validation done ", "Post build configurations running....",
+			repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m UPLOAD " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 10),
+			"Starting to Uploading files...", "Validating build output files"
+		].map((v) => publishLogs({
+			DEPLOYMENT_ID, PROJECT_ID,
+			level: logValues.INFO,
+			message: v, stream: "system"
+		}))
+
+		const { fileStructure, totalSize } = await validateAnduploadFiles(distFolderPath)
 
 		if (settings.localDeploy && settings.deleteSourcesAfter) {
 			await rm(taskDir, { recursive: true, force: true });
@@ -763,17 +875,21 @@ async function init() {
 		const timerEnd = performance.now();
 		const durationMs = timerEnd - timerStart;
 
-		publishLogs({
+		["Upload Complete", repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m END " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 10),].map((v) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
-			level: "SUCCESS",
-			message: "Done ...🎉🎉", stream: "system"
-		})
+			level: logValues.INFO,
+			message: v, stream: "system"
+		}));
 
-		publishLogs({
+
+		["Deployment Done ...🎉", "Task done in " + durationMs.toFixed(2) + " ms🎉",
+			`Site live at \x1B[1;36mhttps://${projectData.subdomain}.....\x1B[0m 🎉🎉🎉`
+		].map((v) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
-			level: "INFO",
-			message: "Task done in " + durationMs.toFixed(2) + " ms🎉🎉🎉", stream: "system"
-		})
+			level: logValues.SUCCESS,
+			message: v, stream: "system"
+		}))
+
 		await publishUpdates({
 			DEPLOYMENT_ID, PROJECT_ID,
 			type: "END",
@@ -786,11 +902,6 @@ async function init() {
 			complete_at: new Date().toISOString(),
 			file_structure: { files: fileStructure, totalSize }
 		})
-		publishLogs({
-			DEPLOYMENT_ID, PROJECT_ID,
-			level: "INFO",
-			message: `Site live at \x1B[1;36mhttps://${projectData.subdomain}.....\x1B[39m 🎉🎉🎉`, stream: "system"
-		})
 
 		console.log("Time taken ", durationMs.toFixed(2), "logs number ", logsNumber)
 	} catch (err) {
@@ -798,12 +909,12 @@ async function init() {
 		if (err instanceof ContainerError) {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
-				level: "ERROR",
+				level: logValues.ERROR,
 				message: `${err.message} || ${err.cause}`, stream: err.stream
 			})
 			await publishUpdates({
 				DEPLOYMENT_ID, PROJECT_ID,
-				type: "ERROR",
+				type: logValues.ERROR,
 				status: err.cancelled ? deploymentStatus.CANCELED : deploymentStatus.FAILED,
 				error_message: err.message + " || " + err.cause
 			})
@@ -811,12 +922,12 @@ async function init() {
 		else {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
-				level: "ERROR",
+				level: logValues.ERROR,
 				message: `Internal Server Error`, stream: "Server"
 			})
 			await publishUpdates({
 				DEPLOYMENT_ID, PROJECT_ID,
-				type: "ERROR",
+				type: logValues.ERROR,
 				status: deploymentStatus.FAILED,
 				error_message: "Internal server error"
 			})
@@ -850,7 +961,7 @@ process.on('uncaughtException', async (err) => {
 	if (currentProcess) killProcess(currentProcess);
 	await publishUpdates({
 		DEPLOYMENT_ID, PROJECT_ID,
-		type: "ERROR",
+		type: logValues.ERROR,
 		status: deploymentStatus.FAILED,
 		error_message: "Internal server error"
 	});

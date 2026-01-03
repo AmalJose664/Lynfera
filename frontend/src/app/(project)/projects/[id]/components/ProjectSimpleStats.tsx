@@ -12,8 +12,6 @@ import { cn } from "@/lib/utils";
 const ProjectSimpleStats = ({ project }: { project: Project }) => {
 
 	const { data } = useGetProjectsSimpleStatsQuery(project._id)
-	console.log(data)
-
 	const mockStats = {
 		totalDeployments: data?.totalDeployments || project.deployments?.length,
 		successRate: data?.successRate || 0,

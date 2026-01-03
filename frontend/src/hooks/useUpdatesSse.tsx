@@ -21,14 +21,14 @@ export function useDeploymentSSE(project: Project | undefined, refetch: () => vo
 	const batchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	useEffect(() => {
-		if (!sseActive) return
-		if (!deployment?._id || !deployment.status) return
-		if (eventSourceRef.current) return
+		if (!sseActive) { return console.log("sse", sseActive) }
+		if (!deployment?._id || !deployment.status) { return console.log("depl") }
+		if (eventSourceRef.current) { return console.log("eventsource") }
 		if (
 			deployment.status !== ProjectStatus.BUILDING &&
 			deployment.status !== ProjectStatus.QUEUED
 		) {
-			return
+			{ return console.log("status") }
 		}
 
 		console.log("Starting SSE for deployment:", deployment._id)

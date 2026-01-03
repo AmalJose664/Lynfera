@@ -1,4 +1,5 @@
 import { SITE_NAME } from "@/config/constants";
+import Link from "next/link";
 
 export const metadata = {
 	title: "Documentation | " + SITE_NAME,
@@ -101,6 +102,33 @@ function DocsPage() {
 							<p className="mt-2 text-less leading-relaxed">
 								Perfect for documentation sites, marketing landing pages, and portfolios where speed is critical.
 							</p>
+						</div>
+					</div>
+				</section>
+				<section className="border px-4 py-2 rounded-md dark:bg-neutral-900 bg-white">
+					<div className="mb-4">
+						<h2 className="mb-2 text-base font-bold tracking-tight text-primary">
+							Node Version
+						</h2>
+						<div className="grid gap-8 sm:grid-cols-2">
+							<p className="text-less leading-relaxed">
+								v22.21.1
+							</p>
+						</div>
+					</div>
+					<div className="mb-4">
+
+						<h2 className="mb-2 text-base font-bold tracking-tight text-primary">
+							Build Container
+						</h2>
+						<div className="flex items-center gap-5">
+							<p className="text-less leading-relaxed">
+								amal664/lynfera-builds
+							</p>
+							<Link target="_blank" href={'https://hub.docker.com/r/amal664/lynfera-builds'}
+								className="underline text-less leading-relaxed">
+								View Container
+							</Link>
 						</div>
 					</div>
 				</section>

@@ -21,6 +21,10 @@ export function AdvancedSettings({ form }: {
 		name: "env",
 		control
 	})
+	const rootDir = form.watch("rootDir") || ""
+	const outputDirectory = form.watch("outputDirectory") || ""
+	const outputPath =
+		`${rootDir.replace(/\/$/, "")}/${outputDirectory.replace(/^\//, "")}`
 	return (
 		<>
 			<motion.div
@@ -111,7 +115,8 @@ export function AdvancedSettings({ form }: {
 					<Input {...register("rootDir")} className="text-primary" />
 					{errors.rootDir && <p className="text-sm text-red-500 mt-1">{errors.rootDir.message}</p>}
 					<p className="text-xs text-gray-500 mt-2">
-						The directory within your project where the code is located
+						The directory within your project where the code is located.
+						eg: /frontend
 					</p>
 				</div>
 
@@ -134,7 +139,7 @@ export function AdvancedSettings({ form }: {
 					</div>
 					{errors.installCommand && <p className="text-sm text-red-500 mt-1">{errors.installCommand.message}</p>}
 					<p className="text-xs text-gray-500 mt-2">
-						Command to install dependencies (e.g., npm install, yarn)
+						Command to install dependencies (e.g., npm install)
 					</p>
 				</div>
 
@@ -158,7 +163,9 @@ export function AdvancedSettings({ form }: {
 					<Input {...register("outputDirectory")} className="text-primary" />
 					{errors.outputDirectory && <p className="text-sm text-red-500 mt-1">{errors.outputDirectory.message}</p>}
 					<p className="text-xs text-gray-500 mt-2">
-						The directory where your compiled code will be output
+						The directory where your compiled code will be output.
+						<br />
+						Current value: {outputPath}
 					</p>
 				</div>
 

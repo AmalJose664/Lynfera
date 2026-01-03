@@ -18,15 +18,17 @@ import { toast } from "sonner"
 import { Deployment } from "@/types/Deployment";
 import { Button } from "@/components/ui/button";
 import RightFadeComponent from "@/components/RightFadeComponent";
+import { TbHexagonNumber1Filled } from "react-icons/tb";
 
 interface ProjectOverviewProps {
 	project: Project,
 	deployment?: Deployment
 	reDeploy: () => void
+	runningDeploymentStatus?: string;
 	setShowBuild: (state: boolean) => void;
 	setTabs: (state: string) => void;
 }
-const ProjectOverview = ({ project, deployment, reDeploy, setShowBuild, setTabs }: ProjectOverviewProps) => {
+const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeploy, setShowBuild, setTabs }: ProjectOverviewProps) => {
 	const isprojectError = project.status === ProjectStatus.CANCELED || project.status === ProjectStatus.FAILED
 	const isDeplymentError = project.deployments?.length !== 0
 		&& deployment
@@ -53,13 +55,34 @@ const ProjectOverview = ({ project, deployment, reDeploy, setShowBuild, setTabs 
 								<div className="space-y-4">
 									<div>
 										<span className="text-xs uppercase tracking-wider text-gray-500 font-semibold">Status</span>
-										<div className="mt-1  flex items-center gap-2">
-											<StatusIcon status={deployment?.status || project.status} />
-											<p className={`text-sm font-bold rounded-xs px-1 ${getStatusColor(deployment?.status || project.status)}`}>{deployment?.status || project.status}</p>
-											{(project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED) &&
-												<AnimationBuild />
-											}
-										</div>
+										{runningDeploymentStatus ? (
+											<div className="mt-1  flex items-center gap-3">
+												<div className="mt-1  flex items-center gap-2 border border-amber-400/30 rounded-md p-1 relative group">
+													<TbHexagonNumber1Filled className="text-amber-500" />
+													<div
+														className="absolute -top-16 left-1/6 -translate-x-1/2 w-44 px-3 py-2 text-sm text-amber-300
+								bg-background border rounded-md shadow-md border-amber-400/30 opacity-0 invisible group-hover:opacity-100 group-hover:visible
+								transition-opacity duration-200 delay-500 pointer-events-none"
+													>One Deployment process is running
+													</div>
+												</div>
+												<div className="mt-1  flex items-center gap-2">
+													<StatusIcon status={deployment?.status || project.status} />
+													<p className={`text-sm font-bold rounded-xs px-1 border ${getStatusColor(deployment?.status || project.status)}`}>{deployment?.status || project.status}</p>
+													{(project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED) &&
+														<AnimationBuild />
+													}
+												</div>
+											</div>
+										) :
+											<div className="mt-1  flex items-center gap-2">
+												<StatusIcon status={deployment?.status || project.status} />
+												<p className={`text-sm font-bold rounded-xs px-1 border ${getStatusColor(deployment?.status || project.status)}`}>{deployment?.status || project.status}</p>
+												{(project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED) &&
+													<AnimationBuild />
+												}
+											</div>
+										}
 									</div>
 									{isprojectError && (
 										<div>

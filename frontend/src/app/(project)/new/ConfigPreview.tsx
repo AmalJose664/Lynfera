@@ -23,11 +23,11 @@ export function ConfigPreview({ form }: { form: UseFormReturn<ProjectFormInput> 
 			hasValue: data.repoURL
 		},
 		{
-			icon: IoIosGitBranch, title: "Branch", desc: `${data.branch || "main"}`,
+			icon: IoIosGitBranch, title: "Branch", desc: `${data.branch || ""}`,
 			hasValue: data.branch
 		},
 		{
-			icon: LuFolderTree, title: "Directories", desc: `Root: ${data.rootDir}, Output: ${data.outputDirectory}`,
+			icon: LuFolderTree, title: "Directories", desc: `Root: ${data.rootDir}, Output: ${(data.rootDir || "").replace(/\/$/, "")}/${(data.outputDirectory || "").replace(/^\//, "")}`,
 			hasValue: data.rootDir && data.outputDirectory
 		},
 		{
