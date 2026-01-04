@@ -70,6 +70,7 @@ const logValues = {
 	INFO: "INFO",
 	SUCCESS: "SUCCESS",
 	ERROR: "ERROR",
+	DECOR: "DECOR"
 }
 
 const settings = {
@@ -138,6 +139,7 @@ const publishLogs = async (logData = {}) => {
 				level: logData.level,
 				message: logData.message,
 				timestamp: new Date().toISOString(),
+				sequence: logsNumber,
 				stream: logData.stream
 			}
 		}
@@ -201,7 +203,7 @@ const printInfoLogs = () => {
 
 	decorationsArray.map((v) => publishLogs({
 		DEPLOYMENT_ID, PROJECT_ID,
-		level: logValues.INFO,
+		level: logValues.DECOR,
 		message: v, stream: "system"
 	}))
 }
@@ -693,11 +695,17 @@ async function init() {
 	if (settings.sendKafkaMessage) {
 		await producer.connect();
 	};
-	[repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m BEGIN " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 100), `Starting deployment..`].map((v) => publishLogs({
+
+	[repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m BEGIN " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 100)].map((v) => publishLogs({
 		DEPLOYMENT_ID, PROJECT_ID,
-		level: logValues.INFO,
+		level: logValues.DECOR,
 		message: v, stream: "system"
 	}))
+	publishLogs({
+		DEPLOYMENT_ID, PROJECT_ID,
+		level: logValues.INFO,
+		message: "Starting deployment..", stream: "system"
+	})
 	const timerStart = performance.now()
 	await publishUpdates({
 		DEPLOYMENT_ID, PROJECT_ID,
@@ -754,14 +762,14 @@ async function init() {
 		["Detected 1 framework", "Framework " + framweworkIdentified.framework + " identified",
 			repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m INSTALL " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 10)].map((v) => publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
-				level: logValues.INFO,
+				level: logValues.DECOR,
 				message: v, stream: "system"
 			}))
 		printInfoLogs();
 		["\x1b[\x1b[1m\x1b[38;2;39;199;255m Installing packages...\x1b[0m", line(36)
 		].map((v) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
-			level: logValues.INFO,
+			level: logValues.DECOR,
 			message: v, stream: "system"
 		}))
 		const installTimer = performance.now()
@@ -802,7 +810,7 @@ async function init() {
 
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
-			level: logValues.INFO,
+			level: logValues.DECOR,
 			message: repeat(" ", 25), stream: "system"
 		});
 
@@ -817,14 +825,19 @@ async function init() {
 
 		const buildTimer = performance.now();
 
-		[repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m BUILD " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150),
-		repeat(" ", 10), "Starting build", `\x1b[1m\x1b[38;2;39;199;255m ${brandName} Build...\x1b[0m`, line(36),
-		"\x1b[38;5;123m Building with command $ npm run \x1b[38;5;220m" + buildCommand + "\x1b[0m"
-		].map((v) => publishLogs({
+		[
+			{ msg: repeat(" ", 10), state: logValues.DECOR },
+			{ msg: repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m BUILD " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), state: logValues.DECOR },
+			{ msg: repeat(" ", 10), state: logValues.DECOR },
+			{ msg: "Starting build", state: logValues.INFO },
+			{ msg: `\x1b[1m\x1b[38;2;39;199;255m ${brandName} Build...\x1b[0m`, state: logValues.DECOR },
+			{ msg: line(36), state: logValues.DECOR },
+			{ msg: "\x1b[38;5;123m Building with command $ npm run \x1b[38;5;220m" + buildCommand + "\x1b[0m", state: logValues.INFO },
+		].map(({ msg, state }) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
-			level: logValues.INFO,
-			message: v, stream: "system"
-		}))
+			level: state,
+			message: msg, stream: "system"
+		}));
 		await runCommand(
 			"npm",
 			["run", ...buildCommand.split(" "), ...((settings.customBuildPath && framweworkIdentified.tool.toLowerCase() !== "cra") ? ["--", buildOptions] : [])],
@@ -855,13 +868,19 @@ async function init() {
 		console.log("done.....");
 		console.log("Post build configurations running....");
 
-		["File validation done ", "Post build configurations running....",
-			repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m UPLOAD " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 10),
-			"Starting to Uploading files...", "Validating build output files"
-		].map((v) => publishLogs({
+		[
+			{ msg: "File validation done ", state: logValues.SUCCESS },
+			{ msg: "Post build configurations running....", state: logValues.INFO },
+			{ msg: repeat(" ", 10), state: logValues.DECOR },
+			{ msg: repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m UPLOAD " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), state: logValues.DECOR },
+			{ msg: repeat(" ", 10), state: logValues.DECOR },
+			{ msg: "Starting to Uploading files...", state: logValues.INFO },
+			{ msg: "Validating build output files", state: logValues.INFO }
+
+		].map(({ msg, state }) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
-			level: logValues.INFO,
-			message: v, stream: "system"
+			level: state,
+			message: msg, stream: "system"
 		}))
 
 		const { fileStructure, totalSize } = await validateAnduploadFiles(distFolderPath)
@@ -875,11 +894,20 @@ async function init() {
 		const timerEnd = performance.now();
 		const durationMs = timerEnd - timerStart;
 
-		["Upload Complete", repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m END " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 10),].map((v) => publishLogs({
+		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
 			level: logValues.INFO,
+			message: "Upload Complete", stream: "system"
+		});
+
+		[repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m END " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150),
+		repeat(" ", 10),
+		].map((v) => publishLogs({
+			DEPLOYMENT_ID, PROJECT_ID,
+			level: logValues.DECOR,
 			message: v, stream: "system"
 		}));
+
 
 
 		["Deployment Done ...🎉", "Task done in " + durationMs.toFixed(2) + " ms🎉",
