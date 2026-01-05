@@ -101,6 +101,7 @@ export const getLevelColor = (level: string) => {
 		case 'ERROR': return 'text-red-400';
 		case 'WARN': return 'text-yellow-500';
 		case 'SUCCESS': return 'text-green-400';
+		case 'DECOR': return 'text-blue-400/90';
 		default: return 'text-gray-500';
 	}
 };

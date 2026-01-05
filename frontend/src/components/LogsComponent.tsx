@@ -102,6 +102,7 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 					log.level === "ERROR" && "border-l-2 border-l-red-500/50",
 					log.level === "SUCCESS" && "border-l-2 border-l-green-500",
 					log.level === "WARN" && "border-l-2 border-l-orange-300/50",
+					log.level === "DECOR" && "border-l-2 border-l-blue-400/50",
 					(selectedLog && selectedLog === index) && "border-y border-primary dark:bg-zinc-600 bg-zinc-300"
 				)}
 			>
@@ -161,7 +162,7 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 						{/* Filters */}
 						<div className="flex gap-2 items-center text-xs">
 							<div className="flex gap-1">
-								{['all', 'INFO', 'SUCCESS', 'WARN', 'ERROR'].map(level => (
+								{['all', 'INFO', 'SUCCESS', 'WARN', 'ERROR', 'DECOR'].map(level => (
 									<button
 										key={level}
 										onClick={() => setFilter(level)}
