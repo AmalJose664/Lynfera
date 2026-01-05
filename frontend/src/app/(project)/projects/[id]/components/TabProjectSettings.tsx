@@ -61,7 +61,7 @@ const Details = ({ project, form, branches, isUpdateMode, setIsUpdateMode }: { p
 	})
 	const { register } = form
 
-	console.log("Details  child re render")
+	// console.log("Details  child re render")
 	const changeMode = (condition: boolean) => {
 		setIsUpdateMode(condition)
 	}
@@ -185,7 +185,7 @@ const Configurations = ({ project, form, isUpdateMode, setIsUpdateMode }: { proj
 		name: ['rootDir', 'buildCommand', 'installCommand', 'outputDirectory']
 	})
 	const { register, } = form
-	console.log("configureation  child re render")
+	// console.log("configureation  child re render")
 	const changeMode = (condition: boolean) => {
 		setIsUpdateMode(condition)
 	}
@@ -307,7 +307,7 @@ const EnvVariables = ({ project, form, isUpdateMode, setIsUpdateMode }: { projec
 		name: ['env']
 	})
 	const { register, control } = form
-	console.log("Env  child re render")
+	// console.log("Env  child re render")
 
 	const { fields, append, remove } = useFieldArray({
 		name: "env",
@@ -455,7 +455,7 @@ const SaveBar = memo(({ control, handleSubmit, saveAndDeploy }: { control: any, 
 
 const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reDeploy: () => Promise<void>, setTabs: (state: string) => void }) => {
 
-	console.log("Parent re render")
+	// console.log("Parent re render")
 	const [branches, setBranches] = useState<string[] | null>(null)
 	const [isUpdateModeDetails, setIsUpdateModeDetails] = useState<boolean>(false)
 	const [isUpdateModeConf, setIsUpdateModeConf] = useState<boolean>(false)
@@ -529,9 +529,6 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 	}
 	return (
 		<div className="">
-			<h4 onClick={() => { setIsUpdateModeDetails(false), setIsUpdateModeConf(false), setIsUpdateModeEnv(false) }}>
-				Hai
-			</h4>
 			<div className="">
 				<form className="flex flex-col gap-3 p-4" noValidate onSubmit={handleSubmit(saveData)}>
 					<LoadingSpinner2 isLoading={isLoading} />
