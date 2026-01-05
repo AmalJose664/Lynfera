@@ -510,6 +510,9 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 	const saveData = async (data: ProjectUpdateFormType) => {
 		try {
 			const changed = getDirtyValues<ProjectUpdateFormType>(dirtyFields as any, data)
+			setIsUpdateModeDetails(false)
+			setIsUpdateModeConf(false)
+			setIsUpdateModeEnv(false)
 			await updateProject({ _id: project._id, ...changed }).unwrap()
 			toast.success("Settings saved!")
 			form.reset(data)
