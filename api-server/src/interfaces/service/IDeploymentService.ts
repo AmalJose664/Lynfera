@@ -28,6 +28,7 @@ export interface IDeploymentService {
 
 	deleteDeployment(projectId: string, deploymentId: string, userId: string): Promise<number>;
 
+
 	__getDeploymentById(id: string): Promise<IDeployment | null>;
 	__updateDeployment(projectId: string, deploymentId: string, updateData: Partial<IDeployment>): Promise<IDeployment | null>;
 

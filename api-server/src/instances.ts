@@ -34,11 +34,11 @@ export const analyticsRepo = new AnalyticsRepo(client);
 export const redisCacheService = new RedisService(redisClient)
 
 
-export const projectService = new ProjectService(projectRepo, userRepo, projectBandwidthRepo, deploymentRepo, redisCacheService);
 export const logsService = new LogsService(logRepo, deploymentRepo);
+export const projectService = new ProjectService(projectRepo, userRepo, projectBandwidthRepo, deploymentRepo, logsService, redisCacheService);
 export const analyticsService = new AnalyticsService(analyticsRepo, projectBandwidthRepo);
 export const userService = new UserService(userRepo, projectService);
-export const deploymentService = new DeploymentService(deploymentRepo, projectRepo, userService, redisCacheService);
+export const deploymentService = new DeploymentService(deploymentRepo, projectRepo, userService, logsService, redisCacheService);
 export const paymentService = new PaymentService(userRepo);
 
 export const projectController = new ProjectController(projectService);

@@ -21,5 +21,7 @@ export interface ILogsService {
 		page: number;
 		limit: number;
 	}>;
+	deleteProjectLogs(projectId: string): Promise<void>
+	deleteDeploymentLogs(deploymentId: string): Promise<void>
 	__insertLog(log: string, projectId: string, deploymentId: string, reportTime: Date, info: string): Promise<void>;
 }

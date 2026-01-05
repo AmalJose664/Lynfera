@@ -13,12 +13,14 @@ import { IProjectBandwidthRepository } from "../interfaces/repository/IProjectBa
 import { IDeploymentRepository } from "../interfaces/repository/IDeploymentRepository.js";
 import { DeploymentStatus, IDeployment } from "../models/Deployment.js";
 import { IRedisCache } from "../interfaces/cache/IRedisCache.js";
+import { ILogsService } from "../interfaces/service/ILogsService.js";
 
 
 class ProjectService implements IProjectService {
 	private projectRepository: IProjectRepository;
 	private deploymentRepository: IDeploymentRepository;
 	private userRepository: IUserRepository;
+	private logsService: ILogsService;
 	private projectBandwidthRepo: IProjectBandwidthRepository;
 	private cacheInvalidator: IRedisCache
 
@@ -27,12 +29,14 @@ class ProjectService implements IProjectService {
 		userRepo: IUserRepository,
 		projectBandwidthRepo: IProjectBandwidthRepository,
 		deploymentRepo: IDeploymentRepository,
+		logsService: ILogsService,
 		cacheInvalidator: IRedisCache
 	) {
 		this.projectRepository = projectRepo;
 		this.userRepository = userRepo;
 		this.projectBandwidthRepo = projectBandwidthRepo;
 		this.deploymentRepository = deploymentRepo;
+		this.logsService = logsService
 		this.cacheInvalidator = cacheInvalidator
 	}
 	async createProject(dto: CreateProjectDTO, userId: string): Promise<IProject | null> {
@@ -164,6 +168,7 @@ class ProjectService implements IProjectService {
 			return false;
 		}
 		await this.userRepository.decrementProjects(userId);
+		await this.logsService.deleteProjectLogs(projectId);
 		await this.cacheInvalidator.publishInvalidation("project", result.subdomain)
 		return true;
 	}

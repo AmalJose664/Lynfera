@@ -55,6 +55,12 @@ class LogsService implements ILogsService {
 			limit: limit || 100,
 		};
 	}
+	async deleteProjectLogs(projectId: string): Promise<void> {
+		return this.deleteProjectLogs(projectId)
+	}
+	async deleteDeploymentLogs(deploymentId: string): Promise<void> {
+		return this.deleteProjectLogs(deploymentId)
+	}
 
 	async __insertLog(log: string, projectId: string, deploymentId: string, reportTime: Date, info: string, sequence?: number): Promise<void> {
 		await this.logsRepository.__insertLogs({ deploymentId, log, projectId, reportTime, info, sequence });

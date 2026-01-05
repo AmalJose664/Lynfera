@@ -16,6 +16,7 @@ import { IUserSerivce } from "../interfaces/service/IUserService.js";
 import { dispatchBuild } from "../utils/dispatchBuild.js";
 import { IRedisCache } from "../interfaces/cache/IRedisCache.js";
 import { spawn } from "child_process";
+import { ILogsService } from "../interfaces/service/ILogsService.js";
 
 
 class DeploymentService implements IDeploymentService {
@@ -27,12 +28,17 @@ class DeploymentService implements IDeploymentService {
 	private MAX_CONCURRENT_RUNNABLE_DPYMNTS = 20;
 	private DEPLOYMENTS_SET_KEY = "deployments:running"
 	private redisCache: IRedisCache
+	private logsService: ILogsService;
 
-
-	constructor(deploymentRepo: IDeploymentRepository, projectRepo: IProjectRepository, userService: IUserSerivce, redisCache: IRedisCache) {
+	constructor(deploymentRepo: IDeploymentRepository,
+		projectRepo: IProjectRepository,
+		userService: IUserSerivce,
+		logsService: ILogsService,
+		redisCache: IRedisCache) {
 		this.deploymentRepository = deploymentRepo;
 		this.projectRepository = projectRepo;
 		this.userService = userService;
+		this.logsService = logsService
 		this.redisCache = redisCache
 	}
 	async newDeployment(deploymentData: Partial<IDeployment>, userId: string, projectId: string): Promise<IDeployment | null> {
@@ -147,11 +153,11 @@ class DeploymentService implements IDeploymentService {
 			),
 			this.deploymentRepository.deleteDeployment(projectId, deploymentId, userId),
 			this.deleteCloud(deploymentId, project._id),
+			this.logsService.deleteDeploymentLogs(deploymentId),
 			...(project.status !== nextStatus ? [this.projectRepository.__updateProject(project._id, { status: (nextStatus as ProjectStatus) })] : [])
 		]);
 		return deleteResult;
 	}
-
 
 
 	async deployLocal(deploymentId: string, projectId: string): Promise<void> {

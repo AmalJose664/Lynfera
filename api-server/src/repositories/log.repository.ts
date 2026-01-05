@@ -37,6 +37,22 @@ class LogRepository implements ILogRepository {
 		return await result.json();
 	}
 
+	async deleteProjectLogs(projectId: string): Promise<void> {
+		await this.client.command({
+			query: "DELETE FROM log_events WHERE project_id={project_id:String}",
+			query_params: {
+				project_id: projectId
+			}
+		})
+	}
+	async deletedeploymentLogs(deploymentId: string): Promise<void> {
+		await this.client.command({
+			query: "DELETE FROM log_events WHERE deployment_id={deployment_id:String}",
+			query_params: {
+				deployment_id: deploymentId
+			}
+		})
+	}
 	async __insertLogs(data: LogModel): Promise<void> {
 		await this.client.insert({
 			table: "log_events",
