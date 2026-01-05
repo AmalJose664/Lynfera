@@ -13,7 +13,8 @@ export const DeploymentLogEventSchema = z.object({
 			level: z.string(),
 			message: z.string(),
 			timestamp: z.iso.datetime(),
-			stream: z.string(),
+			sequence: z.number().optional(), // for precise ordering of logs. timestamp alone is not accurate
+			stream: z.string().optional(),
 		}),
 	}),
 });

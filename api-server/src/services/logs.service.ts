@@ -56,8 +56,8 @@ class LogsService implements ILogsService {
 		};
 	}
 
-	async __insertLog(log: string, projectId: string, deploymentId: string, reportTime: Date, info: string): Promise<void> {
-		await this.logsRepository.__insertLogs({ deploymentId, log, projectId, reportTime, info });
+	async __insertLog(log: string, projectId: string, deploymentId: string, reportTime: Date, info: string, sequence?: number): Promise<void> {
+		await this.logsRepository.__insertLogs({ deploymentId, log, projectId, reportTime, info, sequence });
 	}
 }
 

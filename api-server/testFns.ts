@@ -42,8 +42,8 @@ async function mongodbData() {
 
 		const p = new P_repo();
 		const de = new D_repo();
-		console.log(await Deployment.deleteMany())
-		console.log(await Project.updateMany({}, {
+		console.log(await Deployment.deleteMany({ _id: "695828871a97ebc666b87ec7" }))
+		console.log(await Project.updateMany({ _id: "6934502adfa2d8c1c254aabc" }, {
 			status: "NOT_STARTED", deployments: [],
 			lastDeployment: null,
 			tempDeployment: null,
@@ -69,7 +69,7 @@ async function mongodbData() {
 		process.exit(0);
 	}
 }
-// mongodbData();
+mongodbData();
 
 async function commitAllMessages() {
 	const kafka = new Kafka({
@@ -151,4 +151,4 @@ async function getClickhouseData() {
 	// 	query: "TRUNCATE analytics"
 	// })
 }
-getClickhouseData().then(() => process.exit(0))
+// getClickhouseData().then(() => process.exit(0))

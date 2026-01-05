@@ -6,6 +6,7 @@ export interface LogModel {
 	deploymentId: string;
 	projectId: string;
 	reportTime: Date;
+	sequence?: number;
 }
 export interface ILogRepository {
 	getProjectLogs(deploymentId: string, page: number, limit: number): Promise<ResponseJSON<unknown>>;

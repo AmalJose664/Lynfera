@@ -21,8 +21,8 @@ export interface ILogs {
 	project_id String,
 	log String,
 	info String,
+	sequence Int16,
 	report_time DateTime64(3, 'UTC'),
-	metadata Nullable(String)
 )
 ENGINE = MergeTree
 ORDER BY (report_time, project_id)

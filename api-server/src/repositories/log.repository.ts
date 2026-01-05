@@ -26,7 +26,7 @@ class LogRepository implements ILogRepository {
 	async getLogs(deploymentId: string, page: number = 1, limit: number = 100): Promise<ResponseJSON<unknown>> {
 		const offset = (page - 1) * limit;
 		const result = await this.client.query({
-			query: `SELECT *, toTimeZone(report_time, 'Asia/Kolkata') as report_time FROM log_events WHERE deployment_id={deployment_id:String} ORDER BY "report_time" ASC`,
+			query: `SELECT *, toTimeZone(report_time, 'Asia/Kolkata') as report_time FROM log_events WHERE deployment_id={deployment_id:String} ORDER BY report_time ASC, sequence ASC`,
 			query_params: {
 				deployment_id: deploymentId,
 				limit,
@@ -48,6 +48,7 @@ class LogRepository implements ILogRepository {
 					project_id: data.projectId,
 					log: data.log,
 					report_time: data.reportTime.getTime(),
+					sequence: data.sequence
 				},
 			],
 			format: "JSONEachRow",

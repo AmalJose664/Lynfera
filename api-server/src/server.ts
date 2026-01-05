@@ -8,7 +8,7 @@ const startServer = async () => {
 	console.log("starting.....");
 	validateEnv();
 	httpServer.listen(PORT, () => console.log(`🎉🎉 Server running on port ${PORT}`));
-	await startKafkaConsumer()
+	// await startKafkaConsumer()
 };
 
 // remove test routes, at logs routes, deployment routes

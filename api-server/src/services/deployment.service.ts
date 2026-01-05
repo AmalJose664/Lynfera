@@ -15,6 +15,7 @@ import getNessesaryEnvs from "../utils/getNessesaryEnvs.js";
 import { IUserSerivce } from "../interfaces/service/IUserService.js";
 import { dispatchBuild } from "../utils/dispatchBuild.js";
 import { IRedisCache } from "../interfaces/cache/IRedisCache.js";
+import { spawn } from "child_process";
 
 
 class DeploymentService implements IDeploymentService {
@@ -124,22 +125,29 @@ class DeploymentService implements IDeploymentService {
 		if (project.currentDeployment === deploymentId) {
 			const allDeployments = await this.deploymentRepository.__findAllProjectDeployment(projectId, "createdAt");
 			const currentIndex = allDeployments.findIndex((d) => d._id.toString() === deploymentId);
-			console.log(allDeployments, "<<<<", currentIndex);
+			// console.log(allDeployments, "<<<<", currentIndex);
 
 			if (currentIndex > 0) {
-				newCurrentDeployment = allDeployments[currentIndex - 1]._id;
+				newCurrentDeployment = allDeployments[currentIndex - 1];
 			}
 		}
 
-		await this.deleteCloud(deploymentId, project._id);
+		const nextStatus = newCurrentDeployment
+			? newCurrentDeployment.status
+			: deploymentId === project.currentDeployment
+				? ProjectStatus.NOT_STARTED
+				: project.status;
+
 		const [_, deleteResult] = await Promise.all([
 			this.projectRepository.pullDeployments(
 				projectId,
 				userId,
 				deploymentId,
-				newCurrentDeployment ? newCurrentDeployment : deploymentId === project.currentDeployment ? null : project.currentDeployment,
+				newCurrentDeployment ? newCurrentDeployment._id : deploymentId === project.currentDeployment ? null : project.currentDeployment,
 			),
 			this.deploymentRepository.deleteDeployment(projectId, deploymentId, userId),
+			this.deleteCloud(deploymentId, project._id),
+			...(project.status !== nextStatus ? [this.projectRepository.__updateProject(project._id, { status: (nextStatus as ProjectStatus) })] : [])
 		]);
 		return deleteResult;
 	}
@@ -149,6 +157,29 @@ class DeploymentService implements IDeploymentService {
 	async deployLocal(deploymentId: string, projectId: string): Promise<void> {
 		try {
 			const envs = getNessesaryEnvs();
+			// const command = spawn("node", ["script.js"], {
+			// 	cwd: "../build-server/",
+			// 	env: {
+			// 		...process.env,
+			// 		DEPLOYMENT_ID: deploymentId,
+			// 		PROJECT_ID: projectId,
+			// 	},
+
+			// })
+			// command.stdout?.on("data", (data) => {
+			// 	console.log(`[stdout]: -----data-----from----deployLocal`);
+			// });
+			// command.stderr?.on("data", (data) => {
+			// 	console.error(`[stderr]: ${data.toString().trim()}`);
+			// });
+			// command.on("exit", (code) => {
+			// 	console.log(`Process exited with code ${code}`);
+			// });
+
+			// command.on("error", (err) => {
+			// 	console.error("Failed to start process:", err);
+			// });
+			// return
 			const result = await dispatchBuild(deploymentId, projectId)
 			console.log(result, " - - - ")
 

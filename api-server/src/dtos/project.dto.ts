@@ -23,7 +23,7 @@ export const CreateProjectSchema = z.object({
 	repoURL: z
 		.string()
 		.regex(/^(?:https?:\/\/(?:www\.)?github\.com\/)?[\w-]+\/[\w.-]+\/?$/, "Invalid repository format (expected: owner/repo or full GitHub URL)"),
-	branch: z.string().optional().default("main"),
+	branch: z.string().min(1, "Branch cannot be empty").default("main").optional(),
 	buildCommand: z
 		.string()
 		.regex(/^[a-zA-Z0-9_\-./ ]+$/, "Build command contains invalid characters")
