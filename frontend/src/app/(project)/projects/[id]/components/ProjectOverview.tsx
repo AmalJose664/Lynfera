@@ -34,6 +34,7 @@ const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeplo
 		&& deployment
 		&& (deployment.status === ProjectStatus.CANCELED
 			|| deployment?.status === ProjectStatus.FAILED)
+	const isProjectProgress = project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED
 	const repoValues = parseGitHubRepo(project.repoURL)
 	const projectLink = `${window.location.protocol}//${project.subdomain}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`
 	return (
@@ -69,16 +70,14 @@ const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeplo
 												<div className="mt-1  flex items-center gap-2">
 													<StatusIcon status={deployment?.status || project.status} />
 													<p className={`text-sm font-bold rounded-xs px-1 border ${getStatusColor(deployment?.status || project.status)}`}>{deployment?.status || project.status}</p>
-													{(project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED) &&
-														<AnimationBuild />
-													}
+													<AnimationBuild />
 												</div>
 											</div>
 										) :
 											<div className="mt-1  flex items-center gap-2">
 												<StatusIcon status={deployment?.status || project.status} />
 												<p className={`text-sm font-bold rounded-xs px-1 border ${getStatusColor(deployment?.status || project.status)}`}>{deployment?.status || project.status}</p>
-												{(project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED) &&
+												{(isProjectProgress) &&
 													<AnimationBuild />
 												}
 											</div>

@@ -5,11 +5,13 @@ import ProjectDeploymentBox from "./ProjectDeploymentBox"
 import ProjectSimpleStats from "./ProjectSimpleStats"
 import NoDeployment from "./NoDeployment"
 import { Logs } from "@/components/LogsComponent"
-import { Project } from "@/types/Project"
+import { Project, ProjectStatus } from "@/types/Project"
 import { Deployment } from "@/types/Deployment"
 import { IoRocketOutline } from "react-icons/io5"
 import { Suspense } from "react"
 import { LoadingSpinner2 } from "@/components/LoadingSpinner"
+import StatusIcon, { AnimationBuild } from "@/components/ui/StatusIcon"
+import { getStatusColor } from "@/lib/moreUtils/combined"
 
 interface TabProjectProps {
 	project: Project
@@ -33,8 +35,7 @@ interface TabProjectProps {
 const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchLogs }: TabProjectProps) => {
 	const { lastDeployment, deployment, tempDeployment, onCreateDeployment } = deploymentCtx
 	const { setShowBuild, showBuild } = build
-
-
+	const isProjectProgress = project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED
 
 
 	return (
@@ -65,6 +66,14 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 						onClick={() => setShowBuild(!showBuild)}
 					>
 						<span className="flex flex-row-reverse gap-2 items-center justify-end text-primary">
+							{isProjectProgress || tempDeployment && <>
+								<AnimationBuild />
+								<div className="ml-4 flex items-center gap-2">
+									<StatusIcon status={deployment?.status || project.status} />
+									<p className={`text-sm font-bold rounded-xs px-1 border ${getStatusColor(deployment?.status || project.status)}`}>{deployment?.status || project.status}</p>
+								</div>
+							</>
+							}
 							<span className="text-xs mt-2">
 								{`( ${deployment?._id ? "Current Deployment" : lastDeployment?._id ? "Last Deployment" : ""}  )`}
 							</span>

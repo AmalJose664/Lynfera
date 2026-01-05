@@ -6,7 +6,7 @@ import { FaPlus } from "react-icons/fa";
 import { Input } from "@/components/ui/input"
 import { Project, ProjectFormInput } from "@/types/Project"
 import { User } from "@/types/User"
-import { JSX, memo, useEffect, useMemo, useState } from "react"
+import React, { JSX, memo, useEffect, useMemo, useState } from "react"
 
 import DisableProject from "@/components/modals/DisableProject";
 import { DeleteProjectDialog } from "@/components/modals/DeleteProject";
@@ -54,15 +54,14 @@ const DetailRow = ({ label = "", value = "", isLink = false }: { label?: string,
 );
 
 
-const Details = ({ project, form, branches, }: { project: Project, form: UseFormReturn<ProjectUpdateFormType>, branches: string[] | null }) => {
+const Details = ({ project, form, branches, isUpdateMode, setIsUpdateMode }: { project: Project, form: UseFormReturn<ProjectUpdateFormType>, isUpdateMode: boolean, setIsUpdateMode: React.Dispatch<React.SetStateAction<boolean>>, branches: string[] | null }) => {
 	const { errors } = useFormState({
 		control: form.control,
 		name: ['name', 'branch']
 	})
 	const { register } = form
 
-	const [isUpdateMode, setIsUpdateMode] = useState(false)
-
+	console.log("Details  child re render")
 	const changeMode = (condition: boolean) => {
 		setIsUpdateMode(condition)
 	}
@@ -180,14 +179,13 @@ const Details = ({ project, form, branches, }: { project: Project, form: UseForm
 	)
 }
 
-const Configurations = ({ project, form }: { project: Project, form: UseFormReturn<ProjectUpdateFormType>, }) => {
+const Configurations = ({ project, form, isUpdateMode, setIsUpdateMode }: { project: Project, form: UseFormReturn<ProjectUpdateFormType>, isUpdateMode: boolean, setIsUpdateMode: React.Dispatch<React.SetStateAction<boolean>> }) => {
 	const { errors } = useFormState({
 		control: form.control,
 		name: ['rootDir', 'buildCommand', 'installCommand', 'outputDirectory']
 	})
 	const { register, } = form
-	const [isUpdateMode, setIsUpdateMode] = useState(false)
-
+	console.log("configureation  child re render")
 	const changeMode = (condition: boolean) => {
 		setIsUpdateMode(condition)
 	}
@@ -303,14 +301,13 @@ const Configurations = ({ project, form }: { project: Project, form: UseFormRetu
 	)
 }
 
-const EnvVariables = ({ project, form }: { project: Project, form: UseFormReturn<ProjectUpdateFormType>, }) => {
+const EnvVariables = ({ project, form, isUpdateMode, setIsUpdateMode }: { project: Project, form: UseFormReturn<ProjectUpdateFormType>, isUpdateMode: boolean, setIsUpdateMode: React.Dispatch<React.SetStateAction<boolean>> }) => {
 	const { errors } = useFormState({
 		control: form.control,
 		name: ['env']
 	})
 	const { register, control } = form
-
-	const [isUpdateMode, setIsUpdateMode] = useState(false)
+	console.log("Env  child re render")
 
 	const { fields, append, remove } = useFieldArray({
 		name: "env",
@@ -458,7 +455,11 @@ const SaveBar = memo(({ control, handleSubmit, saveAndDeploy }: { control: any, 
 
 const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reDeploy: () => Promise<void>, setTabs: (state: string) => void }) => {
 
+	console.log("Parent re render")
 	const [branches, setBranches] = useState<string[] | null>(null)
+	const [isUpdateModeDetails, setIsUpdateModeDetails] = useState<boolean>(false)
+	const [isUpdateModeConf, setIsUpdateModeConf] = useState<boolean>(false)
+	const [isUpdateModeEnv, setIsUpdateModeEnv] = useState<boolean>(false)
 	useEffect(() => {
 		getBranches(project.repoURL, setBranches)
 	}, [project.repoURL])
@@ -525,13 +526,17 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 	}
 	return (
 		<div className="">
+			<h4 onClick={() => { setIsUpdateModeDetails(false), setIsUpdateModeConf(false), setIsUpdateModeEnv(false) }}>
+				Hai
+			</h4>
 			<div className="">
 				<form className="flex flex-col gap-3 p-4" noValidate onSubmit={handleSubmit(saveData)}>
 					<LoadingSpinner2 isLoading={isLoading} />
 					<SaveBar control={form.control} handleSubmit={handleSubmit} saveAndDeploy={saveAndDeploy} />
-					<Details project={project} form={form} branches={branches} />
-					<Configurations project={project} form={form} />
-					<EnvVariables project={project} form={form} />
+
+					<Details project={project} form={form} branches={branches} isUpdateMode={isUpdateModeDetails} setIsUpdateMode={setIsUpdateModeDetails} />
+					<Configurations project={project} form={form} isUpdateMode={isUpdateModeConf} setIsUpdateMode={setIsUpdateModeConf} />
+					<EnvVariables project={project} form={form} isUpdateMode={isUpdateModeEnv} setIsUpdateMode={setIsUpdateModeEnv} />
 
 					<div
 						id="subdomain"

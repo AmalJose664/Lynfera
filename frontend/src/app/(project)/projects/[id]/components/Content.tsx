@@ -19,6 +19,7 @@ import OptionsComponent from "@/components/OptionsComponent"
 import { IoCloudUpload, IoTrashOutline } from "react-icons/io5"
 import { GrStatusDisabled } from "react-icons/gr"
 import NewDeploymentConfirmBox from "@/components/modals/NewDeploymentConfirmBox"
+import { useRouter, useSearchParams } from "next/navigation"
 
 
 interface ProjectContentProps {
@@ -61,6 +62,8 @@ export function ProjectContent({
 			scrollRef.current?.scrollIntoView({ behavior: "smooth" })
 		}, 600)
 	}, [])
+	const router = useRouter()
+	const searchParams = useSearchParams()
 	useEffect(() => {
 		return () => {
 			if (timerRef.current) {
@@ -68,6 +71,12 @@ export function ProjectContent({
 			}
 		}
 	}, [])
+	const onTabChange = (value: string) => {
+		const params = new URLSearchParams(searchParams.toString())
+		params.set("tab", value)
+		setTabs(value)
+		router.push(`?${params.toString()}`, { scroll: false })
+	}
 	console.log("------------project-------------", (project?.deployments?.length === 0 && !project.currentDeployment))
 	return (
 		<div className="min-h-screen">
@@ -81,7 +90,7 @@ export function ProjectContent({
 				}}
 				setTabs={setTabs}
 			/>
-			<Tabs defaultValue="overview" value={tab} onValueChange={setTabs} className="w-full">
+			<Tabs defaultValue="overview" value={tab} onValueChange={onTabChange} className="w-full">
 				<header className="border-b dark:border-neutral-800 border-neutral-200 ">
 					<div className="max-w-[1420px] mx-auto px-6 py-4">
 						<div className="flex items-center justify-between">
