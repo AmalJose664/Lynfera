@@ -75,7 +75,7 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 		return await Project.findOneAndUpdate({ _id: projectId, user: userId, isDeleted: false }, { isDeleted: true }, { new: true });
 	}
 	async updateProject(projectId: string, userId: string, updateData: Partial<IProject>): Promise<IProject | null> {
-		return await Project.findOneAndUpdate({ _id: projectId, user: userId }, { $set: { ...updateData } }, { new: true, select: "name _id" });
+		return await Project.findOneAndUpdate({ _id: projectId, user: userId }, { $set: { ...updateData } }, { new: true, select: "name _id subdomain" });
 	}
 
 	async pushToDeployments(projectId: string, userId: string, newDeployment: string | Types.ObjectId): Promise<IProject | null> {
