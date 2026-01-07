@@ -1,10 +1,10 @@
 import Link from "next/link";
 import ThemeSwitcher from "./ThemeIcon";
-import { GoBell } from "react-icons/go";
 import { cn } from "@/lib/utils";
 import { IoIosCube, IoMdCloudDone } from "react-icons/io";
 import NavbarUser from "./NavbarUser";
 import TitleWithLogo from "./TitleWithLogo";
+import ActivityPanel from "./ActivityPanel";
 
 export default function Navbar({ className, showOtherLinks }: { className: string, showOtherLinks?: boolean }) {
 
@@ -76,13 +76,7 @@ export default function Navbar({ className, showOtherLinks }: { className: strin
 						</Link>
 					</li>
 				</ul>
-				<button
-					aria-label="Notifications"
-					className="relative p-2 rounded-full dark:hover:bg-gray-100 hover:bg-gray-400 border-1 dark:border-gray-800 border-gray-500 dark:text-gray-200 text-gray-800 hover:text-gray-200 dark:hover:text-gray-800 duration-200"
-				>
-					<GoBell className="" />
-					{/* <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-blue-500"></span> */}
-				</button>
+				<ActivityPanel />
 				<ThemeSwitcher className="rounded-full" />
 
 				<NavbarUser />
