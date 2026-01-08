@@ -100,81 +100,88 @@ const AllDeployments = ({ projectId, currentDeployment, repoURL, setTab }: AllDe
 				)}
 
 			</div>
-			{filteredDeployments?.length !== 0 && filteredDeployments.map((deployment) => {
-				return (
-					<div key={deployment._id} className="divide-y dark:bg-neutral-900 bg-white divide-gray-800 border mb-3 dark:border-neutral-800 border-neutral-300 rounded-md">
-						<Link
-							href={"/deployments/" + deployment._id}
-							className="hover:no-underline px-3 py-2 flex flex-col sm:flex-row gap-2 sm:gap-4 justify-between items-start sm:items-center dark:hover:bg-zinc-800/50 hover:bg-neutral-300 transition-colors"
-						>
-							<div className="flex-col flex gap-2 items-center flex-wrap">
-								<div className="text-xs flex gap-2 items-center flex-wrap">
-									<StatusIcon status={deployment.status} />
-									<span className="text-primary break-all">
-										{deployment._id}
-									</span>
-								</div>
-								{currentDeployment === deployment._id && (
-									<span className="py-1 px-2 border border-blue-500 rounded-full text-xs text-blue-400">
-										current
-									</span>
-								)}
-							</div>
-							<div className="pt-1 flex gap-2 items-center text-sm">
 
-								<span
-									className={`text-xs flex flex-col font-medium px-2 py-1 rounded ${getStatusColor(
-										deployment.status
-									)}`}
-								>
-									{deployment.status}
-									<span className="flex gap-2 items-center">
-										<MdAccessTime size={12} />
-										<span>{timeToSeconds(deployment.performance.totalDuration)}</span>
-									</span>
+			{filteredDeployments.length !== 0 && (
+				<div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-less rounded-md border dark:border-neutral-800 border-neutral-200 bg-neutral-50 dark:bg-neutral-900/50">
+					<div className="col-span-2">Status</div>
+					<div className="col-span-2">Project</div>
+					<div className="col-span-3">Identifier Slug</div>
+					<div className="col-span-2">Commit</div>
+					<div className="col-span-1 text-center">branch</div>
+					<div className="col-span-2 text-right">Actions</div>
+				</div>
+			)}
+
+			{filteredDeployments?.length !== 0 && filteredDeployments.map((deployment) => (
+				<div key={deployment._id} className="group border-b last:border-none divide-y rounded-md dark:bg-neutral-900 mt-2 bg-white divide-gray-800 border-neutral-200 dark:border-neutral-800 hover:bg-blue-50/30 dark:hover:bg-neutral-800/30 transition-colors">
+					<Link
+						href={"/deployments/" + deployment._id}
+						className="grid grid-cols-4 md:grid-cols-11 gap-2 md:gap-4 items-center px-4 py-3 hover:no-underline"
+					>
+						<div className="md:col-span-2 flex items-center gap-2">
+							<StatusIcon status={deployment.status} />
+							<span className="text-xs font-medium">{deployment.status}</span>
+						</div>
+						<div className="md:col-span-2 flex flex-col min-w-0">
+							<span className="text-sm truncate text-primary">
+								{(deployment.project as Project).name}
+							</span>
+							<span className="text-[10px] text-neutral-500 font-mono truncate">
+								{deployment._id}
+							</span>
+							{currentDeployment === deployment._id && (
+								<span className="py-1 px-2 border w-fit border-blue-500 rounded-full text-[10px] mt-2 text-blue-400">
+									current
 								</span>
-							</div>
-							<div className="w-full sm:w-auto">
-								<p className="text-sm">{(deployment.project as Project).name}</p>
-							</div>
-							<div className="flex gap-2 flex-col w-full sm:w-auto">
-								<div className="text-sm text-primary mb-1 max-w-full sm:max-w-[80px] overflow-hidden text-ellipsis whitespace-nowrap">
-									{deployment.commit.id}
-								</div>
-								<div className="text-sm text-primary mb-1 wrap-break-word">{deployment.commit.msg}</div>
-							</div>
-							<div className="flex items-center gap-4 text-xs text-gray-400">
-								<div className="flex items-center text-xs gap-1.5">
-									<IoMdGitBranch size={12} />
-									<div>{(deployment.project as Project).branch}</div>
-								</div>
-							</div>
-							<div onClick={(e) => e.stopPropagation()}>
-								<OptionsComponent parentClassName="" options={[
-									{
-										title: "Promote Deployment",
-										actionFn: () => setSelectedDeploymentId(deployment._id),
-										className: "",
-										isDisabled: deployment.status != ProjectStatus.READY
-											|| deployment._id === currentDeployment,
-										Svg: BsArrowUpCircle
-									},
-									{
-										title: "Inspect",
-										actionFn: () => router.push("/deployments/" + deployment._id),
-										className: "",
-									},
-									{
-										title: "View Files",
-										actionFn: () => router.push("/deployments/" + deployment._id + "#files"),
-										className: "",
-									},
-								]} />
-							</div>
-						</Link>
-					</div>
-				)
-			})}
+							)}
+						</div>
+
+
+						<div className="hidden md:flex md:col-span-2 flex-col min-w-0">
+							<span className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-1">
+								{deployment.identifierSlug}
+							</span>
+						</div>
+
+						<div className="md:col-span-2 flex flex-col md:items-center gap-2 overflow-hidden">
+							<code className="text-[10px] w-fit font-mono bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-blue-600">
+								{deployment.commit.id.substring(0, 7)}
+							</code>
+							<span className="text-xs text-neutral-500 truncate">{deployment.commit.msg}</span>
+						</div>
+
+						<div className=" hidden md:flex md:col-span-1 text-center items-center md:justify-center gap-1 text-xs text-neutral-500">
+							<IoMdGitBranch size={12} />
+							<div>{(deployment.project as Project).branch}</div>
+						</div>
+
+						<div className="md:col-span-2 flex justify-end" onClick={(e) => e.stopPropagation()}>
+							<OptionsComponent parentClassName="" options={[
+								{
+									title: "Promote Deployment",
+									actionFn: () => setSelectedDeploymentId(deployment._id),
+									className: "",
+									isDisabled: deployment.status != ProjectStatus.READY
+										|| deployment._id === currentDeployment,
+									Svg: BsArrowUpCircle
+								},
+								{
+									title: "Inspect",
+									actionFn: () => router.push("/deployments/" + deployment._id),
+									className: "",
+								},
+								{
+									title: "View Files",
+									actionFn: () => router.push("/deployments/" + deployment._id + "#files"),
+									className: "",
+								},
+							]} />
+						</div>
+
+					</Link>
+				</div>
+			))}
+
 			{meta?.totalPages > 1 && <PaginationComponent page={page} setPage={setPage} totalPages={totalPages} />}
 			{((deployments?.length === 0 || !deployments) && !isLoading) && (
 				<div>

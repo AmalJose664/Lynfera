@@ -127,7 +127,7 @@ function DocsPage() {
 							</p>
 							<Link target="_blank" href={'https://hub.docker.com/r/amal664/lynfera-builds'}
 								className="underline text-less leading-relaxed">
-								View Container
+								View Container Image
 							</Link>
 						</div>
 					</div>

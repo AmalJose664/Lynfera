@@ -17,6 +17,7 @@ import { dispatchBuild } from "../utils/dispatchBuild.js";
 import { IRedisCache } from "../interfaces/cache/IRedisCache.js";
 import { spawn } from "child_process";
 import { ILogsService } from "../interfaces/service/ILogsService.js";
+import { generateSlug } from "random-word-slugs";
 
 
 class DeploymentService implements IDeploymentService {
@@ -64,7 +65,7 @@ class DeploymentService implements IDeploymentService {
 		deploymentData.status = DeploymentStatus.QUEUED;
 		deploymentData.overWrite = false;
 		deploymentData.commit_hash = "------||------";
-		deploymentData.s3Path = correspondindProject._id.toString();
+		deploymentData.identifierSlug = generateSlug(3);
 		deploymentData.project = new Types.ObjectId(correspondindProject._id);
 		deploymentData.user = correspondindProject.user;
 		await this.incrementRunningDeplymnts(correspondindProject._id)
@@ -93,7 +94,7 @@ class DeploymentService implements IDeploymentService {
 	async getDeploymentFiles(id: string, userId: string, includes?: string): Promise<IDeployment | null> {
 		return await this.deploymentRepository.findDeploymentById(id, userId, {
 			exclude: [
-				"commit_hash", "overWrite", "s3Path", "error_message", "updatedAt",
+				"commit_hash", "overWrite", "identifierSlug", "error_message", "updatedAt",
 				"install_ms", "build_ms", "duration_ms", "status", "user", "project"
 			]
 		});

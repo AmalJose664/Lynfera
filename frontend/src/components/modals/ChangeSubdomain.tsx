@@ -21,6 +21,7 @@ import axiosInstance from "@/lib/axios"
 import { cn } from "@/lib/utils"
 import { IoClose } from "react-icons/io5"
 import { IoMdCheckmark } from "react-icons/io"
+import Copybtn from "../Copybtn"
 
 export function ChangeProjectSubdomainDialog({ projectName, projectId, currentSubdomain }: { projectName: string, projectId: string, currentSubdomain: string }) {
 	const [confirmText, setConfirmText] = useState("")
@@ -82,9 +83,10 @@ export function ChangeProjectSubdomainDialog({ projectName, projectId, currentSu
 					<DialogTitle>Update Project</DialogTitle>
 					<DialogDescription>
 						To confirm, type the project name and new subdomain slug below:
-						<br />
-						{projectName}
 					</DialogDescription>
+					<div className="flex items-center gap-3 text-sm">
+						{projectName} <Copybtn value={projectName} />
+					</div>
 				</DialogHeader>
 
 				<div className="py-4 space-y-4">
@@ -101,7 +103,7 @@ export function ChangeProjectSubdomainDialog({ projectName, projectId, currentSu
 					</div>
 					<div >
 						<label htmlFor="">
-							Slug
+							New Slug <span className="text-sm"> (subdomain)</span>
 						</label>
 						<div className="relative">
 							<Input
@@ -123,13 +125,13 @@ export function ChangeProjectSubdomainDialog({ projectName, projectId, currentSu
 					</div>
 				</div>
 
-				<DialogFooter>
+				<DialogFooter className="flex flex-row items-center gap-2 w-full">
 					<DialogClose asChild>
-						<Button ref={ref} variant="outline">Cancel</Button>
+						<Button ref={ref} variant="outline" className="flex-1 sm:flex-none sm:min-w-24">Cancel</Button>
 					</DialogClose>
 
 					<Button variant={"outline"}
-						className="text-primary border text-sm px-3 py-1 rounded-md bg-background hover:bg-red-50 dark:hover:bg-[#1a1a1a] min-w-20"
+						className="flex-1 sm:flex-none sm:min-w-24 text-primary border text-sm px-3 py-1 rounded-md bg-background hover:bg-red-50 dark:hover:bg-[#1a1a1a] min-w-20"
 						disabled={confirmText !== projectName || data.isLoading}
 						onClick={handleUpdate}
 					>

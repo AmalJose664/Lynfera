@@ -14,7 +14,7 @@ export interface Deployment {
 	}
 	overWrite: boolean;
 	completedAt: Date;
-	s3Path: string;
+	identifierSlug: string;
 	errorMessage?: string;
 	createdAt: Date;
 	updatedAt: Date;

@@ -91,52 +91,84 @@ export function ProjectContent({
 				setTabs={setTabs}
 			/>
 			<Tabs defaultValue="overview" value={tab} onValueChange={onTabChange} className="w-full">
-				<header className="border-b dark:border-neutral-800 border-neutral-200 ">
-					<div className="max-w-[1420px] mx-auto px-6 py-4">
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-6">
-								<BackButton />
-								<div>
-									<h1 className="text-xl flex gap-2 items-center font-semibold">
-										{project.name} <IoIosCube />
-									</h1>
+				<header className="border-b dark:border-neutral-800 border-neutral-200">
+					<div className="max-w-[1420px] mx-auto px-4 md:px-6 py-4">
+						<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+							<div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 w-full">
+								<div className="flex items-center justify-between w-full md:w-auto">
+									<div className="flex items-center gap-3 md:gap-6">
+										<BackButton />
+										<h1 className="text-lg md:text-xl flex gap-2 items-center font-semibold truncate">
+											<span className="truncate max-w-[200px] md:max-w-none">{project.name}</span>
+											<IoIosCube className="flex-shrink-0" />
+										</h1>
+									</div>
+									<div className="md:hidden">
+										<OptionsComponent parentClassName="" options={[
+											{
+												title: "Create New Deployment",
+												actionFn: () => setShowConfirm(true),
+												className: "",
+												Svg: IoCloudUpload
+											},
+											{
+												title: "Manage Subdomain",
+												actionFn: scrollFn,
+												className: "",
+											},
+											{
+												title: "Disable project",
+												actionFn: scrollFn,
+												className: "text-red-400 hover:text-red-500 ",
+												Svg: GrStatusDisabled
+											},
+											{
+												title: "Delete Project",
+												actionFn: scrollFn,
+												className: "text-red-400 hover:text-red-500 ",
+												Svg: IoTrashOutline
+											},
+										]} />
+									</div>
 								</div>
-								<div>
+
+								<div className="w-full md:w-auto">
 									<ProjectTabs setTab={setTabs} tab={tab} />
 								</div>
 							</div>
-							<OptionsComponent parentClassName="" options={[
-								{
-									title: "Create New Deployment",
-									actionFn: () => {
-										setShowConfirm(true)
+
+							<div className="hidden md:block">
+								<OptionsComponent parentClassName="" options={[
+									{
+										title: "Create New Deployment",
+										actionFn: () => setShowConfirm(true),
+										className: "",
+										Svg: IoCloudUpload
 									},
-									className: "",
-									Svg: IoCloudUpload
-								},
-								{
-									title: "Manage Subdomain",
-									actionFn: scrollFn,
-									className: "",
-								},
-								{
-									title: "Disable project",
-									actionFn: scrollFn,
-									className: "text-red-400 hover:text-red-500 ",
-									Svg: GrStatusDisabled
-								},
-								{
-									title: "Delete Project",
-									actionFn: scrollFn,
-									className: "text-red-400 hover:text-red-500 ",
-									Svg: IoTrashOutline
-								},
-							]} />
+									{
+										title: "Manage Subdomain",
+										actionFn: scrollFn,
+										className: "",
+									},
+									{
+										title: "Disable project",
+										actionFn: scrollFn,
+										className: "text-red-400 hover:text-red-500 ",
+										Svg: GrStatusDisabled
+									},
+									{
+										title: "Delete Project",
+										actionFn: scrollFn,
+										className: "text-red-400 hover:text-red-500 ",
+										Svg: IoTrashOutline
+									},
+								]} />
+							</div>
 						</div>
 					</div>
 				</header>
 
-				<main className="max-w-[1400px] mx-auto px-6 py-4">
+				<main className="max-w-[1400px] mx-auto px-4 md:px-6 py-4">
 					<TabsContent value="overview">
 						<TabProject
 							project={project}
@@ -167,7 +199,7 @@ export function ProjectContent({
 				</main>
 				<div ref={scrollRef}></div>
 			</Tabs>
+		</div>
 
-		</div >
 	)
 }

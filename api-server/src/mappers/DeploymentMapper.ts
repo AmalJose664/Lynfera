@@ -17,7 +17,7 @@ interface toDeploymentResponseDTO {
 		};
 		overWrite: boolean;
 		completedAt: Date;
-		s3Path: string;
+		identifierSlug: string;
 		errorMessage?: string;
 		createdAt: Date;
 		updatedAt: Date;
@@ -73,7 +73,7 @@ export class DeploymentMapper {
 					buildTime: deployment.build_ms,
 					totalDuration: deployment.duration_ms,
 				},
-				s3Path: deployment.s3Path,
+				identifierSlug: deployment.identifierSlug,
 				overWrite: deployment.overWrite,
 				completedAt: deployment.complete_at,
 				errorMessage: deployment.error_message,

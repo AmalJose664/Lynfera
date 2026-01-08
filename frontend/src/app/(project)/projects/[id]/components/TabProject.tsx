@@ -40,7 +40,7 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 
 	return (
 		<>
-			<div className="dark:bg-neutral-950 border bg-neutral-50 w-full rounded-md mb-6 mt-4 p-4">
+			<div className="dark:bg-neutral-950 border bg-neutral-50 w-full rounded-md mb-6 mt-4 p-3 md:p-4">
 				{(project.deployments && project.deployments.length === 0 && !lastDeployment) && (
 					<NoDeployment
 						buttonAction={onCreateDeployment}
@@ -60,30 +60,38 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 					setTabs={setTabs}
 				/>
 
-				<div className="border dark:border-neutral-700 mt-2 border-neutral-300 rounded-md ">
+				<div className="border dark:border-neutral-700 mt-2 border-neutral-300 rounded-md">
 					<button
-						className="p-4 w-full"
+						className="p-3 md:p-4 w-full"
 						onClick={() => setShowBuild(!showBuild)}
 					>
-						<span className="flex flex-row-reverse gap-2 items-center justify-end text-primary">
-							{isProjectProgress || tempDeployment && <>
-								<AnimationBuild />
-								<div className="ml-4 flex items-center gap-2">
-									<StatusIcon status={deployment?.status || project.status} />
-									<p className={`text-sm font-bold rounded-xs px-1 border ${getStatusColor(deployment?.status || project.status)}`}>{deployment?.status || project.status}</p>
+						<span className="flex flex-col sm:flex-row gap-2 sm:items-center justify-start text-primary w-full">
+							<div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4">
+								<div className="flex items-center gap-1">
+									Build Logs
+									<MdKeyboardArrowRight
+										className="size-6 transition-all duration-200"
+										style={{
+											transform: `rotateZ(${showBuild ? "90deg" : "0deg"})`,
+										}}
+									/>
 								</div>
-							</>
-							}
-							<span className="text-xs mt-2">
-								{`( ${deployment?._id ? "Current Deployment" : lastDeployment?._id ? "Last Deployment" : ""}  )`}
+							</div>
+
+							{(isProjectProgress || tempDeployment) && (
+								<div className="flex items-center w-full sm:w-auto mb-2 sm:mb-0">
+									<AnimationBuild />
+									<div className="ml-4 flex items-center gap-2">
+										<StatusIcon status={tempDeployment?.status || project.status} />
+										<p className={`text-sm font-bold rounded-xs px-1 border ${getStatusColor(tempDeployment?.status || project.status)}`}>
+											{tempDeployment?.status || project.status}
+										</p>
+									</div>
+								</div>
+							)}
+							<span className="text-xs text-muted-foreground self-start sm:self-center mr-auto sm:mr-2">
+								{`( ${deployment?._id ? "Current" : tempDeployment?._id ? "Temp" : "Last"} )`}
 							</span>
-							Build Logs
-							<MdKeyboardArrowRight
-								className="size-6 transition-all duration-200"
-								style={{
-									transform: `rotateZ(${showBuild ? "90deg" : "0deg"})`,
-								}}
-							/>
 						</span>
 					</button>
 
@@ -94,7 +102,7 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 								animate={{ opacity: 1, y: 0, height: "auto", }}
 								exit={{ opacity: 0, y: -40, height: 0 }}
 								transition={{ duration: 0.28, ease: "easeInOut" }}
-								className="dark:bg-stone-900 bg-stone-100 h-auto"
+								className="dark:bg-stone-900 bg-stone-100 h-auto overflow-hidden"
 							>
 								<Logs deploymentId={deployment?._id || ""} refetch={refetchLogs} />
 							</motion.div>
@@ -132,13 +140,16 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 					type={"Last"}
 				/>
 			)}
+
 			{project.deployments && project.deployments?.length > 0 && (
-				<div className="border px-3 py-2 rounded-md mt-9">
+				<div className="border px-3 py-2 rounded-md mt-9 overflow-hidden mb-14">
 					<h3 className="mb-3 ml-2 mt-2 text-xl">Stats</h3>
 					<Suspense fallback={
 						<LoadingSpinner2 isLoading />
 					}>
-						<ProjectSimpleStats project={project} />
+						<div className="overflow-x-hidden">
+							<ProjectSimpleStats project={project} />
+						</div>
 					</Suspense>
 				</div>
 			)}

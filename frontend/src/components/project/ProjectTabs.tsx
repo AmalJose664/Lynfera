@@ -37,15 +37,15 @@ const ProjectTabs = ({ tab, setTab }: { tab: string, setTab: (state: string) => 
 	}, [tab, updateIndicator]);
 
 	return (
-		<nav className="ml-6 flex gap-6 duration-300 relative">
-			<TabsList className="flex items-center gap-4 bg-background">
+		<nav className="ml-0 md:ml-6 flex gap-6 duration-300 relative w-full md:w-auto">
+			<TabsList className="flex items-center gap-4 bg-background min-w-max">
 				{tabs.map((tabVal,) => (
 					<TabsTrigger
 						key={tabVal.title}
 						value={tabVal.title}
 						ref={tabVal.ref}
 						onClick={() => setTab(tabVal.title)}
-						className={`text-sm border pb-1 transition-all text-primary}`}
+						className={`text-sm border pb-1 transition-all text-primary whitespace-nowrap`}
 					>
 						{tabVal.title[0].toUpperCase() + tabVal.title.slice(1)}
 					</TabsTrigger>

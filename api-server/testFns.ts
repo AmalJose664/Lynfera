@@ -9,9 +9,7 @@ import mongoose, { Types } from "mongoose";
 import connectDb from "./src/config/mongo.config";
 import { User } from "./src/models/User";
 import { client } from "./src/config/clickhouse.config";
-import { exec } from "child_process";
-import path from "path";
-import { existsSync, lstatSync, readdirSync } from "fs";
+import { generateSlug } from "random-word-slugs"
 
 function formatTimeWithSeconds(input: Date | string | number): string {
 	const date = input instanceof Date ? input : new Date(input);
@@ -42,7 +40,6 @@ async function mongodbData() {
 
 		const p = new P_repo();
 		const de = new D_repo();
-		console.log(await Deployment.deleteMany({ _id: "695828871a97ebc666b87ec7" }))
 		console.log(await Project.updateMany({ _id: "6934502adfa2d8c1c254aabc" }, {
 			status: "NOT_STARTED", deployments: [],
 			lastDeployment: null,
@@ -62,14 +59,13 @@ async function mongodbData() {
 
 		console.log(deplos.map((dep) => ({ commit_hash: dep.commit_hash, time: formatTimeWithSeconds(new Date(dep.createdAt)) })));
 
-		await mongoose.disconnect();
 	} catch (error) {
 		console.log(error);
 	} finally {
 		process.exit(0);
 	}
 }
-mongodbData();
+mongodbData().then(async () => await mongoose.disconnect());
 
 async function commitAllMessages() {
 	const kafka = new Kafka({

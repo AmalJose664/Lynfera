@@ -115,6 +115,10 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 									<span className="text-lg font-normal text-neutral-500">
 										Deployment
 									</span>
+									<span className="text-neutral-400 font-normal mx-2">|</span>
+									<span className="text-sm font-normal text-neutral-500">
+										{deployment.identifierSlug}
+									</span>
 									{(cachedProject
 										&& cachedProject.currentDeployment === deployment._id)
 										&& <span className="py-1 px-2 border border-blue-500 rounded-full text-xs text-blue-400">
@@ -163,8 +167,8 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 						)}
 
 						<div>
-							<div className="flex items-center gap-3 justify-around">
-								<RightFadeComponent className="space-y-6 flex-2">
+							<div className="flex flex-col md:flex-row flex-1 items-center gap-3 justify-around">
+								<RightFadeComponent className="space-y-6 flex-2 w-full">
 									<div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
 										<div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
 											<h3 className="font-semibold text-sm text-neutral-900 dark:text-white">
@@ -230,7 +234,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 										</div>
 									</div>
 								</RightFadeComponent>
-								<RightFadeComponent delay={.1} className="bg-white dark:bg-neutral-900 rounded-md border border-neutral-200 dark:border-neutral-800 shadow-sm p-6 flex-1">
+								<RightFadeComponent delay={.1} className="bg-white dark:bg-neutral-900 w-full rounded-md border border-neutral-200 dark:border-neutral-800 shadow-sm p-6 flex-1">
 									<h3 className="font-semibold text-sm text-neutral-900 dark:text-white mb-6 flex items-center gap-2">
 										<FiClock /> Performance Metrics
 									</h3>
@@ -312,7 +316,6 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 										</motion.div>
 									)}
 								</AnimatePresence>
-
 							</div>
 						</div>
 						<RightFadeComponent className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden flex flex-col">

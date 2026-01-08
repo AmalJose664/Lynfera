@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { toast } from "sonner";
 import { TabFilesError, TabFilesLoading, TabFilesNoDeployment } from "@/components/project/TabFilesComponents";
+import { cn } from "@/lib/utils";
 
 interface FilesProps {
 	projectId: string
@@ -126,11 +127,17 @@ const FilesComponent = ({ projectId, deploymentId, children }: FilesProps) => {
 							>
 								<div className="flex items-center gap-2 flex-1 min-w-0">
 									<FaRegFileAlt size={16} className="text-less shrink-0" />
-									<span className="text-some-less text-sm truncate">{file.name}</span>
+									{file.name.split("/").map((part, i, arr) => {
+										const isLast = i === arr.length - 1
+										return (
+											<span key={i}
+												className={cn("text-some-less text-sm truncate max-w-11/12", isLast ? "text-some-less" : "text-blue-500")}
+											>{part}{!isLast && " /"}
+											</span>
+										)
+									})}
+
 								</div>
-								<span className="text-neutral-500 text-xs shrink-0 mr-6">
-									{(file.name)}
-								</span>
 								<span className="text-neutral-500 text-xs shrink-0">
 									{formatBytes(file.size)}
 								</span>
@@ -159,7 +166,6 @@ const FileTreeNode = memo(({ node, depth = 0, downloadFile }: FileTreeNodeProps)
 					onClick={() => setIsOpen(!isOpen)}
 				>
 					<span className="text-primary">
-						{/* {isOpen ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />} */}
 						<FiChevronRight size={16} className="transition-all duration-200" style={{ transform: `rotate(${isOpen ? "90" : "0"}deg)` }} />
 					</span>
 					{isOpen ? <CiFolderOn size={16} className="text-blue-500" /> : <FaFolder size={16} className="text-blue-500" />}
@@ -184,7 +190,7 @@ const FileTreeNode = memo(({ node, depth = 0, downloadFile }: FileTreeNodeProps)
 								<FaRegFileAlt size={16} className="text-neutral-400 shrink-0" />
 								<span className="text-some-less text-sm truncate">{file.name}</span>
 							</div>
-							<span className="text-neutral-500 text-xs shrink-0 mr-6">
+							<span className="text-neutral-500 hidden text-xs shrink-0 mr-6 md:block">
 								{(file.fullPath)}
 							</span>
 							<span className="text-neutral-500 text-xs shrink-0">

@@ -22,6 +22,7 @@ import { useUpdateProjectMutation } from "@/store/services/projectsApi";
 import { ChangeProjectSubdomainDialog } from "@/components/modals/ChangeSubdomain";
 import RightFadeComponent from "@/components/RightFadeComponent";
 import { LoadingSpinner2 } from "@/components/LoadingSpinner";
+import Copybtn from "@/components/Copybtn";
 
 
 
@@ -627,10 +628,7 @@ function RenderEnv({ env, index }: { env: Project['env'][number], index: number 
 			<span style={{ fontFamily: "Consolas, 'Fira Code', 'Source Code Pro', monospace" }} className="border px-3 py-2 rounded-md ">{env.name}</span>
 			<Input readOnly className="w-auto text-primary" type={showEnv ? "text" : "password"} value={env.value} style={{ fontFamily: "Consolas, 'Fira Code', 'Source Code Pro', monospace" }} />
 			<button type="button" onClick={() => setShowEnv(!showEnv)}><LuEye className={showEnv ? "opacity-100" : "opacity-50"} /></button>
-			<button type="button" onClick={() => {
-				navigator.clipboard.writeText(env.value)
-				toast.info("Env value copied")
-			}}><IoClipboardOutline /></button>
+			<Copybtn value={env.value} />
 
 		</div>
 	)

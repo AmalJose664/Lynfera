@@ -127,7 +127,6 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 			<div className="max-w-full mx-auto relative overflow-y-hidden">
 				<SingleLogView selectedLog={selectedLog} setSelectedLog={setSelectedLog} log={filteredLogs[selectedLog || 0]} total={filteredLogs.length} />
 				<div className="dark:bg-neutral-950 bg-white border ">
-					{/* Header */}
 					<div className="border-b  px-3 py-2">
 						<div className="flex items-center justify-between mb-2">
 							<div className="flex items-center gap-2">
@@ -159,8 +158,7 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 							</div>
 						</div>
 
-						{/* Filters */}
-						<div className="flex gap-2 items-center text-xs">
+						<div className="flex flex-col md:flex-row gap-2 items-start md:items-center text-xs">
 							<div className="flex gap-1">
 								{['all', 'INFO', 'SUCCESS', 'WARN', 'ERROR', 'DECOR'].map(level => (
 									<button
@@ -176,28 +174,31 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 								))}
 							</div>
 
-							<div className="flex-1 min-w-48">
-								<div className="relative">
+							<div className="flex-1 flex justify-between items-center w-full">
+								<div className="relative flex-1">
 									<IoSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-600" />
 									<Input
 										type="text"
 										placeholder="Search..."
 										value={searchTerm}
+										name='log-search'
 										onChange={(e) => setSearchTerm(e.target.value)}
-										className="w-full h-6 pl-7 pr-2 py-0.5  border border-gray-400 dark:border-gray-800 text-xs text-gray-400 focus:outline-none focus:border-gray-700"
+										className="w-11/12 h-6 pl-7 pr-2 py-0.5  border border-gray-400 dark:border-gray-800 text-xs text-gray-400 focus:outline-none focus:border-gray-700"
 									/>
 								</div>
+								<div>
+									<label className="flex items-center gap-1 text-gray-600 cursor-pointer">
+										<input
+											type="checkbox"
+											title='Auto scroll on new log recieved'
+											checked={autoScroll}
+											onChange={(e) => setAutoScroll(e.target.checked)}
+											className="w-3 h-3"
+										/>
+										<span>auto</span>
+									</label>
+								</div>
 							</div>
-
-							<label className="flex items-center gap-1 text-gray-600 cursor-pointer">
-								<input
-									type="checkbox"
-									checked={autoScroll}
-									onChange={(e) => setAutoScroll(e.target.checked)}
-									className="w-3 h-3"
-								/>
-								<span>auto</span>
-							</label>
 						</div>
 					</div>
 

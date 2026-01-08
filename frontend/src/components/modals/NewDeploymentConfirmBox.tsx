@@ -1,6 +1,5 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Project } from "@/types/Project"
-import { Button } from "../ui/button"
 interface NewDeploymentConfirmBoxProps {
 	showConfirm: boolean,
 	setShowConfirm: (val: boolean) => void
@@ -45,13 +44,27 @@ const NewDeploymentConfirmBox = ({ showConfirm, setShowConfirm, project, handleC
 							</pre>
 						</div>
 					</div>
-					<AlertDialogFooter>
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<AlertDialogAction onClick={() => {
-							setShowConfirm(false)
-							setTabs("settings")
-						}}>Change Settings</AlertDialogAction>
-						<AlertDialogAction onClick={handleClick}>Deploy</AlertDialogAction>
+					<AlertDialogFooter className="flex flex-row items-center gap-2 w-full">
+						<AlertDialogCancel className="flex-1 sm:flex-none sm:min-w-20 mt-0">
+							Cancel
+						</AlertDialogCancel>
+
+						<AlertDialogAction
+							onClick={() => {
+								setShowConfirm(false)
+								setTabs("settings")
+							}}
+							className="flex-1 sm:flex-none sm:min-w-20 bg-secondary text-secondary-foreground hover:bg-secondary/80"
+						>
+							Settings
+						</AlertDialogAction>
+
+						<AlertDialogAction
+							onClick={handleClick}
+							className="flex-1 sm:flex-none sm:min-w-20"
+						>
+							Deploy
+						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import ThemeSwitcher from "./ThemeIcon";
 import { cn } from "@/lib/utils";
-import { IoIosCube, IoMdCloudDone } from "react-icons/io";
+
 import NavbarUser from "./NavbarUser";
 import TitleWithLogo from "./TitleWithLogo";
 import ActivityPanel from "./ActivityPanel";
+import NavbarLinks from "./NavbarLinks";
 
 export default function Navbar({ className, showOtherLinks }: { className: string, showOtherLinks?: boolean }) {
 
@@ -44,42 +45,11 @@ export default function Navbar({ className, showOtherLinks }: { className: strin
 
 
 			<div className="flex items-center gap-6">
-
-				<ul className="hidden md:flex items-center gap-6 text-sm dark:text-white text-black">
-					<li>
-						<Link href="/projects" className="hover:text-blue-400 flex gap-2 items-center">
-							<IoIosCube />Projects
-						</Link>
-					</li>
-					<li>
-						<Link href="/deployments" className="hover:text-blue-400 flex gap-2 items-center">
-							<IoMdCloudDone />Deployments
-						</Link>
-					</li>
-					{showOtherLinks &&
-						<li>
-							<Link href="/pricing" className="hover:text-blue-400">
-								Pricing
-							</Link>
-						</li>
-					}
-					{showOtherLinks &&
-						<li>
-							<Link href="/product" className="hover:text-blue-400">
-								Product
-							</Link>
-						</li>
-					}
-					<li>
-						<Link href="/docs" className="hover:text-blue-400">
-							Docs
-						</Link>
-					</li>
-				</ul>
+				<NavbarLinks showOtherLinks={showOtherLinks} />
 				<ActivityPanel />
-				<ThemeSwitcher className="rounded-full" />
+				<ThemeSwitcher className="rounded-full text-sm" />
 
-				<NavbarUser />
+				<NavbarUser showOtherLinks={showOtherLinks} />
 
 			</div>
 		</nav>

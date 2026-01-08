@@ -33,9 +33,17 @@ const ChangeDeploymentModal = ({ selectedDeploymentId, setSelectedDeploymentId, 
 							This will make changes to your current project.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<AlertDialogAction onClick={handleClick}>Update</AlertDialogAction>
+					<AlertDialogFooter className="flex flex-row items-center gap-2 w-full">
+						<AlertDialogCancel className="flex-1 sm:flex-none sm:min-w-24 mt-0">
+							Cancel
+						</AlertDialogCancel>
+
+						<AlertDialogAction
+							onClick={handleClick}
+							className="flex-1 sm:flex-none sm:min-w-24"
+						>
+							Update
+						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>

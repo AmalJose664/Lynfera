@@ -27,7 +27,7 @@ export interface IDeployment extends Document {
 	duration_ms: number;
 	overWrite: boolean;
 	complete_at: Date;
-	s3Path: string;
+	identifierSlug: string;
 	error_message?: string;
 	file_structure: FileStructureType | null;
 	createdAt: Date;
@@ -37,7 +37,7 @@ const deploymentSchema = new Schema<IDeployment>(
 	{
 		project: { type: Schema.Types.ObjectId, ref: "Project", required: true },
 		status: { type: String, enum: Object.values(DeploymentStatus), default: DeploymentStatus.NOT_STARTED },
-		s3Path: { type: String, required: true },
+		identifierSlug: { type: String, required: true },
 		user: { type: Schema.Types.ObjectId, ref: "User", required: true },
 		commit_hash: { type: String, required: true },
 		install_ms: { type: Number, default: 0 },
