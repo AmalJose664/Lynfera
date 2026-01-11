@@ -97,10 +97,7 @@ class DeploymentService implements IDeploymentService {
 	}
 	async getDeploymentFiles(id: string, userId: string, includes?: string): Promise<IDeployment | null> {
 		return await this.deploymentRepository.findDeploymentById(id, userId, {
-			exclude: [
-				"commit_hash", "overWrite", "identifierSlug", "error_message", "updatedAt",
-				"install_ms", "build_ms", "upload_ms", "publicId", "duration_ms", "status", "user", "project"
-			]
+			fields: ['file_structure']
 		});
 	}
 

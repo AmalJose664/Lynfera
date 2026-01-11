@@ -2,12 +2,14 @@ import { QueryDeploymentDTO } from "../../dtos/deployment.dto.js";
 import { DeploymentStatus, IDeployment } from "../../models/Deployment.js";
 
 export type DeploymentDbOptions = {
-	fields?: string[]
+	fields?: string[];
+	includes?: string;
+	exclude?: string[];
 }
 
 export interface IDeploymentRepository {
 	createDeployment(deploymentData: Partial<IDeployment>): Promise<IDeployment | null>;
-	findDeploymentById(id: string, userId: string, options?: { includes?: string, exclude?: string[] }): Promise<IDeployment | null>;
+	findDeploymentById(id: string, userId: string, options?: DeploymentDbOptions): Promise<IDeployment | null>;
 
 	findAllDeployments(userId: string, query: QueryDeploymentDTO, options?: DeploymentDbOptions): Promise<{ deployments: IDeployment[]; total: number }>;
 	findProjectDeployments(userId: string, projectId: string, query: QueryDeploymentDTO, options?: DeploymentDbOptions): Promise<{ deployments: IDeployment[]; total: number }>;

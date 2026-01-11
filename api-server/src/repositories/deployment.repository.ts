@@ -15,11 +15,20 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 		return savedDeployment;
 	}
 
-	async findDeploymentById(id: string, userId: string, options?: { includes?: string, exclude?: string[] }): Promise<IDeployment | null> {
+	async findDeploymentById(id: string, userId: string, options?: DeploymentDbOptions): Promise<IDeployment | null> {
 		let dbQuery: FilterQuery<IDeployment> = { user: userId, _id: id };
 		let deploymentQuery = this.findOne(dbQuery);
-		if (options?.exclude?.length) {
-			deploymentQuery = deploymentQuery.select(options.exclude.map((f) => "-" + f).join(" "))
+		const fields = options?.fields || []
+		let exclude = options?.exclude || []
+		let projection: string | undefined;
+
+		if (fields.length) {
+			projection = fields.join(" ");
+		} else if (exclude.length) {
+			projection = exclude.map(f => `-${f}`).join(" ");
+		}
+		if (projection) {
+			deploymentQuery = deploymentQuery.select(projection);
 		}
 		if (options?.includes?.includes("project")) {
 			deploymentQuery = deploymentQuery.populate(DEPLOYMENT_POPULATE_MAP.project.path, DEPLOYMENT_POPULATE_MAP.project.select);
