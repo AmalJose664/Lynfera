@@ -14,22 +14,24 @@ import { useMemo, useState } from "react"
 import { Input } from "@/components/ui/input"
 
 import PaginationComponent from "@/components/Pagination"
-import { IoRocketOutline } from "react-icons/io5"
+import { IoClipboardOutline, IoRocketOutline } from "react-icons/io5"
 import OptionsComponent from "@/components/OptionsComponent"
 import { BsArrowUpCircle } from "react-icons/bs"
 import { useRouter } from "next/navigation"
 import ChangeDeploymentModal from "@/components/modals/ChangeDeployment"
 import DeploymentStatusButtons from "@/components/DeploymentStatusButtons"
 import { LoadingSpinner2 } from "@/components/LoadingSpinner"
+import { FaGlobeAmericas } from "react-icons/fa"
 
 interface AllDeploymentProps {
 	projectId: string;
 	currentDeployment: string
 	repoURL: string;
+	subdomain: string;
 	setTab: () => void
 }
 
-const AllDeployments = ({ projectId, currentDeployment, repoURL, setTab }: AllDeploymentProps) => {
+const AllDeployments = ({ projectId, subdomain, currentDeployment, repoURL, setTab }: AllDeploymentProps) => {
 	const router = useRouter()
 	const [page, setPage] = useState(1)
 	const limit = 10
@@ -59,6 +61,7 @@ const AllDeployments = ({ projectId, currentDeployment, repoURL, setTab }: AllDe
 			const searchLower = search.toLowerCase()
 			const matchesSearch = !search ||
 				d._id.toLowerCase().includes(searchLower) ||
+				d.publicId.toLowerCase().includes(searchLower) ||
 				d.commit.id?.toLowerCase().includes(searchLower) ||
 				d.commit.msg?.toLowerCase().includes(searchLower) ||
 				(d.project as Project).name.toLowerCase().includes(searchLower)
@@ -164,6 +167,25 @@ const AllDeployments = ({ projectId, currentDeployment, repoURL, setTab }: AllDe
 									isDisabled: deployment.status != ProjectStatus.READY
 										|| deployment._id === currentDeployment,
 									Svg: BsArrowUpCircle
+								},
+								{
+									title: "Visit Deployment",
+									actionFn: () => window.open(`${window.location.protocol}//${subdomain}--${deployment.publicId}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`),
+									isDisabled: deployment.status != ProjectStatus.READY,
+									className: "",
+									Svg: FaGlobeAmericas
+								},
+								{
+									title: "Copy Deployment ID",
+									actionFn: () => navigator.clipboard.writeText(deployment._id),
+									className: "",
+									Svg: IoClipboardOutline
+								},
+								{
+									title: "Copy Public ID",
+									actionFn: () => navigator.clipboard.writeText(deployment.publicId),
+									className: "",
+									Svg: IoClipboardOutline
 								},
 								{
 									title: "Inspect",

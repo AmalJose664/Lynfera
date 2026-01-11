@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation"
 import DeploymentStatusButtons from "@/components/DeploymentStatusButtons";
 import OptionsComponent from "@/components/OptionsComponent";
 import { LoadingSpinner2 } from "@/components/LoadingSpinner";
+import { IoClipboardOutline } from "react-icons/io5"
 
 const AllDeployments = () => {
 	const [page, setPage] = useState(1)
@@ -149,6 +150,18 @@ const AllDeployments = () => {
 											actionFn: () => router.push("/projects/" + (deployment.project as Project)._id),
 											className: "",
 											Svg: IoIosCube
+										},
+										{
+											title: "Copy Deployment ID",
+											actionFn: () => navigator.clipboard.writeText(deployment._id),
+											className: "",
+											Svg: IoClipboardOutline
+										},
+										{
+											title: "Copy Public ID",
+											actionFn: () => navigator.clipboard.writeText(deployment.publicId),
+											className: "",
+											Svg: IoClipboardOutline
 										},
 										{
 											title: "Inspect",

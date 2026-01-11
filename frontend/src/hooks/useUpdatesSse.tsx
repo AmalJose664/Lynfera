@@ -1,3 +1,4 @@
+import { isStatusFailure, isStatusProgress } from "@/lib/moreUtils/combined";
 import { deployemntApis } from "@/store/services/deploymentApi";
 import { projectApis } from "@/store/services/projectsApi";
 import { addLog, addLogs } from "@/store/slices/logSlice";
@@ -20,14 +21,12 @@ export function useDeploymentSSE(project: Project | undefined, refetch: () => vo
 	const logBatchRef = useRef<Log[]>([]);
 	const batchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+	// console.log(!sseActive, !deployment?._id, eventSourceRef.current, !isStatusProgress(deployment?.status))
 	useEffect(() => {
 		if (!sseActive) { return console.log("sse", sseActive) }
 		if (!deployment?._id || !deployment.status) { return console.log("depl") }
 		if (eventSourceRef.current) { return console.log("eventsource") }
-		if (
-			deployment.status !== ProjectStatus.BUILDING &&
-			deployment.status !== ProjectStatus.QUEUED
-		) {
+		if (!isStatusProgress(deployment.status)) {
 			{ return console.log("status") }
 		}
 
@@ -40,7 +39,7 @@ export function useDeploymentSSE(project: Project | undefined, refetch: () => vo
 		eventSource.onmessage = (event) => {
 			try {
 				const receivedData = JSON.parse(event.data)
-				console.log(receivedData)
+
 				if (receivedData.type === "LOG") {
 					logBatchRef.current.push(receivedData.data as Log);
 					if (batchTimerRef.current) clearTimeout(batchTimerRef.current);
@@ -67,11 +66,12 @@ export function useDeploymentSSE(project: Project | undefined, refetch: () => vo
 									if (value) (draft as any)[key] = value
 								})
 
-								if (update.install_ms || update.build_ms || update.duration_ms) {
+								if (update.install_ms || update.build_ms || update.duration_ms || update.upload_ms) {
 									draft.performance = {
 										...draft.performance,
 										...(update.install_ms && { installTime: update.install_ms }),
 										...(update.build_ms && { buildTime: update.build_ms }),
+										...(update.upload_ms && { uploadTime: update.upload_ms }),
 										...(update.duration_ms && { totalDuration: update.duration_ms })
 									}
 								}
@@ -95,10 +95,10 @@ export function useDeploymentSSE(project: Project | undefined, refetch: () => vo
 							}
 						)
 					)
-					if (update.status === ProjectStatus.READY ||
-						update.status === ProjectStatus.FAILED || update.status === ProjectStatus.CANCELED) {
+					if (update.status === ProjectStatus.READY || isStatusFailure(update.status)) {
+						console.log("STatus failed or ready ", update.status)
 						refreshTimerRef.current = setTimeout(() => {
-							console.log("refeching...........")
+							console.log("refeching...........", "-----------------------------------------------------------------------------------------------------------------------------------------REFETCH INITIATED --------------------------------------------------------------------------------------------------------------------------")
 							update.status === ProjectStatus.READY
 								? toast.success("New Deployment resulted in Success 🎉🎉")
 								: toast.custom((t) => (

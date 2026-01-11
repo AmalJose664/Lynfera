@@ -42,6 +42,7 @@ const envSchema = z.object({
 	STRIPE_WEBHOOK_SECRET: z.string(),
 	REDIS_URL: z.url(),
 	BUILD_DISPATCH_PAT_TOKEN: z.string(),
+	BUILD_DISPATCH_URL: z.string(),
 });
 
 export function validateEnv() {

@@ -8,10 +8,14 @@ import ErrorComponent from "@/components/ErrorComponent";
 import StatusIcon from "@/components/ui/StatusIcon";
 import BackButton from "@/components/BackButton";
 import {
+	formatDate,
 	formatDuration,
 	getGithubBranchUrl,
 	getGithubCommitUrl,
+	getPercentage,
 	getStatusColor,
+	isStatusFailure,
+	isStatusProgress,
 } from "@/lib/moreUtils/combined";
 import { useGetDeploymentByIdQuery } from "@/store/services/deploymentApi";
 import { useGetDeploymentLogsQuery } from "@/store/services/logsApi";
@@ -19,20 +23,21 @@ import { Project, ProjectStatus } from "@/types/Project";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useState } from "react";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import {
-	FiGitCommit,
-	FiClock,
-} from "react-icons/fi";
+import { FiGitCommit, } from "react-icons/fi";
 import { IoMdGitBranch } from "react-icons/io";
 import { FiAlertCircle } from "react-icons/fi";
-import { MdKeyboardArrowRight, MdTimer } from "react-icons/md";
+import { MdKeyboardArrowRight, } from "react-icons/md";
 import { IoIosCube, IoMdGlobe } from "react-icons/io";
 import { LuExternalLink } from "react-icons/lu";
 import RightFadeComponent from "@/components/RightFadeComponent";
 import { projectApis, useGetProjectByIdQuery } from "@/store/services/projectsApi";
 import { useSelector } from "react-redux";
 import { LoadingSpinner2 } from "@/components/LoadingSpinner";
+import { RiPencilFill } from "react-icons/ri";
+import { PiIdentificationCardLight } from "react-icons/pi";
+import { Deployment } from "@/types/Deployment";
+import { cn } from "@/lib/utils";
+import { CiMicrochip } from "react-icons/ci";
 
 const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => {
 
@@ -70,9 +75,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 		);
 	}
 
-	const isFailed =
-		deployment?.status === ProjectStatus.CANCELED ||
-		deployment?.status === ProjectStatus.FAILED;
+	const isFailed = isStatusFailure(deployment?.status);
 
 	return (
 		<div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] text-neutral-900 dark:text-neutral-100">
@@ -105,7 +108,6 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 						transition={{ duration: 0.4 }}
 						className="space-y-6 "
 					>
-						{/* Header Section */}
 						<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 							<div>
 								<h1 className="text-2xl font-bold flex items-center gap-2">
@@ -145,7 +147,16 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 										target="_blank"
 										className="flex items-center gap-2 px-4 py-1.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
 									>
-										Visit <LuExternalLink />
+										Visit Project<LuExternalLink />
+									</Link>
+								)}
+								{!isFailed && deployment.status === ProjectStatus.READY && (
+									<Link
+										href={`${window.location.protocol}//${project.subdomain}--${deployment.publicId}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`}
+										target="_blank"
+										className="flex items-center gap-2 px-4 py-1.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
+									>
+										Visit This Deployment<LuExternalLink />
 									</Link>
 								)}
 							</div>
@@ -168,7 +179,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 
 						<div>
 							<div className="flex flex-col md:flex-row flex-1 items-center gap-3 justify-around">
-								<RightFadeComponent className="space-y-6 flex-2 w-full">
+								<RightFadeComponent className="space-y-6 flex-1 w-full">
 									<div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
 										<div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
 											<h3 className="font-semibold text-sm text-neutral-900 dark:text-white">
@@ -231,46 +242,40 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 													</Link>
 												</div>
 											</div>
+											<div className="grid grid-cols-1 sm:grid-cols-3 px-6 py-4 gap-4 items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+												<div className="text-sm text-neutral-500 font-medium flex items-center gap-2">
+													<CiMicrochip className="size-4" /> Environment
+												</div>
+												<div className="sm:col-span-2 flex flex-col gap-1">
+													<span className="text-xs border bg-emerald-500/10 w-fit rounded-md px-2 text-emerald-400 truncate">
+														{deployment.environment}
+													</span>
+												</div>
+											</div>
+											<div className="grid grid-cols-1 sm:grid-cols-3 px-6 py-4 gap-4 items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+												<div className="text-sm text-neutral-500 font-medium flex items-center gap-2">
+													<RiPencilFill className="size-4" /> Created
+												</div>
+												<div className="sm:col-span-2 flex flex-col gap-1">
+													<span className="text-sm text-neutral-900 dark:text-neutral-200 truncate">
+														{formatDate(deployment.createdAt)}
+													</span>
+												</div>
+											</div>
+											<div className="grid grid-cols-1 sm:grid-cols-3 px-6 py-4 gap-4 items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+												<div className="text-sm text-neutral-500 font-medium flex items-center gap-2">
+													<PiIdentificationCardLight className="size-4" /> Identifier Slug
+												</div>
+												<div className="sm:col-span-2 flex flex-col gap-1">
+													<span className="text-xs text-less truncate">
+														{deployment.identifierSlug}
+													</span>
+												</div>
+											</div>
 										</div>
 									</div>
 								</RightFadeComponent>
-								<RightFadeComponent delay={.1} className="bg-white dark:bg-neutral-900 w-full rounded-md border border-neutral-200 dark:border-neutral-800 shadow-sm p-6 flex-1">
-									<h3 className="font-semibold text-sm text-neutral-900 dark:text-white mb-6 flex items-center gap-2">
-										<FiClock /> Performance Metrics
-									</h3>
-									<div className="space-y-6 relative">
-										<div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-neutral-100 dark:bg-neutral-800"></div>
-
-										<div className="relative pl-8">
-											<div className="absolute left-0 top-1 w-4 h-4 rounded-full border-2 border-white dark:border-neutral-900 bg-blue-500 shadow-sm z-10"></div>
-											<p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-1">
-												Installation
-											</p>
-											<p className="text-lg font-mono font-medium text-neutral-900 dark:text-white">
-												{formatDuration(deployment.performance.installTime)}
-											</p>
-										</div>
-
-										<div className="relative pl-8">
-											<div className="absolute left-0 top-1 w-4 h-4 rounded-full border-2 border-white dark:border-neutral-900 bg-purple-500 shadow-sm z-10"></div>
-											<p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-1">
-												Build
-											</p>
-											<p className="text-lg font-mono font-medium text-neutral-900 dark:text-white">
-												{formatDuration(deployment.performance.buildTime)}
-											</p>
-										</div>
-
-										<div className="relative pl-8 pt-4 border-t border-neutral-100 dark:border-neutral-800 mt-4">
-											<p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-1">
-												Total Duration
-											</p>
-											<p className="text-xl font-mono font-bold text-neutral-900 dark:text-white">
-												{formatDuration(deployment.performance.totalDuration)}
-											</p>
-										</div>
-									</div>
-								</RightFadeComponent>
+								<PerformanceMetrics performance={deployment.performance} />
 							</div>
 							<div className="mt-10 bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 shadow-sm">
 								<button
@@ -279,11 +284,11 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 								>
 									<div className="flex items-center gap-2">
 										<span className="relative flex h-2 w-2">
-											{deployment.status === ProjectStatus.BUILDING && (
+											{isStatusProgress(deployment.status) && (
 												<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
 											)}
 											<span
-												className={`relative inline-flex rounded-full h-2 w-2 ${deployment.status === ProjectStatus.BUILDING
+												className={`relative inline-flex rounded-full h-2 w-2 ${isStatusProgress(deployment.status)
 													? "bg-yellow-500"
 													: "bg-neutral-400"
 													}`}
@@ -292,11 +297,20 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 										<h3 className="font-semibold text-sm text-neutral-900 dark:text-white">
 											Build Logs
 										</h3>
+										<MdKeyboardArrowRight
+											className={`size-5 text-some-less transition-transform duration-200 ${showLogs ? "rotate-90" : ""
+												}`}
+										/>
+										{isStatusProgress(deployment.status) && (
+											<>
+												<StatusIcon status={deployment?.status} />
+												<p className={`text-sm font-bold rounded-xs px-1 border ${getStatusColor(deployment?.status)}`}>
+													{deployment?.status}
+												</p>
+											</>
+
+										)}
 									</div>
-									<MdKeyboardArrowRight
-										className={`size-5 text-neutral-500 transition-transform duration-200 ${showLogs ? "rotate-90" : ""
-											}`}
-									/>
 								</button>
 								<AnimatePresence>
 									{showLogs && (
@@ -342,3 +356,111 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 };
 
 export default DeploymentPageContainer;
+
+
+const PerformanceMetrics = ({ performance }: { performance: Deployment['performance'] }) => {
+	const { uploadTime, installTime, buildTime, totalDuration } = performance
+	const durationsArray = [
+		{
+			label: "Install",
+			value: installTime,
+			color: "from-emerald-500/20 to-emerald-500/5",
+			accent: "bg-emerald-500"
+		},
+		{
+			label: "Build",
+			value: buildTime,
+			color: "from-amber-500/20 to-amber-500/5",
+			accent: "bg-amber-500"
+		},
+		{
+			label: "Upload",
+			value: uploadTime,
+			color: "from-sky-500/20 to-sky-500/5",
+			accent: "bg-sky-500"
+		},
+		{
+			label: "Bg tasks (other)",
+			value: totalDuration - (uploadTime + buildTime + installTime),
+			color: "from-neutral-500/10 to-neutral-800",
+			accent: "bg-neutral-400"
+		},
+	]
+	// ai code
+	return (
+
+		<RightFadeComponent delay={0.1} className="bg-white dark:bg-neutral-900 w-full rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden flex-1">
+
+			<div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center">
+				<span className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+					Build Performance
+				</span>
+				<span className="text-[10px] font-mono font-bold text-blue-500 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded">
+					DURATIONS
+				</span>
+			</div>
+
+			<div className="p-2 space-y-1">
+				{durationsArray.map((item, idx) => (
+					<div key={idx} className="relative group px-4 py-3 overflow-hidden rounded-md border border-transparent hover:border-neutral-100 dark:hover:border-neutral-800 transition-all duration-300">
+						<RightFadeComponent delay={.3} distance={100} left
+							style={{ width: getPercentage(item.value, performance.totalDuration) + "%" }}
+							className={`absolute inset-y-0 left-0 bg-gradient-to-r ${item.color} transition-all duration-1000 ease-out`}
+						>
+							<RightFadeComponent delay={.4} left className={`absolute right-0 top-1 bottom-1 w-[2px] ${item.accent} shadow-[0_0_10px_${item.accent.replace('bg-', '')}] opacity-50`}>{""}</RightFadeComponent>
+						</RightFadeComponent>
+
+						<div className="relative z-10 flex justify-between items-center">
+							<div className="flex items-center gap-3">
+								<div className="relative flex h-1 w-1">
+									<div className={`absolute inline-flex h-full w-full rounded-full ${item.accent} opacity-20 animate-pulse`} />
+									<div className={`relative inline-flex rounded-full h-1 w-1 ${item.accent}`} />
+								</div>
+
+								<span className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest">
+									{item.label}
+								</span>
+							</div>
+
+							<div className="flex items-center gap-3">
+								<span className="text-[10px] font-mono text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity">
+									{getPercentage(item.value, totalDuration)}%
+								</span>
+								<span className="text-sm font-mono font-bold text-neutral-900 dark:text-white">
+									{formatDuration(item.value)}
+								</span>
+							</div>
+						</div>
+					</div>
+				))}
+			</div>
+
+			<div className="mt-2 p-6 bg-neutral-50 dark:bg-white/[0.02] border-t border-neutral-100 dark:border-neutral-800">
+				<div className="flex justify-between gap-5 items-end">
+					<div className="space-y-1">
+						<p className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">Total Execution</p>
+						<p className="text-xl font-mono font-black text-neutral-900 dark:text-white leading-none tracking-tighter">
+							{formatDuration(totalDuration)}
+						</p>
+					</div>
+					<div className="my-auto flex-1 px-4 py-2">
+
+						<div className="w-full h-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden flex">
+							{durationsArray.map((item, i) => {
+								const width = getPercentage(item.value, totalDuration);
+								return (
+									<div
+										key={i}
+										style={{ width: `${width}%` }}
+										className={`${item.accent} h-full transition-all duration-700 ease-out border-r border-white/20 dark:border-black/20 last:border-r-0`}
+										title={`${item.label} duration ${item.value}ms`}
+									/>
+								);
+							})}
+						</div>
+					</div>
+				</div>
+			</div>
+		</RightFadeComponent>
+	);
+};

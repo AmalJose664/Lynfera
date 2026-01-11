@@ -11,7 +11,7 @@ import { IoRocketOutline } from "react-icons/io5"
 import { Suspense } from "react"
 import { LoadingSpinner2 } from "@/components/LoadingSpinner"
 import StatusIcon, { AnimationBuild } from "@/components/ui/StatusIcon"
-import { getStatusColor } from "@/lib/moreUtils/combined"
+import { getStatusColor, isStatusProgress } from "@/lib/moreUtils/combined"
 
 interface TabProjectProps {
 	project: Project
@@ -35,7 +35,7 @@ interface TabProjectProps {
 const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchLogs }: TabProjectProps) => {
 	const { lastDeployment, deployment, tempDeployment, onCreateDeployment } = deploymentCtx
 	const { setShowBuild, showBuild } = build
-	const isProjectProgress = project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED
+	const isProjectProgress = isStatusProgress(project.status)
 
 
 	return (
@@ -60,7 +60,7 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 					setTabs={setTabs}
 				/>
 
-				<div className="border dark:border-neutral-700 mt-2 border-neutral-300 rounded-md">
+				<div className="border dark:border-neutral-700 mt-6 border-neutral-300 rounded-md">
 					<button
 						className="p-3 md:p-4 w-full"
 						onClick={() => setShowBuild(!showBuild)}
@@ -77,21 +77,21 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 									/>
 								</div>
 							</div>
-
-							{(isProjectProgress || tempDeployment) && (
+							<span className="text-xs text-muted-foreground self-start sm:self-center mr-auto sm:mr-2">
+								{`( ${!project.tempDeployment && deployment?._id ? "Current" : (project.tempDeployment && tempDeployment?._id) ? "Temp" : "Last"} )`}
+							</span>
+							{(isProjectProgress || isStatusProgress(tempDeployment?.status)) && (
 								<div className="flex items-center w-full sm:w-auto mb-2 sm:mb-0">
-									<AnimationBuild />
 									<div className="ml-4 flex items-center gap-2">
 										<StatusIcon status={tempDeployment?.status || project.status} />
 										<p className={`text-sm font-bold rounded-xs px-1 border ${getStatusColor(tempDeployment?.status || project.status)}`}>
 											{tempDeployment?.status || project.status}
 										</p>
 									</div>
+									<AnimationBuild />
 								</div>
 							)}
-							<span className="text-xs text-muted-foreground self-start sm:self-center mr-auto sm:mr-2">
-								{`( ${deployment?._id ? "Current" : tempDeployment?._id ? "Temp" : "Last"} )`}
-							</span>
+
 						</span>
 					</button>
 

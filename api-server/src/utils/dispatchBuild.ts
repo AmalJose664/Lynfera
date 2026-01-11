@@ -1,7 +1,7 @@
 import AppError from "./AppError.js";
 import { HTTP_STATUS_CODE } from "./statusCodes.js";
 
-const buildDispatchUrl = "https://api.github.com/repos/AmalJose664/Lynfera-builds/dispatches"
+const buildDispatchUrl = process.env.BUILD_DISPATCH_URL || ""
 const buildDispatchEventType = "run-build"
 export async function dispatchBuild(deploymentId: string, projectId: string): Promise<void> {
 	const result = await fetch(buildDispatchUrl, {

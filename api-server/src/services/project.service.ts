@@ -14,6 +14,8 @@ import { IDeploymentRepository } from "../interfaces/repository/IDeploymentRepos
 import { DeploymentStatus, IDeployment } from "../models/Deployment.js";
 import { IRedisCache } from "../interfaces/cache/IRedisCache.js";
 import { ILogsService } from "../interfaces/service/ILogsService.js";
+import { nanoid } from "../utils/generateNanoid.js";
+import { projectBasicFields, projectSettingsFields } from "../constants/populates/project.populate.js";
 
 
 class ProjectService implements IProjectService {
@@ -50,7 +52,7 @@ class ProjectService implements IProjectService {
 			installCommand: "install", //dto.installCommand,
 			outputDirectory: dto.outputDirectory,
 			rootDir: dto.rootDir,
-			subdomain: `${generateSlug()}-${Math.floor(Math.random() * 10000)}`,
+			subdomain: `${generateSlug(2)}-${nanoid(6)}`,
 		};
 
 		const user = await this.userRepository.findByUserId(userId);
@@ -70,20 +72,7 @@ class ProjectService implements IProjectService {
 	async getAllProjects(userId: string, query: QueryProjectDTO): Promise<{ projects: IProject[]; total: number }> {
 		return await this.projectRepository.getAllProjects(userId, {
 			...query, ...(!query.full && {
-				fields:
-					["name",
-						"branch",
-						"repoURL",
-						"techStack",
-						"status",
-						"currentDeployment",
-						"tempDeployment",
-						"lastDeployment",
-						"subdomain",
-						"user",
-						"deployments",
-						"lastDeployedAt",
-						"createdAt",]
+				fields: projectBasicFields
 			})
 		});
 	}
@@ -97,20 +86,7 @@ class ProjectService implements IProjectService {
 		}
 		const project = await this.projectRepository.findProject(id, userId, {
 			include: include, ...(!full && {
-				fields:
-					["name",
-						"branch",
-						"repoURL",
-						"techStack",
-						"status",
-						"currentDeployment",
-						"tempDeployment",
-						"lastDeployment",
-						"subdomain",
-						"user",
-						"deployments",
-						"lastDeployedAt",
-						"createdAt",]
+				fields: projectBasicFields
 			})
 		});
 		return project;
@@ -121,10 +97,7 @@ class ProjectService implements IProjectService {
 			throw new AppError("User not found", 404);
 		}
 		const project = await this.projectRepository.findProject(id, userId, {
-			include: include, fields: [
-				"_id", "name", "branch", "repoURL", "status", "subdomain", "user",
-				"createdAt", "buildCommand", "env", "outputDirectory", "rootDir", "isDisabled", "isDeleted", "rewriteNonFilePaths"
-			]
+			include: include, fields: projectSettingsFields
 		});
 
 		return project;
@@ -262,7 +235,7 @@ class ProjectService implements IProjectService {
 				else if (curr.status === DeploymentStatus.FAILED || curr.status === DeploymentStatus.CANCELED) {
 					acc.failure++;
 				}
-				acc.totalBuildTime += curr.duration_ms || 0;
+				acc.totalBuildTime += curr.timings.duration_ms || 0;
 				return acc;
 			},
 			{ success: 0, failure: 0, totalBuildTime: 0 },

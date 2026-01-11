@@ -21,7 +21,7 @@ class DeploymentController implements IDeploymentController {
 				res.status(HTTP_STATUS_CODE.BAD_REQUEST).json({ deployment: null });
 				return;
 			}
-			const response = DeploymentMapper.toDeploymentResponse(deployment);
+			const response = DeploymentMapper.toDeploymentFullResponse(deployment);
 			res.status(HTTP_STATUS_CODE.CREATED).json(response);
 		} catch (error) {
 			next(error);
@@ -37,7 +37,7 @@ class DeploymentController implements IDeploymentController {
 
 			const result = await this.deploymentService.getDeploymentById(deploymentId, userId, includesField);
 			if (result) {
-				const response = DeploymentMapper.toDeploymentResponse(result);
+				const response = DeploymentMapper.toDeploymentFullResponse(result);
 				res.status(HTTP_STATUS_CODE.OK).json(response);
 				return;
 			}
@@ -55,7 +55,11 @@ class DeploymentController implements IDeploymentController {
 			const projectId = req.params.projectId;
 
 			const result = await this.deploymentService.getProjectDeployments(userId, projectId, query);
-			const response = DeploymentMapper.toDeploymentsResponse(result.deployments, result.total, query.page, query.limit);
+			const response = DeploymentMapper.toDeployments(result.deployments, {
+				total: result.total,
+				page: query.page,
+				limit: query.limit
+			}, query.full ? "full" : "overview");
 			res.status(HTTP_STATUS_CODE.OK).json(response);
 		} catch (error) {
 			next(error);
@@ -84,7 +88,11 @@ class DeploymentController implements IDeploymentController {
 			const query = req.validatedQuery as QueryDeploymentDTO;
 
 			const result = await this.deploymentService.getAllDeployments(userId, query);
-			const response = DeploymentMapper.toDeploymentsResponse(result.deployments, result.total, query.page, query.limit);
+			const response = DeploymentMapper.toDeployments(result.deployments, {
+				total: result.total,
+				page: query.page,
+				limit: query.limit
+			}, query.full ? "full" : "overview");
 			res.status(HTTP_STATUS_CODE.OK).json(response);
 		} catch (error) {
 			next(error);
@@ -112,7 +120,7 @@ class DeploymentController implements IDeploymentController {
 			const deploymentId = req.params.id;
 			const deployment = await this.deploymentService.__getDeploymentById(deploymentId);
 			if (deployment) {
-				const response = DeploymentMapper.toDeploymentResponse(deployment);
+				const response = DeploymentMapper.toDeploymentFullResponse(deployment);
 				res.status(HTTP_STATUS_CODE.OK).json(response);
 				return;
 			}

@@ -4,7 +4,7 @@ import { IProject, Project, ProjectStatus } from "../models/Projects.js";
 import { IUser, User } from "../models/User.js";
 import { BaseRepository } from "./base/base.repository.js";
 import { QueryProjectDTO } from "../dtos/project.dto.js";
-import { PROJECT_POPULATE_MAP } from "../constants/populates/project.populate.js";
+import { PROJECT_POPULATE_MAP, projectUpdateFieldsString } from "../constants/populates/project.populate.js";
 
 
 class ProjectRepository extends BaseRepository<IProject> implements IProjectRepository {
@@ -75,7 +75,7 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 		return await Project.findOneAndUpdate({ _id: projectId, user: userId, isDeleted: false }, { isDeleted: true }, { new: true });
 	}
 	async updateProject(projectId: string, userId: string, updateData: Partial<IProject>): Promise<IProject | null> {
-		return await Project.findOneAndUpdate({ _id: projectId, user: userId }, { $set: { ...updateData } }, { new: true, select: "name _id subdomain" });
+		return await Project.findOneAndUpdate({ _id: projectId, user: userId }, { $set: { ...updateData } }, { new: true, select: [...projectUpdateFieldsString, "subdomain"] });
 	}
 
 	async pushToDeployments(projectId: string, userId: string, newDeployment: string | Types.ObjectId): Promise<IProject | null> {
@@ -87,7 +87,7 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 				lastDeployment: newDeployment.toString(),
 				$addToSet: { deployments: newDeployment },
 			},
-			{ new: true, select: "name _id" },
+			{ new: true, select: projectUpdateFieldsString },
 		);
 	}
 
@@ -103,7 +103,7 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 				currentDeployment: backUpDeployment,
 				$pull: { deployments: deployment },
 			},
-			{ new: true, select: "name _id" },
+			{ new: true, select: projectUpdateFieldsString },
 		);
 	}
 
@@ -113,7 +113,7 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 	}
 	async __updateProject(projectId: string, updateData: Partial<IProject>): Promise<IProject | null> {
 		// container
-		return await Project.findOneAndUpdate({ _id: projectId }, { $set: { ...updateData } }, { new: true, select: "name _id" });
+		return await Project.findOneAndUpdate({ _id: projectId }, { $set: { ...updateData } }, { new: true, select: projectUpdateFieldsString });
 	}
 }
 export default ProjectRepository;

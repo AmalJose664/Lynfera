@@ -20,6 +20,7 @@ import { IoCloudUpload, IoTrashOutline } from "react-icons/io5"
 import { GrStatusDisabled } from "react-icons/gr"
 import NewDeploymentConfirmBox from "@/components/modals/NewDeploymentConfirmBox"
 import { useRouter, useSearchParams } from "next/navigation"
+import { LiaRedoAltSolid } from "react-icons/lia"
 
 
 interface ProjectContentProps {
@@ -77,7 +78,38 @@ export function ProjectContent({
 		setTabs(value)
 		router.push(`?${params.toString()}`, { scroll: false })
 	}
-	console.log("------------project-------------", (project?.deployments?.length === 0 && !project.currentDeployment))
+	const optionsArray = [
+		{
+			title: "Create New Deployment",
+			actionFn: () => setShowConfirm(true),
+			className: "",
+			Svg: IoCloudUpload
+		},
+		{
+			title: "Refresh Data",
+			actionFn: refetch,
+			className: "",
+			Svg: LiaRedoAltSolid
+		},
+		{
+			title: "Manage Subdomain",
+			actionFn: scrollFn,
+			className: "",
+		},
+		{
+			title: "Disable project",
+			actionFn: scrollFn,
+			className: "text-red-400 hover:text-red-500 ",
+			Svg: GrStatusDisabled
+		},
+		{
+			title: "Delete Project",
+			actionFn: scrollFn,
+			className: "text-red-400 hover:text-red-500 ",
+			Svg: IoTrashOutline
+		},
+	]
+
 	return (
 		<div className="min-h-screen">
 			<NewDeploymentConfirmBox
@@ -97,38 +129,14 @@ export function ProjectContent({
 							<div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 w-full">
 								<div className="flex items-center justify-between w-full md:w-auto">
 									<div className="flex items-center gap-3 md:gap-6">
-										<BackButton />
+										<BackButton specificUrl="/projects" />
 										<h1 className="text-lg md:text-xl flex gap-2 items-center font-semibold truncate">
 											<span className="truncate max-w-[200px] md:max-w-none">{project.name}</span>
 											<IoIosCube className="flex-shrink-0" />
 										</h1>
 									</div>
 									<div className="md:hidden">
-										<OptionsComponent parentClassName="" options={[
-											{
-												title: "Create New Deployment",
-												actionFn: () => setShowConfirm(true),
-												className: "",
-												Svg: IoCloudUpload
-											},
-											{
-												title: "Manage Subdomain",
-												actionFn: scrollFn,
-												className: "",
-											},
-											{
-												title: "Disable project",
-												actionFn: scrollFn,
-												className: "text-red-400 hover:text-red-500 ",
-												Svg: GrStatusDisabled
-											},
-											{
-												title: "Delete Project",
-												actionFn: scrollFn,
-												className: "text-red-400 hover:text-red-500 ",
-												Svg: IoTrashOutline
-											},
-										]} />
+										<OptionsComponent parentClassName="" options={optionsArray} />
 									</div>
 								</div>
 
@@ -138,31 +146,7 @@ export function ProjectContent({
 							</div>
 
 							<div className="hidden md:block">
-								<OptionsComponent parentClassName="" options={[
-									{
-										title: "Create New Deployment",
-										actionFn: () => setShowConfirm(true),
-										className: "",
-										Svg: IoCloudUpload
-									},
-									{
-										title: "Manage Subdomain",
-										actionFn: scrollFn,
-										className: "",
-									},
-									{
-										title: "Disable project",
-										actionFn: scrollFn,
-										className: "text-red-400 hover:text-red-500 ",
-										Svg: GrStatusDisabled
-									},
-									{
-										title: "Delete Project",
-										actionFn: scrollFn,
-										className: "text-red-400 hover:text-red-500 ",
-										Svg: IoTrashOutline
-									},
-								]} />
+								<OptionsComponent parentClassName="" options={optionsArray} />
 							</div>
 						</div>
 					</div>
@@ -185,7 +169,7 @@ export function ProjectContent({
 						/>
 					</TabsContent>
 					<TabsContent value="deployments">
-						<AllDeployments projectId={project._id} currentDeployment={project.currentDeployment || ""} repoURL={project.repoURL} setTab={() => setTabs("overview")} />
+						<AllDeployments projectId={project._id} subdomain={project.subdomain} currentDeployment={project.currentDeployment || ""} repoURL={project.repoURL} setTab={() => setTabs("overview")} />
 					</TabsContent>
 					<TabsContent value="settings">
 						<ProjectSettings project={project} reDeploy={reDeploy} setTabs={setTabs} />

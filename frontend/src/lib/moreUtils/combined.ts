@@ -1,3 +1,4 @@
+import { ProjectStatus } from "@/types/Project";
 
 export const timeToSeconds = (time: number | undefined) => {
 	if (!time) return time
@@ -178,4 +179,11 @@ export function shortHash(hash: string) {
 export function getPercentage(value: number, limit: number) {
 	if (limit === 0) return 0;
 	return ((value / limit) * 100);
+}
+
+export function isStatusProgress(status?: String) {
+	return status === ProjectStatus.BUILDING || status === ProjectStatus.QUEUED
+}
+export function isStatusFailure(status?: String) {
+	return status === ProjectStatus.FAILED || status === ProjectStatus.CANCELED
 }

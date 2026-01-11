@@ -238,14 +238,6 @@
 				background: rgba(255, 255, 255, 0.05);
 			}
 
-			.footer {
-				position: absolute;
-				bottom: 40px;
-				color: var(--text-secondary);
-				font-size: 12px;
-				opacity: 0.6;
-			}
-
 			@media (max-width: 480px) {
 				.cta-group {
 					flex-direction: column;
@@ -293,14 +285,10 @@
 			</div>
 		</div>
 
-		<div class="footer">Build ID: <span id="build-id">...</span></div>
-
 		<script>
 			const logContainer = document.getElementById("build-log")
-			const buildIdSpan = document.getElementById("build-id")
-			const projectLinkElemment = document.querySelector(".project-link")
 
-			buildIdSpan.innerText = Math.random().toString(36).substr(2, 9).toUpperCase()
+			const projectLinkElemment = document.querySelector(".project-link")
 
 			const logs = ["Logs are comming...", "Logs are comming...", "Logs are comming...", "Logs are comming...", "Logs are comming..."]
 

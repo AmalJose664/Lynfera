@@ -12,7 +12,7 @@ import ProjectEmptyState from './ProjectEmptyState';
 import { Project, ProjectStatus } from '@/types/Project';
 import { useRouter } from "next/navigation"
 import { cn } from '@/lib/utils';
-import { getStatusBg } from '@/lib/moreUtils/combined';
+import { getStatusBg, isStatusFailure } from '@/lib/moreUtils/combined';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import OptionsComponent from "@/components/OptionsComponent";
@@ -36,7 +36,7 @@ export default function ProjectContent() {
 		? projects
 		: projects?.filter(project => {
 			if (projectFilter.key === "status" && projectFilter.value === ProjectStatus.FAILED) {
-				return project.status === ProjectStatus.FAILED || project.status === ProjectStatus.CANCELED
+				return isStatusFailure(project.status)
 			}
 			return project[projectFilter.key] === projectFilter.value
 		});
@@ -174,7 +174,7 @@ export default function ProjectContent() {
 											<div onClick={(e) => e.stopPropagation()}>
 												<OptionsComponent parentClassName="" options={[
 													{
-														title: "Site",
+														title: "Visit",
 														actionFn: () => window.open(projectLink),
 														className: "",
 														Svg: IoMdGlobe

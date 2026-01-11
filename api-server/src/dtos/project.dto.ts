@@ -1,6 +1,7 @@
 import z from "zod";
 import { ProjectStatus } from "../models/Projects.js";
 import { mongoIdSchema } from "./zodHelpers.js";
+import { DEPLOYMENT_SEPARATOR_LENGTH, DEPLOYMENT_ID_LENGTH, MAX_SUBDOMAIN_LENGTH } from "../constants/subdomain.js";
 
 export const envSchema = z
 	.object({
@@ -106,8 +107,8 @@ export const ProjectSubdomainSchema = z.object({
 	projectId: mongoIdSchema,
 	newSubdomain: z
 		.string()
-		.min(7)
-		.max(30)
+		.min(3)
+		.max(MAX_SUBDOMAIN_LENGTH - (DEPLOYMENT_ID_LENGTH + DEPLOYMENT_SEPARATOR_LENGTH))
 		.regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers and hyphens allowed")
 		.regex(/^[a-z0-9]/, "Must start with a letter or number")
 		.regex(/[a-z0-9]$/, "Must end with a letter or number"),
@@ -116,7 +117,7 @@ export const SubdomainQuerySchema = z.object({
 	value: z
 		.string()
 		.min(7)
-		.max(30)
+		.max(MAX_SUBDOMAIN_LENGTH - (DEPLOYMENT_ID_LENGTH + DEPLOYMENT_SEPARATOR_LENGTH))
 		.regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers and hyphens allowed")
 		.regex(/^[a-z0-9]/, "Must start with a letter or number")
 		.regex(/[a-z0-9]$/, "Must end with a letter or number"),

@@ -1,3 +1,4 @@
+import { isStatusFailure } from "@/lib/moreUtils/combined"
 import { cn } from "@/lib/utils"
 import { ProjectStatus } from "@/types/Project"
 import Link from "next/link"
@@ -7,7 +8,7 @@ import { IoIosCube } from "react-icons/io"
 import { SiSolid, SiSvelte, SiVite } from "react-icons/si"
 
 const TechStack = ({ stack, link, status }: { stack: string, link: string, status: string }) => {
-	const projectNA = status === ProjectStatus.FAILED || status === ProjectStatus.CANCELED
+	const projectNA = isStatusFailure(status)
 	const stacks: Record<string, JSX.Element> = {
 		react: (
 			<>

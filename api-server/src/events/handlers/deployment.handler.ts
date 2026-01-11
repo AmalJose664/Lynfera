@@ -18,7 +18,7 @@ class DeploymentEventHandler {
 				...log,
 			});
 		}
-		console.log("logs inserted...", log.message);
+		console.log("logs inserted...", `${log.level === "INFO" ? log.message : "-"}`);
 
 		await logsService.__insertLog(log.message, projectId, deploymentId, new Date(log.timestamp), log.level, log.sequence);
 		//stream
@@ -28,7 +28,7 @@ class DeploymentEventHandler {
 		//service call
 		const { data } = event;
 		const { updates, deploymentId, projectId } = data;
-		console.log("Updates >>>>", data.updateType);
+		console.log("Updates >>>>", data.updateType, `Deployment => ${deploymentId}, Project => ${projectId}`);
 		if (!isRetry) {
 			deploymentEmitter.emitUpdates(deploymentId, {
 				...updates,
@@ -54,9 +54,13 @@ class DeploymentEventHandler {
 					status: updates.status,
 					complete_at: new Date(updates.complete_at || ""),
 					...(updates.commit_hash && { commit_hash: updates.commit_hash }),
-					install_ms: updates.install_ms,
-					build_ms: updates.build_ms,
-					duration_ms: updates.duration_ms,
+					timings: {
+						install_ms: updates.install_ms || 0,
+						build_ms: updates.build_ms || 0,
+						upload_ms: updates.upload_ms || 0,
+						duration_ms: updates.duration_ms || 0,
+					},
+
 					file_structure: {
 						files: updates.file_structure?.files || [],
 						totalSize: updates.file_structure?.totalSize || 0,

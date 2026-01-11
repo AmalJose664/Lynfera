@@ -12,7 +12,7 @@ import { User } from "@/types/User";
 import { Project, ProjectStatus } from "@/types/Project";
 import Link from "next/link";
 import TechStack from "@/components/project/TechStack";
-import { getGithubBranchUrl, getGithubCommitUrl, getStatusColor, parseGitHubRepo, timeToSeconds } from "@/lib/moreUtils/combined";
+import { getGithubBranchUrl, getGithubCommitUrl, getStatusColor, isStatusFailure, isStatusProgress, parseGitHubRepo, timeToSeconds } from "@/lib/moreUtils/combined";
 import StatusIcon, { AnimationBuild } from "@/components/ui/StatusIcon";
 import { toast } from "sonner"
 import { Deployment } from "@/types/Deployment";
@@ -29,12 +29,12 @@ interface ProjectOverviewProps {
 	setTabs: (state: string) => void;
 }
 const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeploy, setShowBuild, setTabs }: ProjectOverviewProps) => {
-	const isprojectError = project.status === ProjectStatus.CANCELED || project.status === ProjectStatus.FAILED
+	const isprojectError = isStatusFailure(project.status)
 	const isDeplymentError = project.deployments?.length !== 0
 		&& deployment
-		&& (deployment.status === ProjectStatus.CANCELED
-			|| deployment?.status === ProjectStatus.FAILED)
-	const isProjectProgress = project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED
+		&& (isStatusFailure(deployment.status))
+	const isProjectProgress = isStatusProgress(project.status)
+	const deploymentRunning = isStatusProgress(runningDeploymentStatus)
 	const repoValues = parseGitHubRepo(project.repoURL)
 	const projectLink = `${window.location.protocol}//${project.subdomain}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`
 	return (
@@ -56,7 +56,7 @@ const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeplo
 								<div className="space-y-4">
 									<div>
 										<span className="text-xs uppercase tracking-wider text-gray-500 font-semibold">Status</span>
-										{runningDeploymentStatus ? (
+										{deploymentRunning ? (
 											<div className="mt-1  flex items-center gap-3">
 												<div className="mt-1  flex items-center gap-2 border border-amber-400/30 rounded-md p-1 relative group">
 													<TbHexagonNumber1Filled className="text-amber-500" />

@@ -18,6 +18,9 @@ import { IRedisCache } from "../interfaces/cache/IRedisCache.js";
 import { spawn } from "child_process";
 import { ILogsService } from "../interfaces/service/ILogsService.js";
 import { generateSlug } from "random-word-slugs";
+import { nanoid } from "../utils/generateNanoid.js";
+import { DEPLOYMENT_ID_LENGTH } from "../constants/subdomain.js";
+import { deploymentBasicFields } from "../constants/populates/deployment.populate.js";
 
 
 class DeploymentService implements IDeploymentService {
@@ -65,10 +68,11 @@ class DeploymentService implements IDeploymentService {
 		deploymentData.status = DeploymentStatus.QUEUED;
 		deploymentData.overWrite = false;
 		deploymentData.commit_hash = "------||------";
+		deploymentData.publicId = nanoid(DEPLOYMENT_ID_LENGTH)
 		deploymentData.identifierSlug = generateSlug(3);
 		deploymentData.project = new Types.ObjectId(correspondindProject._id);
 		deploymentData.user = correspondindProject.user;
-		await this.incrementRunningDeplymnts(correspondindProject._id)
+		await this.incrementRunningDeplymnts(correspondindProject._id);
 
 		try {
 			const deployment = await this.deploymentRepository.createDeployment(deploymentData);
@@ -95,13 +99,13 @@ class DeploymentService implements IDeploymentService {
 		return await this.deploymentRepository.findDeploymentById(id, userId, {
 			exclude: [
 				"commit_hash", "overWrite", "identifierSlug", "error_message", "updatedAt",
-				"install_ms", "build_ms", "duration_ms", "status", "user", "project"
+				"install_ms", "build_ms", "upload_ms", "publicId", "duration_ms", "status", "user", "project"
 			]
 		});
 	}
 
 	async getAllDeployments(userId: string, query: QueryDeploymentDTO): Promise<{ deployments: IDeployment[]; total: number }> {
-		return await this.deploymentRepository.findAllDeployments(userId, query);
+		return await this.deploymentRepository.findAllDeployments(userId, query, { fields: !query.full ? deploymentBasicFields : [] });
 	}
 
 	async getProjectDeployments(
@@ -113,7 +117,7 @@ class DeploymentService implements IDeploymentService {
 		if (!correspondindProject) {
 			throw new AppError("Project not found", 404);
 		}
-		return await this.deploymentRepository.findProjectDeployments(userId, projectId, query);
+		return await this.deploymentRepository.findProjectDeployments(userId, projectId, query, { fields: !query.full ? deploymentBasicFields : [] });
 	}
 
 	async deleteDeployment(projectId: string, deploymentId: string, userId: string): Promise<number> {

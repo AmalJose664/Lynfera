@@ -15,6 +15,7 @@ import { ProjectStatus } from "@/types/Project"
 import { useAppDispatch } from "@/store/store"
 import { toast } from "sonner"
 import { LoadingSpinner2 } from "@/components/LoadingSpinner"
+import { isStatusProgress } from "@/lib/moreUtils/combined"
 
 interface ProjectPageContainerProps {
 	projectId: string
@@ -48,7 +49,7 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 				toast.error("Error on deployment. Our Build runners are busy. Please try again some time later.")
 				return false
 			}
-			toast.error("Error in creating new Deployment")
+			toast.error("Error in creating new Deployment; \n" + error.data.message)
 			return false
 		}
 	}
@@ -84,6 +85,7 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 		{ skip: !showBuild || (!deployment?._id && !lastDeployment?._id) }
 	)
 
+	const [sseActive, setSseActive] = useState(false)
 	useEffect(() => {
 		if (initialLogs?.length) {
 			dispatch(addLogs(initialLogs))
@@ -91,18 +93,19 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 		return () => { dispatch(clearLogs()) }
 	}, [initialLogs, dispatch])
 
-	const [sseActive, setSseActive] = useState(tempDeployment && (tempDeployment.status === ProjectStatus.BUILDING || tempDeployment.status === ProjectStatus.QUEUED) || false)
+	useEffect(() => {
+		setSseActive(
+			Boolean((project?.tempDeployment && tempDeployment)
+			)
+		)
+	}, [project?.tempDeployment, tempDeployment])
 
 
 	useDeploymentSSE(project, refetch, sseActive, setSseActive, tempDeployment)
 
 	const reDeploy = async () => {
 		if (!project || (!deployment && !lastDeployment)) return
-		if (project.status === ProjectStatus.BUILDING
-			|| project.status === ProjectStatus.QUEUED
-			|| deployment?.status === ProjectStatus.BUILDING
-			|| deployment?.status === ProjectStatus.QUEUED
-		) {
+		if (isStatusProgress(project.status) || isStatusProgress(deployment?.status)) {
 			toast.error(`Cannot deploy when the project is in ${ProjectStatus.QUEUED}/${ProjectStatus.BUILDING} state`)
 			return
 		}

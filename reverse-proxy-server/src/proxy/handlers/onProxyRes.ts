@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { redisService } from "../../cache/redis.js";
 import { exemptedRegex, MAX_CACHE_LIMIT_MB } from "../../constants/proxyCacheValues.js";
-import { RequestWithProject } from "../../middleware/projectChecker.js";
+import { RequestWithProject } from "../../middleware/projectFinder.js";
 import { IAnalytics } from "../../models/Analytics.js";
 import { analyticsService } from "../../service/analytics.service.js";
 import parseUA from "../../utils/uaParser.js";

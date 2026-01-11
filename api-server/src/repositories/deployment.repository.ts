@@ -1,7 +1,7 @@
 import { FilterQuery } from "mongoose";
 import { QueryDeploymentDTO } from "../dtos/deployment.dto.js";
-import { IDeploymentRepository } from "../interfaces/repository/IDeploymentRepository.js";
-import { Deployment, DeploymentStatus, IDeployment } from "../models/Deployment.js";
+import { DeploymentDbOptions, IDeploymentRepository } from "../interfaces/repository/IDeploymentRepository.js";
+import { Deployment, IDeployment } from "../models/Deployment.js";
 import { BaseRepository } from "./base/base.repository.js";
 import { DEPLOYMENT_POPULATE_MAP } from "../constants/populates/deployment.populate.js";
 
@@ -29,15 +29,17 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 		}
 		return await deploymentQuery.exec();
 	}
-	async findAllDeployments(userId: string, query: QueryDeploymentDTO): Promise<{ deployments: IDeployment[]; total: number }> {
+	async findAllDeployments(userId: string, query: QueryDeploymentDTO, options?: DeploymentDbOptions): Promise<{ deployments: IDeployment[]; total: number }> {
 		let dbQuery: FilterQuery<IDeployment> = { user: userId };
+		const fields = options?.fields
+
 		if (query.search) {
 			dbQuery = { ...dbQuery, commit_hash: { $regex: query.search, $options: "i" } };
 		}
 		if (query.status) {
 			dbQuery.status = { $eq: query.status };
 		}
-		let deploymentsQuery = Deployment.find(dbQuery, { file_structure: 0 })
+		let deploymentsQuery = Deployment.find(dbQuery)
 			.limit(query.limit)
 			.skip((query.page - 1) * query.limit);
 
@@ -46,6 +48,12 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 		}
 		if (query.include?.includes("user")) {
 			deploymentsQuery = deploymentsQuery.populate(DEPLOYMENT_POPULATE_MAP.user.path, DEPLOYMENT_POPULATE_MAP.user.select);
+		}
+		if (fields && fields.length) {
+			console.log("this way", fields.join(" "))
+			deploymentsQuery = deploymentsQuery.select(fields.join(" "))
+		} else {
+			deploymentsQuery = deploymentsQuery.select("-file_structure")
 		}
 		const [deployments, total] = await Promise.all([deploymentsQuery.sort("-createdAt").exec(), this.count(dbQuery)]);
 
@@ -55,9 +63,11 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 	async findProjectDeployments(
 		userId: string,
 		projectId: string,
-		query: QueryDeploymentDTO,
+		query: QueryDeploymentDTO, options?: DeploymentDbOptions
 	): Promise<{ deployments: IDeployment[]; total: number }> {
+
 		let dbQuery: FilterQuery<IDeployment> = { user: userId, project: projectId };
+		const fields = options?.fields
 		if (query.search) {
 			dbQuery = { ...dbQuery, commit_hash: { $regex: query.search, $options: "i" } };
 		}
@@ -72,6 +82,9 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 		}
 		if (query.include?.includes("user")) {
 			deploymentsQuery = deploymentsQuery.populate(DEPLOYMENT_POPULATE_MAP.user.path, DEPLOYMENT_POPULATE_MAP.user.select);
+		}
+		if (fields && fields.length) {
+			deploymentsQuery = deploymentsQuery.select(fields)
 		}
 		const [deployments, total] = await Promise.all([deploymentsQuery.sort("-createdAt").exec(), this.count(dbQuery)]);
 		return { deployments, total };

@@ -10,11 +10,14 @@ export interface Deployment {
 	performance: {
 		installTime: number;
 		buildTime: number;
+		uploadTime: number;
 		totalDuration: number;
 	}
 	overWrite: boolean;
 	completedAt: Date;
 	identifierSlug: string;
+	environment: string;
+	publicId: string;
 	errorMessage?: string;
 	createdAt: Date;
 	updatedAt: Date;
@@ -37,6 +40,7 @@ export interface DeploymentUpdates {
 	commit_hash?: string;
 	error_message?: string;
 	install_ms?: number;
+	upload_ms?: number;
 	build_ms?: number;
 	duration_ms?: number;
 	complete_at?: string;

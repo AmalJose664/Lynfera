@@ -44,3 +44,6 @@ export const STORAGE_FILES_PATH = `${STORAGE_MODE === "cloud"
 // --------------------------------------------------
 // Safety checks (fail fast)
 // --------------------------------------------------
+export const ownDomain = process.env.OWN_DOMAIN
+
+export const subdomainDelimeter = "--"
