@@ -8,7 +8,7 @@ RUN apt-get update && \
 WORKDIR /home/app
 COPY package*.json .
 RUN npm install 
-
+# RUN npm ci && npm cache clean --force
 COPY main.sh main.sh
 COPY script.js script.js
 

@@ -15,12 +15,11 @@
 		"archiver": "^7.0.1",
 		"axios": "^1.13.2",
 		"execa": "^9.6.1",
-		"express": "^5.2.1",
 		"form-data": "^4.0.5",
 		"ioredis": "^5.8.2",
 		"kafkajs": "^2.2.4",
 		"mime-types": "^3.0.1",
-		"p-queue": "^9.0.1",
+		"p-limit": "^7.2.0",
 		"simple-git": "^3.30.0"
 	}
 }

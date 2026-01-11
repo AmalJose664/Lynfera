@@ -12,9 +12,10 @@ import simpleGit from "simple-git";
 import archiver from "archiver";
 import FormData from "form-data";
 import axios from 'axios';
+import pLimit from "p-limit"
 
-let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "695829e2df318381d6048c5e"   // Received from env by apiserver or use backup for local testing
-let PROJECT_ID = process.env.PROJECT_ID || "6934502adfa2d8c1c254aabc"   // Received from env by apiserver or use backup for local testing
+let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "---"   // Received from env by apiserver or use backup for local testing
+let PROJECT_ID = process.env.PROJECT_ID || "---"   // Received from env by apiserver or use backup for local testing
 const brandName = "Lynfera"
 const kafka = new Kafka({
 	clientId: `docker-build-server-${PROJECT_ID}-${DEPLOYMENT_ID}`,
@@ -44,12 +45,14 @@ const BUCKET_NAME = process.env.CLOUD_BUCKET
 
 console.log("Starting file..")
 const git = simpleGit();
+const limit = pLimit(8);
 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 class ContainerError extends Error {
+	isContainerError = true
 	constructor(message, stream, cause = "", cancelled = false) {
 		super(message, cause);
 		this.name = "CUSTOM_ERROR";
@@ -79,7 +82,7 @@ const settings = {
 	deleteSourcesAfter: !true,
 	sendLocalDeploy: !true,
 	localDeploy: !true,
-	runCommands: true,            // for testing only 
+	runCommands: !true,            // for testing only 
 	cloneRepo: !true            // for testing only 
 }
 
@@ -225,6 +228,7 @@ const publishUpdates = async (updateData = {}) => {
 					...(updateData.techStack && { techStack: updateData.techStack }),
 					...(updateData.install_ms && { install_ms: updateData.install_ms }),
 					...(updateData.build_ms && { build_ms: updateData.build_ms }),
+					...(updateData.upload_ms && { upload_ms: updateData.upload_ms }),
 					...(updateData.commit_hash && { commit_hash: updateData.commit_hash }),
 					...(updateData.error_message && { error_message: updateData.error_message }),
 					...(updateData.file_structure && { file_structure: updateData.file_structure }),
@@ -318,6 +322,9 @@ async function fetchProjectData(deploymentId = "") {
 
 		return [projectData.project, deploymentData.deployment]
 	} catch (error) {
+		if (error?.isContainerError || error instanceof ContainerError) {
+			throw error
+		}
 		if (axios.isAxiosError(error)) {
 			console.log("Error on fetching Project data", error)
 			publishLogs({
@@ -614,7 +621,7 @@ async function validateAnduploadFiles(sourceDir) {
 	});
 
 	archive.pipe(output);
-
+	const uploadsArray = []
 	const fileStructure = []
 	let totalSize = 0;
 	async function processDirectory(currentDir, relativePath = "") {
@@ -647,31 +654,41 @@ async function validateAnduploadFiles(sourceDir) {
 				}
 				fileStructure.push({ name: relPath, size: fileStat.size });
 				totalSize += fileStat.size;
-				publishLogs({
-					DEPLOYMENT_ID, PROJECT_ID,
-					level: logValues.INFO,
-					message: "\x1b[38;5;48m uploading " + relPath + "\x1b[0m",
-					stream: "system"
-				});
+
 				if (settings.localDeploy) {
+					publishLogs({
+						DEPLOYMENT_ID, PROJECT_ID,
+						level: logValues.INFO,
+						message: "\x1b[38;5;48m uploading " + relPath + "\x1b[0m",
+						stream: "system"
+					});
 					archive.file(fullPath, { name: relPath });
 					// await rename(fullPath, targetPath);
 					console.log("Moved " + relPath)
 				} else {
-					console.log("Uploading " + relPath, "--cloud");
+					uploadsArray.push(limit(async () => {
+						publishLogs({
+							DEPLOYMENT_ID, PROJECT_ID,
+							level: logValues.INFO,
+							message: "uploading \x1b[38;5;48m " + relPath + "\x1b[0m",
+							stream: "system"
+						});
+						console.log("Uploading " + relPath, "--cloud");
+						const command = new PutObjectCommand({
+							Bucket: BUCKET_NAME,
+							Key: `__app_build_outputs/${PROJECT_ID}/${DEPLOYMENT_ID}/${relPath.replaceAll("\\", "/")}`,
+							Body: createReadStream(fullPath),
+							ContentType: mime.lookup(fullPath)
+						});
+						await s3Client.send(command);
+					}))
 
-					const command = new PutObjectCommand({
-						Bucket: BUCKET_NAME,
-						Key: `__app_build_outputs/${PROJECT_ID}/${DEPLOYMENT_ID}/${relPath.replaceAll("\\", "/")}`,
-						Body: createReadStream(fullPath),
-						ContentType: mime.lookup(fullPath)
-					});
-					await s3Client.send(command);
 				}
 			}
 		}
 	}
 	await processDirectory(sourceDir);
+	await Promise.all(uploadsArray);
 	await archive.finalize();
 	return new Promise((resolve, reject) => {
 		output.on("finish", async () => {
@@ -726,6 +743,10 @@ async function init() {
 			level: logValues.INFO,
 			message: `${v}`, stream: "system"
 		}))
+
+		//-----------------------------------------CLONING_FETCHING-----------------------------------------------------------------------------------------------------
+
+
 		const [projectData, deploymentData] = await fetchProjectData(DEPLOYMENT_ID)
 		DEPLOYMENT_ID = deploymentData._id
 		PROJECT_ID = projectData._id
@@ -744,6 +765,7 @@ async function init() {
 			level: logValues.INFO,
 			message: `cloning repo..`, stream: "system"
 		})
+
 
 		await cloneGitRepoAndValidate(taskDir, runDir, projectData)
 		gitCommitData = await getGitCommitData(taskDir).catch((e) => console.log("Error getting commit", e)) || gitCommitData
@@ -766,6 +788,11 @@ async function init() {
 				message: v, stream: "system"
 			}))
 		printInfoLogs();
+
+
+		//-----------------------------------------------------------INSTALL-------------------------------------------------------------------------------------------
+
+
 		["\x1b[\x1b[1m\x1b[38;2;39;199;255m Installing packages...\x1b[0m", line(36)
 		].map((v) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
@@ -822,6 +849,13 @@ async function init() {
 			level: logValues.SUCCESS,
 			message: v, stream: "system"
 		}))
+
+
+
+		//-----------------------------------------BUILD---------------------------------------------------------------------------------------------------------
+
+
+
 
 		const buildTimer = performance.now();
 
@@ -883,13 +917,19 @@ async function init() {
 			message: msg, stream: "system"
 		}))
 
+
+
+		//-----------------------------------------UPLOAD---------------------------------------------------------------------------------------------------------
+
+
+		const uploadTimer = performance.now()
 		const { fileStructure, totalSize } = await validateAnduploadFiles(distFolderPath)
 
 		if (settings.localDeploy && settings.deleteSourcesAfter) {
 			await rm(taskDir, { recursive: true, force: true });
 			await mkdir(taskDir, { recursive: true });
 		}
-
+		const uploadEndTimer = performance.now()
 
 		const timerEnd = performance.now();
 		const durationMs = timerEnd - timerStart;
@@ -925,6 +965,7 @@ async function init() {
 			techStack: framweworkIdentified.framework,
 			install_ms: Number((installEndTimer - installTimer).toFixed(2)),
 			build_ms: Number((buildEndTimer - buildTimer).toFixed(2)),
+			upload_ms: Number((uploadEndTimer - uploadTimer).toFixed(2)),
 			duration_ms: Number(durationMs.toFixed(2)),
 			commit_hash: gitCommitData,
 			complete_at: new Date().toISOString(),
@@ -934,12 +975,20 @@ async function init() {
 		console.log("Time taken ", durationMs.toFixed(2), "logs number ", logsNumber)
 	} catch (err) {
 		//logs	
-		if (err instanceof ContainerError) {
+		if (err?.isContainerError || err instanceof ContainerError) {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.ERROR,
 				message: `${err.message} || ${err.cause}`, stream: err.stream
-			})
+			});
+
+			[repeat(" ", 10), repeat("\x1b[38;5;197m-", 60) + "\x1b[38;5;197m END " + repeat("\x1b[38;5;197m-\x1b[0m", 150),
+			repeat(" ", 10),
+			].map((v) => publishLogs({
+				DEPLOYMENT_ID, PROJECT_ID,
+				level: logValues.DECOR,
+				message: v, stream: "system"
+			}));
 			await publishUpdates({
 				DEPLOYMENT_ID, PROJECT_ID,
 				type: logValues.ERROR,
