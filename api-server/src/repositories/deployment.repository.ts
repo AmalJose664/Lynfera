@@ -50,7 +50,6 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 			deploymentsQuery = deploymentsQuery.populate(DEPLOYMENT_POPULATE_MAP.user.path, DEPLOYMENT_POPULATE_MAP.user.select);
 		}
 		if (fields && fields.length) {
-			console.log("this way", fields.join(" "))
 			deploymentsQuery = deploymentsQuery.select(fields.join(" "))
 		} else {
 			deploymentsQuery = deploymentsQuery.select("-file_structure")
@@ -74,7 +73,7 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 		if (query.status) {
 			dbQuery.status = { $eq: query.status };
 		}
-		let deploymentsQuery = Deployment.find(dbQuery, { file_structure: 0 })
+		let deploymentsQuery = Deployment.find(dbQuery)
 			.limit(query.limit)
 			.skip((query.page - 1) * query.limit);
 		if (query.include?.includes("project")) {
@@ -84,7 +83,9 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 			deploymentsQuery = deploymentsQuery.populate(DEPLOYMENT_POPULATE_MAP.user.path, DEPLOYMENT_POPULATE_MAP.user.select);
 		}
 		if (fields && fields.length) {
-			deploymentsQuery = deploymentsQuery.select(fields)
+			deploymentsQuery = deploymentsQuery.select(fields.join(" "))
+		} else {
+			deploymentsQuery = deploymentsQuery.select("-file_structure")
 		}
 		const [deployments, total] = await Promise.all([deploymentsQuery.sort("-createdAt").exec(), this.count(dbQuery)]);
 		return { deployments, total };
