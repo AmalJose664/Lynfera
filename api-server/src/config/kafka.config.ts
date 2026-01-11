@@ -9,4 +9,11 @@ export const kafka = new Kafka({
 		username: process.env.KAFKA_USERNAME as string,
 		password: process.env.KAFKA_PASSWORD as string,
 	},
+	retry: {
+		retries: 8,
+		restartOnFailure: async () => {
+			process.stdout.write("   ---- kafka retry ----   ")
+			return true
+		}
+	}
 });

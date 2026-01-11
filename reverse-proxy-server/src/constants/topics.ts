@@ -1,0 +1,1 @@
+export const KAFKA_ANALYTICS_TOPIC_NAME = "project.analytics"

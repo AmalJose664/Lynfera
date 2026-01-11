@@ -10,8 +10,16 @@ class KafkaEventConsumer implements IKafkaEventConsumer {
 
 	constructor(kafka: Kafka) {
 		this.kafka = kafka;
-		this.logsConsumer = this.kafka.consumer({ groupId: "vercel-logs-group" });
-		this.analyticsConsumer = this.kafka.consumer({ groupId: "vercel-analytics-group" });
+		this.logsConsumer = this.kafka.consumer({
+			groupId: "lynfera-logs-group",
+			sessionTimeout: 45000,
+			heartbeatInterval: 3000,
+		});
+		this.analyticsConsumer = this.kafka.consumer({
+			groupId: "lynfera-analytics-group",
+			sessionTimeout: 45000,
+			heartbeatInterval: 3000,
+		});
 	}
 	async start() {
 		if (this.isRunning) {

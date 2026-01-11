@@ -2,6 +2,7 @@ import { IAnalyticsService } from "../interfaces/service/IAnalyticsService.js";
 import { Producer } from "kafkajs"
 import { kafka } from "../config/kafka.js";
 import { IAnalytics } from "../models/Analytics.js";
+import { KAFKA_ANALYTICS_TOPIC_NAME } from "../constants/topics.js";
 
 class AnalyticsService implements IAnalyticsService {
 	private kafkaProducer: Producer
@@ -76,5 +77,5 @@ class AnalyticsService implements IAnalyticsService {
 
 }
 
-export const analyticsService = new AnalyticsService(kafka.producer(), "project.analytics")
+export const analyticsService = new AnalyticsService(kafka.producer(), KAFKA_ANALYTICS_TOPIC_NAME)
 
