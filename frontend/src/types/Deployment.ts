@@ -1,6 +1,7 @@
 import { Project, ProjectStatus } from "./Project";
 import { User } from "./User";
-
+type WithOptional<T, K extends keyof T> =
+	Omit<T, K> & Partial<Pick<T, K>>;
 export interface Deployment {
 	_id: string;
 	project: Partial<Project> | string;
@@ -22,6 +23,8 @@ export interface Deployment {
 	createdAt: Date;
 	updatedAt: Date;
 }
+export type DeploymentBasic = WithOptional<Deployment, "user" | "updatedAt" | "performance" | "overWrite" | "errorMessage" | "environment" | "completedAt" | "createdAt">;
+
 export interface DeploymentFilesType {
 	_id: string;
 	fileStructure?: {

@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../axiosBaseQuery";
-import { Deployment, DeploymentFilesType } from "@/types/Deployment";
+import { Deployment, DeploymentBasic, DeploymentFilesType } from "@/types/Deployment";
 
 export const deployemntApis = createApi({
 	reducerPath: "deployemntsApi",
@@ -9,7 +9,7 @@ export const deployemntApis = createApi({
 	}),
 	tagTypes: ['Deployments'],
 	endpoints: (builder) => ({
-		getDeployments: builder.query<{ data: Deployment[], meta: Record<string, any> }, { params: Record<string, any> }>({
+		getDeployments: builder.query<{ data: DeploymentBasic[], meta: Record<string, any> }, { params: Record<string, any> }>({
 			query: ({ params }) => ({ url: '/deployments', method: 'get', params }),
 			transformResponse: (data: any) => {
 				return { data: data.deployments, meta: data.pagination }
@@ -22,7 +22,7 @@ export const deployemntApis = createApi({
 					]
 					: [{ type: 'Deployments', id: 'LIST' }]
 		}),
-		getProjectDeployments: builder.query<{ data: Deployment[], meta: Record<string, any> }, { id: string, params?: Record<string, any> }>({
+		getProjectDeployments: builder.query<{ data: DeploymentBasic[], meta: Record<string, any> }, { id: string, params?: Record<string, any> }>({
 			query: ({ id, params }) => ({ url: `/projects/${id}/deployments`, method: 'get', params }),
 			transformResponse: (data: any) => {
 				return { data: data.deployments, meta: data.pagination }
