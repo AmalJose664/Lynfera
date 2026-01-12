@@ -53,7 +53,7 @@ export function ConfigPreview({ form }: { form: UseFormReturn<ProjectFormInput> 
 				<Card className="dark:bg-background bg-white">
 					<CardHeader>
 						<CardTitle>Configuration Preview</CardTitle>
-						<CardDescription>Your deployment pipeline dynamically updates as you type.</CardDescription>
+						<CardDescription>Your deployment and project options.</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className="relative pl-6">

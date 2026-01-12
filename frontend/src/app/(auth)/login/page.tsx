@@ -46,11 +46,13 @@ export default function LoginPage() {
 
 				<div className="mt-8 group">
 					<GoogleLoginButton
-						className="w-full inline-flex items-center justify-center px-4 py-3 border border-gray-900 dark:border-gray-50 hover:bg-gray-100 hover:text-gray-950 text-gray-100 font-semibold rounded-lg shadow-md transition-colors duration-100 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-900 !transition-none"
+						className="dark:bg-background  bg-white dark:hover:bg-gray-200  hover:bg-gray-800 border-zinc-300 dark:border-zinc-600 
+						hover:border-zinc-500
+						w-full inline-flex items-center justify-center px-4 py-3 border font-semibold rounded-lg shadow-md transition-colors duration-100 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-900 !transition-none"
 					>
 						<FcGoogle className="mr-2" />
 						<span
-							className="text-primary group-hover:text-primary dark:text-white dark:group-hover:text-neutral-900"
+							className="text-primary dark:group-hover:text-black group-hover:text-white"
 						>
 							Sign in with Google
 						</span>
@@ -58,9 +60,11 @@ export default function LoginPage() {
 				</div>
 				<div className="mt-8 group">
 					<GithubLoginButton
-						className="w-full inline-flex items-center justify-center px-4 py-3 border border-gray-900 dark:border-gray-50 hover:bg-gray-100 hover:text-gray-950 text-gray-100 font-semibold rounded-lg shadow-md transition-colors duration-100 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-900 !transition-none"
-					><FaGithub className='mr-2 text-primary group-hover:text-primary dark:text-white dark:group-hover:text-neutral-900' />
-						<span className="text-primary group-hover:text-primary dark:text-white dark:group-hover:text-neutral-900"
+						className="dark:bg-background  bg-white dark:hover:bg-gray-200  hover:bg-gray-800 border-zinc-300 dark:border-zinc-600 
+						hover:border-zinc-500   w-full inline-flex items-center justify-center px-4 py-3 border font-semibold rounded-lg shadow-md transition-colors duration-100 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-900 !transition-none"
+					>
+						<FaGithub className='mr-2 text-primary dark:group-hover:text-black group-hover:text-white' />
+						<span className="text-primary dark:group-hover:text-black group-hover:text-white"
 						>
 							Sign in with Github</span>
 					</GithubLoginButton>
