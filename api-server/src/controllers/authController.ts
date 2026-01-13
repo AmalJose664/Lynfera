@@ -8,6 +8,7 @@ import { UserMapper } from "../mappers/userMapper.js";
 import AppError from "../utils/AppError.js";
 import { issueAuthAccessCookies, issueAuthRefreshCookies } from "../utils/authUtils.js";
 import { JwtPayload } from "jsonwebtoken";
+import { LoginUserDTO, ResendOtpDTO, SignUpUserDTO, VerifyOtpDTO } from "../dtos/auth.dto.js";
 
 interface RefreshTokenPayload extends JwtPayload {
 	id: string;
@@ -106,6 +107,80 @@ export const getAuthenticatedUser = async (req: Request, res: Response, next: Ne
 		next(error);
 	}
 };
+
+export const signUpUser = async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const userData = req.validatedBody as SignUpUserDTO
+		const result = await userService.signUpUser(userData)
+
+		if (!result) {
+			res.status(HTTP_STATUS_CODE.BAD_REQUEST).json({ error: "User Create Error" });
+			return;
+		}
+		const user = result.user
+		const otpSent = result.otpResult
+		const response = UserMapper.toUserResponse(user);
+		res.status(HTTP_STATUS_CODE.CREATED).json({ message: "OTP Sent", otpSent, user: response.user });
+	} catch (error) {
+		next(error)
+	}
+}
+
+export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const userData = req.validatedBody as LoginUserDTO
+		const user = await userService.loginUser(userData)
+		if (user) {
+			const response = UserMapper.toUserResponse(user)
+			if (!user.isVerified) {
+				res.status(HTTP_STATUS_CODE.FORBIDDEN).json({
+					message: "Email not verified",
+					requiresOtpVerification: true
+				})
+				return
+			}
+
+			issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan })
+			issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan })
+			res.status(200).json(response)
+			return
+		}
+		res.status(400).json({ message: "User not found", statusCode: 400 })
+		return
+	} catch (error) {
+		next(error)
+	}
+}
+export const verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const userData = req.validatedBody as VerifyOtpDTO
+		const result = await userService.verifyUserOtp(userData.email, userData.otp)
+		if (result.verifyResult) {
+			const { user } = result
+			if (user) {
+				const response = UserMapper.toUserResponse(user)
+				issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan })
+				issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan })
+				res.status(HTTP_STATUS_CODE.OK).json({ message: "OTP Verified succesfully", user: response.user });
+				return
+			}
+		}
+		res.status(HTTP_STATUS_CODE.BAD_REQUEST).json({ message: "Error in otp verificatoin", statusCode: HTTP_STATUS_CODE.BAD_REQUEST });
+	} catch (error) {
+		next(error)
+	}
+}
+export const resendOtp = async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const userData = req.validatedBody as ResendOtpDTO
+		const result = await userService.resentOtp(userData.email)
+		res.status(HTTP_STATUS_CODE.OK).json({ message: "OTP Sent", otpsent: result });
+	} catch (error) {
+		next(error)
+	}
+}
+
+
 export const getAuthenticatedUserDetails = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const userId = req.user?.id as string;

@@ -1,5 +1,7 @@
 import { Profile } from "passport";
 import { IUser } from "../../models/User.js";
+import { LoginUserDTO, SignUpUserDTO } from "../../dtos/auth.dto.js";
+
 
 export interface IUserSerivce {
 	createUser(userData: Partial<IUser>): Promise<IUser>;
@@ -11,6 +13,13 @@ export interface IUserSerivce {
 
 	getUser(userId: string): Promise<IUser | null>;
 	getUserDetailed(userId: string): Promise<{ user: IUser | null; bandwidth: number }>;
+
+	signUpUser(data: SignUpUserDTO): Promise<{ user: IUser, otpResult: boolean } | null>
+	loginUser(data: LoginUserDTO): Promise<IUser | null>
+	verifyUserOtp(email: string, otp: number): Promise<{ verifyResult: boolean, user: IUser | null }>
+	resentOtp(email: string): Promise<boolean>
+
+
 	userCanDeploy(userId: string): Promise<{ user: IUser | null; limit: number; allowed: boolean; remaining: number }>;
 	incrementDeployment(userId: string): Promise<void>;
 }

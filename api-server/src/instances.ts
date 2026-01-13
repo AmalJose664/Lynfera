@@ -21,12 +21,15 @@ import PaymentService from "./services/payment.service.js";
 import PaymentController from "./controllers/paymentController.js";
 import RedisService from "./cache/redisCache.js";
 import { redisClient } from "./config/redis.config.js";
+import OtpRepository from "./repositories/otpVerify.repository.js";
+import OtpService from "./services/otpVerify.service.js";
 
 
 export const userRepo = new UserRepo();
 export const projectRepo = new ProjectRepo();
 export const deploymentRepo = new DeploymentRepo();
 export const projectBandwidthRepo = new ProjectBandwidthRepository();
+export const otpRepo = new OtpRepository()
 
 export const logRepo = new LogRepo(client);
 export const analyticsRepo = new AnalyticsRepo(client);
@@ -35,9 +38,10 @@ export const redisCacheService = new RedisService(redisClient)
 
 
 export const logsService = new LogsService(logRepo, deploymentRepo);
+export const otpService = new OtpService(otpRepo)
 export const projectService = new ProjectService(projectRepo, userRepo, projectBandwidthRepo, deploymentRepo, logsService, redisCacheService);
 export const analyticsService = new AnalyticsService(analyticsRepo, projectBandwidthRepo);
-export const userService = new UserService(userRepo, projectService);
+export const userService = new UserService(userRepo, projectService, otpService);
 export const deploymentService = new DeploymentService(deploymentRepo, projectRepo, userService, logsService, redisCacheService);
 export const paymentService = new PaymentService(userRepo);
 

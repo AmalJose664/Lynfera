@@ -12,6 +12,7 @@ import { client } from "./src/config/clickhouse.config";
 import { generateSlug } from "random-word-slugs"
 import { nanoid } from "./src/utils/generateNanoid"
 import crypto from "crypto"
+import { OtpModel } from "./src/models/Otp";
 
 
 function formatTimeWithSeconds(input: Date | string | number): string {
@@ -43,9 +44,12 @@ async function mongodbData() {
 
 		const p = new P_repo();
 		const de = new D_repo();
-		const dpls = await Deployment.find()
 
 
+
+		// const obj = new OtpModel({ userId: "68c8d40ce28583b09f575555", otpHash: "heysuuu", expiresAt: new Date(Date.now() + 60 * 1000) })
+		// const saved = await OtpModel.find()
+		// console.log(saved)
 		// await Promise.all(dpls.map(async (d) => {
 		// 	return await Deployment.updateMany({ _id: d._id }, { publicId: nanoid(10) })
 		// }))
@@ -56,18 +60,7 @@ async function mongodbData() {
 			tempDeployment: null,
 			currentDeployment: null
 		}))
-		return;
-		const project = await Project.findById("691e1c418cb08e07e28986dc").populate("deployments", "commit_hash");
 
-		const userId = "68e4a04f1e57fa3fe5b1a81e"; //
-		const user = await User.findById(userId);
-
-		// await p.createProject({ name: "TEST_PROJECT_1", repoURL: "TEST_PROJECT_1_REPO", status: "READY", user: user._id, subdomain: "testable-subdomain", })
-		return;
-
-		const deplos = await Deployment.find({ project: project?._id }, { createdAt: 1, commit_hash: 1 }).sort("createdAt");
-
-		console.log(deplos.map((dep) => ({ commit_hash: dep.commit_hash, time: formatTimeWithSeconds(new Date(dep.createdAt)) })));
 
 	} catch (error) {
 		console.log(error);

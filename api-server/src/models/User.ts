@@ -14,11 +14,12 @@ export interface IUser extends Document {
 	name: string;
 	email: string;
 	profileImage: string;
+	password: string;
 	authProviders: { provider: AuthProvidersList; id: string }[];
 	plan: keyof IPlans;
 	projects: number;
 	deploymentsToday: number;
-
+	isVerified: boolean;
 	currentDate: string;
 	stripeCustomerId?: string;
 	payment: {
@@ -33,7 +34,9 @@ const userSchema = new Schema<IUser>(
 	{
 		name: { type: String, required: true },
 		email: { type: String, required: true, unique: true },
-		profileImage: { type: String, required: true },
+		profileImage: { type: String, required: false, default: "" },
+		password: { type: String, default: "" },
+		isVerified: { type: Boolean, defaul: false },
 		authProviders: [
 			{
 				provider: { type: String, enum: Object.values(AuthProvidersList) },

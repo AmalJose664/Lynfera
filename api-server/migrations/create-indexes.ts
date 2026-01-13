@@ -5,17 +5,26 @@ import { User } from "../src/models/User.ts";
 import { Project } from "../src/models/Projects.ts";
 import { Deployment } from "../src/models/Deployment.ts";
 import { ProjectBandwidth } from "../src/models/ProjectBandwidths.ts";
+import { OtpModel } from "../src/models/Otp.ts";
 import mongoose from "mongoose";
 import "dotenv/config";
 
 async function createIndexes() {
 	try {
 		console.log("Starting index creation...");
+
+
 		console.log("Creating User indexes...");
 		await User.collection.createIndex({ email: 1 }, { unique: true, name: "email_unique" });
 		await User.collection.createIndex({ stripeCustomerId: 1 }, { sparse: true, name: "stripe_customer_lookup" });
 		console.log("✓ User indexes created");
 		//-------------------------------------------------------------------------------------------------------------------------------------
+		console.log("Creating User OTP indexes...");
+
+		await OtpModel.collection.createIndex({ userId: 1, purpose: 1 }, { unique: true, name: "otp_user_purpose" })
+		await OtpModel.collection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 60 * 10 })
+		console.log("✓ User OTP indexes created");
+
 		console.log("Creating Project indexes...");
 		await Project.collection.createIndex({ subdomain: 1 }, { unique: true, name: "subdomain_unique" });
 		await Project.collection.createIndex({ user: 1, createdAt: -1 }, { name: "user_projects_by_date" });

@@ -4,12 +4,18 @@ import {
 	checkAuth,
 	getAuthenticatedUser,
 	getAuthenticatedUserDetails,
+	loginUser,
 	oAuthLoginCallback,
 	refresh,
+	resendOtp,
+	signUpUser,
 	userLogout,
 	verifyAuth,
+	verifyOtp,
 } from "../controllers/authController.js";
 import { authenticateToken } from "../middlewares/authMiddleware.js";
+import { validateBody } from "../middlewares/validateRequest.js";
+import { LoginSchema, ResendOtpSchema, SignUpSchema, VerifyOtpSchema } from "../dtos/auth.dto.js";
 
 const authRouter = Router();
 
@@ -24,6 +30,14 @@ authRouter.get("/github/callback", passport.authenticate("github", { session: fa
 
 authRouter.post("/refresh", refresh);
 authRouter.post("/logout", userLogout);
+
+
+authRouter.post("/signup", validateBody(SignUpSchema), signUpUser)
+authRouter.post("/login", validateBody(LoginSchema), loginUser)
+authRouter.post("/verify-otp", validateBody(VerifyOtpSchema), verifyOtp)
+authRouter.post("/resend-otp", validateBody(ResendOtpSchema), resendOtp)
+
+
 authRouter.get("/me", authenticateToken, getAuthenticatedUser);
 authRouter.get("/me/full", authenticateToken, getAuthenticatedUserDetails);
 
