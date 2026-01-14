@@ -75,7 +75,7 @@ class UserService implements IUserSerivce {
 
 		const emailExists = await this.userRepository.findByUserEmail(data.email)
 		if (emailExists) {
-			throw new AppError("Email not available", 400)
+			throw new AppError("Email not available", 409)
 		}
 
 		const hashedPass = await hash(data.password, 10)
@@ -83,7 +83,6 @@ class UserService implements IUserSerivce {
 			name: data.name,
 			email: data.email,
 			password: hashedPass,
-			profileImage: "",
 			isVerified: false,
 			authProviders: [],
 			plan: "FREE",
@@ -104,10 +103,10 @@ class UserService implements IUserSerivce {
 	async verifyUserOtp(email: string, otp: number): Promise<{ verifyResult: boolean, user: IUser | null }> {
 		const user = await this.userRepository.findByUserEmail(email)
 		if (!user) {
-			throw new AppError("User not found from email", 404)
+			throw new AppError("OTP Not sent", 409)
 		}
 		if (user.isVerified) {
-			throw new AppError("User Already Verified", 409)
+			throw new AppError("OTP Not sent", 409)
 		}
 		const verifyResult = await this.otpService.verifyOtp(user._id, otp, OtpPurposes.SIGNUP)
 		if (!verifyResult) {
@@ -116,27 +115,24 @@ class UserService implements IUserSerivce {
 		const updatedUser = await this.userRepository.updateUser(user._id, { isVerified: true })
 		return { verifyResult: true, user: updatedUser }
 	}
-	async resentOtp(email: string): Promise<boolean> {
-		const t1s = performance.now()
-		const user = await this.userRepository.findByUserEmail(email)
-		const t1e = performance.now()
+
+
+
+	async resentOtp(id: string): Promise<boolean> {
+		const user = await this.userRepository.findByUserId(id)
 		if (!user) {
-			throw new AppError("User not found from email", 404)
+			throw new AppError("OTP Not sent", 409)
 		}
 		if (user.isVerified) {
-			throw new AppError("User Already Verified", 409)
+			throw new AppError("OTP Not sent", 409)
 		}
-		const t2s = performance.now()
 		const otp = await this.otpService.getResendOtp(user._id, OtpPurposes.SIGNUP)
-		const t2e = performance.now()
-		const t3s = performance.now()
+
 		const sendResult = await this.otpService.sendOtp(user.email, user.name, otp.otp)
 		if (!sendResult.ok) {
 			throw new AppError("OTP Sent Error", 500)
 		}
 		const resultData = await sendResult.json()
-		const t3e = performance.now()
-		console.log(" Timers = ", `${(t1e - t1s).toFixed(2)}, - -------  ${(t2e - t2s).toFixed(2)}, -  ------- ${(t3e - t3s).toFixed(2)}`)
 		console.log(resultData)
 		return sendResult.ok
 	}
@@ -146,9 +142,16 @@ class UserService implements IUserSerivce {
 		if (!user) {
 			throw new AppError("Email or password incorrect", 400)
 		}
-		const isMatch = compare(data.password, user.password)
+		const isMatch = await compare(data.password, user.password)
 		if (!isMatch) {
 			throw new AppError("Email or password incorrect", 400)
+		}
+		if (!user.isVerified) {
+			try {
+				await this.resentOtp(user._id.toString())
+			} catch (error) {
+				console.log("Error on getting otp on login", error)
+			}
 		}
 		return user
 

@@ -53,10 +53,25 @@ class OtpService implements IOtpService {
 		const oldOtp = await this.otpRepository.getOtp(userId, purpose)
 
 		if (!oldOtp) {
-			return this.createNew(userId, purpose)
+			return this.createNew(userId, purpose);
 		}
 		if (oldOtp.resentCount >= this.MAX_OTP_RESENTS) {
-			throw new AppError("Max resend limit reached", 429);
+			throw new AppError("Otp resend limit reached; Please try again after 20 minutes", 429);
+		}
+		const now = Date.now();
+		const latestTime = Math.max(
+			oldOtp.createdAt.getTime(),
+			oldOtp.updatedAt.getTime()
+		);
+		const diffInSeconds = Math.floor((now - latestTime) / 1000);
+
+		const COOLDOWN_SECONDS = 60;
+		if (diffInSeconds < COOLDOWN_SECONDS) {
+			const waitTime = COOLDOWN_SECONDS - diffInSeconds;
+			throw new AppError(
+				`Please wait ${waitTime} seconds before requesting a new OTP`,
+				429
+			);
 		}
 
 		const newOtp = randomInt(100000, 999999)
@@ -65,10 +80,10 @@ class OtpService implements IOtpService {
 			otpHash: newOtpHash,
 			expiresAt: new Date(Date.now() + this.otpValidity),
 			resentCount: oldOtp.resentCount + 1 || 1,
-			attempts: 0
+			attempts: 0,
 		})
 		if (!newUpdated) {
-			throw new AppError("Error senting new OTP", 500);
+			throw new AppError("Error in providing new OTP", 500);
 		}
 		return { OtpObject: newUpdated, otp: newOtp }
 	}

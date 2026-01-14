@@ -35,7 +35,7 @@ authRouter.post("/logout", userLogout);
 authRouter.post("/signup", validateBody(SignUpSchema), signUpUser)
 authRouter.post("/login", validateBody(LoginSchema), loginUser)
 authRouter.post("/verify-otp", validateBody(VerifyOtpSchema), verifyOtp)
-authRouter.post("/resend-otp", validateBody(ResendOtpSchema), resendOtp)
+authRouter.post("/resend-otp", resendOtp)
 
 
 authRouter.get("/me", authenticateToken, getAuthenticatedUser);

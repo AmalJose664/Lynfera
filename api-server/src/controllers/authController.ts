@@ -9,10 +9,15 @@ import AppError from "../utils/AppError.js";
 import { issueAuthAccessCookies, issueAuthRefreshCookies } from "../utils/authUtils.js";
 import { JwtPayload } from "jsonwebtoken";
 import { LoginUserDTO, ResendOtpDTO, SignUpUserDTO, VerifyOtpDTO } from "../dtos/auth.dto.js";
-
+import { generateOtpToken } from "../utils/generateToken.js";
+import { accessCookieConfig } from "../config/cookie.config.js";
+const OTP_COOKIE = "otp_Cookie"
 interface RefreshTokenPayload extends JwtPayload {
 	id: string;
 }
+
+
+
 export const oAuthLoginCallback = (req: Request, res: Response, next: NextFunction) => {
 	try {
 		if (!req.user) {
@@ -28,6 +33,10 @@ export const oAuthLoginCallback = (req: Request, res: Response, next: NextFuncti
 	}
 };
 
+
+
+
+
 export const googleLoginStrategy = async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
 	console.log("strategy google");
 	try {
@@ -42,6 +51,10 @@ export const googleLoginStrategy = async (accessToken: string, refreshToken: str
 	}
 };
 
+
+
+
+
 export const githubLoginStrategy = async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
 	try {
 		console.log("strategy github");
@@ -55,6 +68,10 @@ export const githubLoginStrategy = async (accessToken: string, refreshToken: str
 		done(error, false);
 	}
 };
+
+
+
+
 
 export const refresh = async (req: Request, res: Response, next: NextFunction) => {
 	const refreshToken = req.cookies.refresh_token;
@@ -79,19 +96,30 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 	}
 };
 
+
+
+
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
 	return res.status(200).json({ ok: true, randomNumber: Math.floor(Math.random() * 1000) });
 };
 
+
+
 export const verifyAuth = (req: Request, res: Response) => {
 	return res.status(200).json({ valid: true, user: req.user });
 };
+
+
 
 export const userLogout = (req: Request, res: Response) => {
 	res.clearCookie("refresh_token");
 	res.clearCookie("access_token");
 	res.status(HTTP_STATUS_CODE.OK).json({ message: "user logged out" });
 };
+
+
+
+
 
 export const getAuthenticatedUser = async (req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -108,6 +136,10 @@ export const getAuthenticatedUser = async (req: Request, res: Response, next: Ne
 	}
 };
 
+
+
+
+
 export const signUpUser = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const userData = req.validatedBody as SignUpUserDTO
@@ -120,11 +152,17 @@ export const signUpUser = async (req: Request, res: Response, next: NextFunction
 		const user = result.user
 		const otpSent = result.otpResult
 		const response = UserMapper.toUserResponse(user);
+		res.cookie(OTP_COOKIE, generateOtpToken(response.user._id), { ...accessCookieConfig })
 		res.status(HTTP_STATUS_CODE.CREATED).json({ message: "OTP Sent", otpSent, user: response.user });
 	} catch (error) {
 		next(error)
 	}
 }
+
+
+
+
+
 
 export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -133,16 +171,17 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 		if (user) {
 			const response = UserMapper.toUserResponse(user)
 			if (!user.isVerified) {
+				res.cookie(OTP_COOKIE, generateOtpToken(response.user._id), { ...accessCookieConfig })
 				res.status(HTTP_STATUS_CODE.FORBIDDEN).json({
 					message: "Email not verified",
-					requiresOtpVerification: true
+					requiresOtpVerification: true,
+					loginSuccess: false
 				})
 				return
 			}
-
 			issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan })
 			issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan })
-			res.status(200).json(response)
+			res.status(200).json({ loginSuccess: true, user: response.user })
 			return
 		}
 		res.status(400).json({ message: "User not found", statusCode: 400 })
@@ -151,6 +190,11 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 		next(error)
 	}
 }
+
+
+
+
+
 export const verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const userData = req.validatedBody as VerifyOtpDTO
@@ -161,6 +205,7 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
 				const response = UserMapper.toUserResponse(user)
 				issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan })
 				issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan })
+				res.clearCookie(OTP_COOKIE)
 				res.status(HTTP_STATUS_CODE.OK).json({ message: "OTP Verified succesfully", user: response.user });
 				return
 			}
@@ -170,10 +215,23 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
 		next(error)
 	}
 }
+
+
+
+
+
 export const resendOtp = async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const userData = req.validatedBody as ResendOtpDTO
-		const result = await userService.resentOtp(userData.email)
+		const otpCookie = req.cookies.otp_Cookie;
+		if (!otpCookie) {
+			res.status(400).json({ message: "Cant send otp, insufficient data" })
+			return
+		}
+		const decoded = jwt.verify(otpCookie, process.env.VERIFICATION_TOKEN_SECRET as string) as { id: string };
+		const { id } = decoded
+
+
+		const result = await userService.resentOtp(id || "---")
 		res.status(HTTP_STATUS_CODE.OK).json({ message: "OTP Sent", otpsent: result });
 	} catch (error) {
 		next(error)

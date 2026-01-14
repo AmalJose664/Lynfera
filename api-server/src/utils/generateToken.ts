@@ -29,3 +29,18 @@ export const generateRefreshToken = (user: Express.User | undefined) => {
 	);
 	return token;
 };
+
+export const generateOtpToken = (userId: string) => {
+	if (!userId) {
+		throw new Error("Server error");
+	}
+	const token = jwt.sign(
+		{
+			id: userId,
+			purpose: "OTP_resend"
+		},
+		process.env.VERIFICATION_TOKEN_SECRET as string,
+		{ expiresIn: "20m" },
+	);
+	return token;
+}
