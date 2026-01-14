@@ -187,3 +187,36 @@ export function isStatusProgress(status?: String) {
 export function isStatusFailure(status?: String) {
 	return status === ProjectStatus.FAILED || status === ProjectStatus.CANCELED
 }
+export const avatarBgFromName = (name: string) => {
+	const colors = [
+		// Warm
+		"bg-gradient-to-br from-pink-400 via-red-400 to-yellow-400 dark:from-pink-600 dark:via-red-600 dark:to-yellow-600",
+
+		// Ocean
+		"bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-500 dark:from-sky-600 dark:via-blue-700 dark:to-indigo-700",
+
+		// Green mint
+		"bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 dark:from-emerald-600 dark:via-teal-600 dark:to-cyan-600",
+
+		// Purple dream
+		"bg-gradient-to-br from-purple-400 via-fuchsia-400 to-pink-400 dark:from-purple-600 dark:via-fuchsia-600 dark:to-pink-600",
+
+		// Sunset
+		"bg-gradient-to-br from-orange-400 via-amber-400 to-rose-400 dark:from-orange-600 dark:via-amber-600 dark:to-rose-600",
+
+		// Neon blue
+		"bg-gradient-to-br from-cyan-400 via-sky-400 to-blue-500 dark:from-cyan-600 dark:via-sky-600 dark:to-blue-700",
+
+		// Forest
+		"bg-gradient-to-br from-lime-400 via-green-500 to-emerald-500 dark:from-lime-600 dark:via-green-700 dark:to-emerald-700",
+
+		// Cosmic
+		"bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500 dark:from-indigo-600 dark:via-purple-700 dark:to-pink-700"
+	];
+	let hash = 0;
+	for (let i = 0; i < name.length; i++) {
+		hash = name.charCodeAt(i) + ((hash << 5) - hash);
+	}
+
+	return colors[Math.abs(hash) % colors.length];
+};

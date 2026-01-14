@@ -25,6 +25,7 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet"
+import { avatarBgFromName } from "@/lib/moreUtils/combined"
 
 
 
@@ -137,17 +138,22 @@ const NavbarUser = ({ showOtherLinks }: { showOtherLinks?: boolean }) => {
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button variant="ghost" className="rounded-full size-10 p-0">
-						{user?.profileImage ? (
-							<img
-								src={user.profileImage}
-								alt="User Avatar"
-								width={24}
-								height={24}
-								className="rounded-full"
-							/>
-						) : (
-							<div className="size-6 bg-gradient-to-tr from-blue-500 via-background to-yellow-500 rounded-full border" />
-						)}
+						{user?.profileImage
+							? (user?.profileImage === "FILL" ? (
+								<div className={`uppercase text-white rounded-full w-full h-full flex items-center justify-center ${avatarBgFromName(user.name)}`} >
+									{user.name && user.name.slice(0, 2)}
+								</div>
+							) : (
+								<img
+									src={user.profileImage}
+									alt="User Avatar"
+									width={24}
+									height={24}
+									className="rounded-full"
+								/>
+							)) : (
+								<div className="size-6 bg-gradient-to-tr from-blue-500 via-background to-yellow-500 rounded-full border" />
+							)}
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent className="w-56 mr-6" align="start">
