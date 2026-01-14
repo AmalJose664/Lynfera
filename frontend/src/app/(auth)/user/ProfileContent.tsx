@@ -3,7 +3,7 @@ import { FiUser, FiMail, FiCalendar, FiClock } from 'react-icons/fi';
 import { useGetUserDetailedQuery, } from "@/store/services/authApi"
 
 import { IoIosCube, IoMdArrowRoundForward, IoMdCloudDone } from 'react-icons/io';
-import { formatBytes, formatDate, getElapsedTimeClean, getPercentage } from '@/lib/moreUtils/combined';
+import { avatarBgFromName, formatBytes, formatDate, getElapsedTimeClean, getPercentage } from '@/lib/moreUtils/combined';
 import { MdOutlineStorage } from 'react-icons/md';
 import { PLANS } from '@/config/plan';
 import { GrPlan } from 'react-icons/gr';
@@ -38,12 +38,18 @@ const ProfileContent = () => {
 					<RightFadeComponent className="mb-6 dark:bg-neutral-900 bg-white rounded-md border overflow-hidden shadow-lg">
 						<div className="px-8 py-6 flex items-center justify-between">
 							<div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
-								<div className="relative">
-									<img
-										src={userDetailed?.profileImage}
-										alt={userDetailed?.name || "User Avatar"}
-										className="w-16 h-16 rounded-full border-4 shadow-xl bg-transparent"
-									/>
+								<div className="relative w-16 h-16">
+									{userDetailed?.profileImage === "FILL" ? (
+										<span className={`uppercase border text-white rounded-full w-full h-full flex items-center justify-center ${avatarBgFromName(userDetailed.name)}`} >
+											{userDetailed.name && userDetailed.name.slice(0, 2)}
+										</span>
+									) : (
+										<img
+											src={userDetailed?.profileImage}
+											alt={userDetailed?.name || "User Avatar"}
+											className="w-16 h-16 rounded-full border-4 shadow-xl bg-transparent"
+										/>
+									)}
 									<div className="absolute bottom-2 right-2 w-2 h-2 bg-green-500 rounded-full border-2 "></div>
 								</div>
 
