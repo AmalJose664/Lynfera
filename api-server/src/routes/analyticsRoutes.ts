@@ -1,7 +1,7 @@
+import { analyticsController } from "@/instances.js";
+import { authenticateToken } from "@/middlewares/authMiddleware.js";
+import { validateObjectId } from "@/middlewares/validateObjectId.js";
 import { Router } from "express";
-import { authenticateToken } from "../middlewares/authMiddleware.js";
-import { validateObjectId } from "../middlewares/validateObjectId.js";
-import { analyticsController } from "../instances.js";
 
 const analyticsRouter = Router();
 

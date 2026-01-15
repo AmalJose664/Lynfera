@@ -1,6 +1,8 @@
+import AppError from "@/utils/AppError.js";
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
-import AppError from "../utils/AppError.js";
+
+
 
 export const validateObjectId = (parameter: string) => {
 	return (req: Request, res: Response, next: NextFunction) => {

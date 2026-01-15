@@ -1,6 +1,7 @@
+import { logsController } from "@/instances.js";
+import { authenticateToken } from "@/middlewares/authMiddleware.js";
 import { Router } from "express";
-import { authenticateToken } from "../middlewares/authMiddleware.js";
-import { logsController } from "../instances.js";
+
 
 const logsRouter = Router();
 

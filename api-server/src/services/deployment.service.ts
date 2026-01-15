@@ -1,26 +1,32 @@
 import { Types } from "mongoose";
-import { IDeploymentRepository } from "../interfaces/repository/IDeploymentRepository.js";
-import { IProjectRepository } from "../interfaces/repository/IProjectRepository.js";
-import { IDeploymentService } from "../interfaces/service/IDeploymentService.js";
-import { DeploymentStatus, IDeployment } from "../models/Deployment.js";
-import AppError from "../utils/AppError.js";
-import { IProject, ProjectStatus } from "../models/Projects.js";
 import { RunTaskCommand } from "@aws-sdk/client-ecs";
-import { config, ecsClient, s3Client } from "../config/cloud.config.js";
-
-import { QueryDeploymentDTO } from "../dtos/deployment.dto.js";
-import { S3_OUTPUTS_DIR } from "../constants/paths.js";
 import { _Object, DeleteObjectsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
-import getNessesaryEnvs from "../utils/getNessesaryEnvs.js";
-import { IUserSerivce } from "../interfaces/service/IUserService.js";
-import { dispatchBuild } from "../utils/dispatchBuild.js";
-import { IRedisCache } from "../interfaces/cache/IRedisCache.js";
 import { spawn } from "child_process";
-import { ILogsService } from "../interfaces/service/ILogsService.js";
 import { generateSlug } from "random-word-slugs";
-import { nanoid } from "../utils/generateNanoid.js";
-import { DEPLOYMENT_ID_LENGTH } from "../constants/subdomain.js";
-import { deploymentBasicFields } from "../constants/populates/deployment.populate.js";
+
+
+
+import { IDeploymentService } from "@/interfaces/service/IDeploymentService.js";
+import { IDeploymentRepository } from "@/interfaces/repository/IDeploymentRepository.js";
+import { IProjectRepository } from "@/interfaces/repository/IProjectRepository.js";
+import { IUserSerivce } from "@/interfaces/service/IUserService.js";
+import { IRedisCache } from "@/interfaces/cache/IRedisCache.js";
+import { ILogsService } from "@/interfaces/service/ILogsService.js";
+import { DeploymentStatus, IDeployment } from "@/models/Deployment.js";
+import AppError from "@/utils/AppError.js";
+import { IProject, ProjectStatus } from "@/models/Projects.js";
+import { nanoid } from "@/utils/generateNanoid.js";
+import { DEPLOYMENT_ID_LENGTH } from "@/constants/subdomain.js";
+import { QueryDeploymentDTO } from "@/dtos/deployment.dto.js";
+import { deploymentBasicFields } from "@/constants/populates/deployment.populate.js";
+import getNessesaryEnvs from "@/utils/getNessesaryEnvs.js";
+import { dispatchBuild } from "@/utils/dispatchBuild.js";
+import { config, ecsClient, s3Client } from "@/config/cloud.config.js";
+import { ENVS } from "@/config/env.config.js";
+import { S3_OUTPUTS_DIR } from "@/constants/paths.js";
+
+
+
 
 
 class DeploymentService implements IDeploymentService {
@@ -207,8 +213,8 @@ class DeploymentService implements IDeploymentService {
 				count: 1,
 				networkConfiguration: {
 					awsvpcConfiguration: {
-						subnets: process.env.SUBNETS_STRING?.split(","),
-						securityGroups: process.env.SECURITY_GROUPS?.split(","),
+						subnets: ENVS.SUBNETS_STRING?.split(","),
+						securityGroups: ENVS.SECURITY_GROUPS?.split(","),
 						assignPublicIp: "ENABLED",
 					},
 				},
@@ -238,7 +244,7 @@ class DeploymentService implements IDeploymentService {
 
 	async deleteCloud(deploymentId: string, projectId: string): Promise<void> {
 		const prefix = `${S3_OUTPUTS_DIR}/${projectId}/${deploymentId}/`;
-		const APP_FILES_BUCKET = process.env.CLOUD_BUCKET;
+		const APP_FILES_BUCKET = ENVS.CLOUD_BUCKET;
 		const listCommand = new ListObjectsV2Command({
 			Bucket: APP_FILES_BUCKET,
 			Prefix: prefix,

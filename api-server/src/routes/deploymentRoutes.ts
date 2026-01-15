@@ -1,9 +1,13 @@
 import { Router } from "express";
-import { authenticateToken } from "../middlewares/authMiddleware.js";
-import { deploymentController, deploymentService, logsController } from "../instances.js";
-import { validateObjectId } from "../middlewares/validateObjectId.js";
-import { validateBody, validateQuery } from "../middlewares/validateRequest.js";
-import { CreateDeploymentSchema, DeploymentQueryScheme } from "../dtos/deployment.dto.js";
+
+import { deploymentController, deploymentService, logsController } from "@/instances.js";
+import { authenticateToken } from "@/middlewares/authMiddleware.js";
+import { validateQuery } from "@/middlewares/validateRequest.js";
+import { DeploymentQueryScheme } from "@/dtos/deployment.dto.js";
+import { validateObjectId } from "@/middlewares/validateObjectId.js";
+
+
+
 
 const deploymentRouter = Router();
 

@@ -1,5 +1,5 @@
-import { QueryDeploymentDTO } from "../../dtos/deployment.dto.js";
-import { DeploymentStatus, IDeployment } from "../../models/Deployment.js";
+import { QueryDeploymentDTO } from "@/dtos/deployment.dto.js";
+import { IDeployment } from "@/models/Deployment.js";
 
 export type DeploymentDbOptions = {
 	fields?: string[];

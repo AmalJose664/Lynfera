@@ -1,7 +1,7 @@
-import { Types } from "mongoose";
-import { IDeployment } from "../models/Deployment.js";
-import { IProject } from "../models/Projects.js";
-import { IUser } from "../models/User.js";
+
+import { IDeployment } from "@/models/Deployment.js";
+import { IUser } from "@/models/User.js";
+
 
 interface toDeploymentResponseDTO {
 	deployment: {

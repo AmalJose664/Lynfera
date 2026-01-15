@@ -1,7 +1,7 @@
+import { IAnalyticsController } from "@/interfaces/controller/IAnalyticsController.js";
+import { IAnalyticsService } from "@/interfaces/service/IAnalyticsService.js";
+import { AnalyticsMapper } from "@/mappers/AnalyticsMapper.js";
 import { Request, Response, NextFunction } from "express";
-import { IAnalyticsController } from "../interfaces/controller/IAnalyticsController.js";
-import { IAnalyticsService } from "../interfaces/service/IAnalyticsService.js";
-import { AnalyticsMapper } from "../mappers/AnalyticsMapper.js";
 
 class AnalyticsController implements IAnalyticsController {
 	private analyticsService: IAnalyticsService;

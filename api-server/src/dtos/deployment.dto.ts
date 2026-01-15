@@ -1,6 +1,8 @@
 import z from "zod";
-import { mongoIdSchema } from "./zodHelpers.js";
-import { DeploymentStatus } from "../models/Deployment.js";
+
+import { mongoIdSchema } from "@/dtos/zodHelpers.js";
+import { DeploymentStatus } from "@/models/Deployment.js";
+
 
 export const CreateDeploymentSchema = z.object({
 	projectId: mongoIdSchema,

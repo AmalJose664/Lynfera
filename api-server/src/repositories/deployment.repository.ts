@@ -1,9 +1,12 @@
 import { FilterQuery } from "mongoose";
-import { QueryDeploymentDTO } from "../dtos/deployment.dto.js";
-import { DeploymentDbOptions, IDeploymentRepository } from "../interfaces/repository/IDeploymentRepository.js";
-import { Deployment, IDeployment } from "../models/Deployment.js";
+
 import { BaseRepository } from "./base/base.repository.js";
-import { DEPLOYMENT_POPULATE_MAP } from "../constants/populates/deployment.populate.js";
+import { Deployment, IDeployment } from "@/models/Deployment.js";
+import { DeploymentDbOptions, IDeploymentRepository } from "@/interfaces/repository/IDeploymentRepository.js";
+import { DEPLOYMENT_POPULATE_MAP } from "@/constants/populates/deployment.populate.js";
+import { QueryDeploymentDTO } from "@/dtos/deployment.dto.js";
+
+
 
 class DeploymentRepository extends BaseRepository<IDeployment> implements IDeploymentRepository {
 	constructor() {

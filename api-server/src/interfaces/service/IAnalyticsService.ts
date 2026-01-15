@@ -1,4 +1,4 @@
-import { BufferAnalytics, IAnalytics } from "../../models/Analytics.js";
+import { BufferAnalytics } from "@/models/Analytics.js";
 import { QueryOptions } from "../repository/IAnalyticsRepository.js";
 
 export type BandWidthWithProjectType = Record<string, number>;

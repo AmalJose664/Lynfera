@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { ILogsController } from "../interfaces/controller/ILogsController.js";
-import { ILogsService } from "../interfaces/service/ILogsService.js";
-import { client } from "../config/clickhouse.config.js";
-import { deploymentEmitter, sseManager } from "../events/deploymentEmitter.js";
 import { v4 } from "uuid";
-import { LogMapper } from "../mappers/LogsMapper.js";
-import { deploymentService } from "../instances.js";
+
+import { ILogsController } from "@/interfaces/controller/ILogsController.js";
+import { ILogsService } from "@/interfaces/service/ILogsService.js";
+import { LogMapper } from "@/mappers/LogsMapper.js";
+import { deploymentEmitter, sseManager } from "@/events/deploymentEmitter.js";
+import { deploymentService } from "@/instances.js";
+
 
 class LogsController implements ILogsController {
 	private logsService: ILogsService;

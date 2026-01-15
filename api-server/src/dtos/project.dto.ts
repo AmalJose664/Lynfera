@@ -1,7 +1,11 @@
 import z from "zod";
-import { ProjectStatus } from "../models/Projects.js";
-import { mongoIdSchema } from "./zodHelpers.js";
-import { DEPLOYMENT_SEPARATOR_LENGTH, DEPLOYMENT_ID_LENGTH, MAX_SUBDOMAIN_LENGTH } from "../constants/subdomain.js";
+
+
+import { mongoIdSchema } from "@/dtos/zodHelpers.js";
+import { ProjectStatus } from "@/models/Projects.js";
+import { DEPLOYMENT_ID_LENGTH, DEPLOYMENT_SEPARATOR_LENGTH, MAX_SUBDOMAIN_LENGTH } from "@/constants/subdomain.js";
+
+
 
 export const envSchema = z
 	.object({

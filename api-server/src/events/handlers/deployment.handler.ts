@@ -1,8 +1,8 @@
-import { deploymentService, logsService, projectService } from "../../instances.js";
-import { ProjectStatus } from "../../models/Projects.js";
-import { deploymentEmitter } from "../deploymentEmitter.js";
-import { DeploymentLogEvent, DeploymentUpdatesEvent } from "../schemas/deployment.schema.js";
-import { UpdateTypes } from "../types/event.js";
+import { deploymentService, logsService, projectService } from "@/instances.js";
+import { DeploymentLogEvent, DeploymentUpdatesEvent } from "@/events/schemas/deployment.schema.js";
+import { deploymentEmitter } from "@/events/deploymentEmitter.js";
+import { UpdateTypes } from "@/events/types/event.js";
+import { ProjectStatus } from "@/models/Projects.js";
 
 class DeploymentEventHandler {
 	static async handleLogs(event: DeploymentLogEvent, isRetry: boolean): Promise<void> {

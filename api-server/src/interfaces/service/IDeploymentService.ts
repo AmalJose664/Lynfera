@@ -1,5 +1,5 @@
-import { DeploymentStatus, IDeployment } from "../../models/Deployment.js";
-import { IProject } from "../../models/Projects.js";
+import { DeploymentStatus, IDeployment } from "@/models/Deployment.js";
+import { IProject } from "@/models/Projects.js";
 
 export interface IDeploymentService {
 	newDeployment(deploymentData: Partial<IDeployment>, userId: string, projectId: string): Promise<IDeployment | null>;

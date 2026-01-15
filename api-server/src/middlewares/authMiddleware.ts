@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+
+import { ENVS } from "@/config/env.config.js";
 //user
 
 interface DecodedUser {
@@ -26,7 +28,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 		return;
 	}
 	try {
-		const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET as string) as DecodedUser;
+		const decoded = jwt.verify(token, ENVS.ACCESS_TOKEN_SECRET as string) as DecodedUser;
 		req.user = decoded;
 		if (!req.user) {
 			res.status(401).json({ message: "Please login" });

@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
-import { IUser } from "../../models/User.js";
-import { IPlans } from "../../constants/plan.js";
+
+import { IUser } from "@/models/User.js";
+import { IPlans } from "@/constants/plan.js";
 
 export interface IUserRepository {
 	createUser(data: Partial<IUser>): Promise<IUser>;

@@ -1,7 +1,7 @@
-import { FREE_ALLOWED_COMBINATIONS } from "../constants/analytics.js";
-import { QueryOptions } from "../interfaces/repository/IAnalyticsRepository.js";
+import { FREE_ALLOWED_COMBINATIONS } from "@/constants/analytics.js";
+import { QueryOptions } from "@/interfaces/repository/IAnalyticsRepository.js";
 import AppError from "./AppError.js";
-import { HTTP_STATUS_CODE } from "./statusCodes.js";
+
 
 type TimesFieldTypes = "5m" | "15m" | "1h" | "1d" | "7d" | "30d";
 type RangeFieldsTypes = "1h" | "24h" | "7d" | "30d";

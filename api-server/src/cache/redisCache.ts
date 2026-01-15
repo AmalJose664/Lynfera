@@ -1,5 +1,5 @@
+import { IRedisCache } from '@/interfaces/cache/IRedisCache.js';
 import { Redis } from 'ioredis';
-import { IRedisCache } from '../interfaces/cache/IRedisCache.js';
 
 class RedisService implements IRedisCache {
 	private client: Redis;

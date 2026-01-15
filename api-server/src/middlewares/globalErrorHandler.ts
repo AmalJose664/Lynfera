@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import AppError from "../utils/AppError.js";
+
+import { ENVS } from "@/config/env.config.js";
+import AppError from "@/utils/AppError.js";
+
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
 	let statusCode = err.statusCode || 500;
@@ -20,7 +23,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
 	const errorResponse = {
 		message,
 		statusCode,
-		...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+		...(ENVS.NODE_ENV === "development" && { stack: err.stack }),
 	};
 	res.status(statusCode).json(errorResponse);
 };

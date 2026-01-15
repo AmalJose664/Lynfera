@@ -1,11 +1,15 @@
 import { compare, hash } from "bcrypt"
 import { randomInt } from "crypto"
-import { IOtpRepository } from "../interfaces/repository/IOtpRepository.js";
-import { IOtpService } from "../interfaces/service/IOtpService.js";
-import { IOtp, OtpPurposes } from "../models/Otp.js";
-import AppError from "../utils/AppError.js";
-import { otpEmailTemplate, sendEmail } from "../utils/email.js";
-import { EMAIL_SENDER } from "../config/email.config.js";
+
+
+import { IOtpService } from "@/interfaces/service/IOtpService.js";
+import { IOtpRepository } from "@/interfaces/repository/IOtpRepository.js";
+import { IOtp, OtpPurposes } from "@/models/Otp.js";
+import AppError from "@/utils/AppError.js";
+import { otpEmailTemplate, sendEmail } from "@/utils/email.js";
+import { EMAIL_SENDER } from "@/config/email.config.js";
+
+
 
 class OtpService implements IOtpService {
 	private otpRepository: IOtpRepository;

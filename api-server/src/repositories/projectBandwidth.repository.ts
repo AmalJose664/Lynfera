@@ -1,9 +1,9 @@
+import { IProjectBandwiths, ProjectBandwidth } from "@/models/ProjectBandwidths.js";
 import { Types } from "mongoose";
-import { IProjectBandwidthRepository } from "../interfaces/repository/IProjectBandwidthRepository.js";
-import { BandWidthWithProjectType } from "../interfaces/service/IAnalyticsService.js";
-import { IProjectBandwiths, ProjectBandwidth } from "../models/ProjectBandwidths.js";
-import { IProject } from "../models/Projects.js";
 import { BaseRepository } from "./base/base.repository.js";
+import { IProjectBandwidthRepository } from "@/interfaces/repository/IProjectBandwidthRepository.js";
+import { IProject } from "@/models/Projects.js";
+import { BandWidthWithProjectType } from "@/interfaces/service/IAnalyticsService.js";
 
 class ProjectBandwidthRepository extends BaseRepository<IProjectBandwiths> implements IProjectBandwidthRepository {
 	constructor() {

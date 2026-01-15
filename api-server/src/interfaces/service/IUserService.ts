@@ -1,6 +1,6 @@
+import { LoginUserDTO, SignUpUserDTO } from "@/dtos/auth.dto.js";
+import { IUser } from "@/models/User.js";
 import { Profile } from "passport";
-import { IUser } from "../../models/User.js";
-import { LoginUserDTO, SignUpUserDTO } from "../../dtos/auth.dto.js";
 
 
 export interface IUserSerivce {

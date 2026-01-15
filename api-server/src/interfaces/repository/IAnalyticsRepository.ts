@@ -1,4 +1,5 @@
-import { BufferAnalytics, IAnalytics } from "../../models/Analytics.js";
+import { BufferAnalytics } from "@/models/Analytics.js";
+
 
 export interface QueryOptions {
 	range?: number;

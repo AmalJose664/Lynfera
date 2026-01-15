@@ -1,6 +1,7 @@
+import { IKafkaEventConsumer } from "@/interfaces/consumers/IKafkaEventConsumer.js";
 import { Consumer, Kafka } from "kafkajs";
-import { getAllTopics, processConumerAnalytics, processConumerLogs } from "./regitry.js";
-import { IKafkaEventConsumer } from "../interfaces/consumers/IKafkaEventConsumer.js";
+import { getAllTopics, processConumerAnalytics, processConumerLogs } from "@/events/regitry.js";
+
 
 class KafkaEventConsumer implements IKafkaEventConsumer {
 	private kafka: Kafka;

@@ -1,7 +1,8 @@
+import { ENVS } from "@/config/env.config.js";
 import AppError from "./AppError.js";
 import { HTTP_STATUS_CODE } from "./statusCodes.js";
 
-const buildDispatchUrl = process.env.BUILD_DISPATCH_URL || ""
+const buildDispatchUrl = ENVS.BUILD_DISPATCH_URL || ""
 const buildDispatchEventType = "run-build"
 export async function dispatchBuild(deploymentId: string, projectId: string): Promise<void> {
 	const result = await fetch(buildDispatchUrl, {
@@ -16,7 +17,7 @@ export async function dispatchBuild(deploymentId: string, projectId: string): Pr
 		headers: {
 			"Accept": "application/vnd.github+json",
 			"Content-Type": "application/json",
-			Authorization: "Bearer " + process.env.BUILD_DISPATCH_PAT_TOKEN,
+			Authorization: "Bearer " + ENVS.BUILD_DISPATCH_PAT_TOKEN,
 		}
 
 	})

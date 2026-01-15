@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { z } from "zod";
 import { ZodError } from "zod/v3";
 
@@ -6,7 +7,7 @@ const envSchema = z.object({
 	FRONTEND_URL: z.url(),
 	REFRESH_TOKEN_SECRET: z.string(),
 	ACCESS_TOKEN_SECRET: z.string(),
-
+	PORT: z.coerce.number(),
 	API_ENDPOINT: z.url(),
 	STORAGE_SERVER_ENDPOINT: z.url(),
 
@@ -43,13 +44,18 @@ const envSchema = z.object({
 	REDIS_URL: z.url(),
 	BUILD_DISPATCH_PAT_TOKEN: z.string(),
 	BUILD_DISPATCH_URL: z.string(),
-});
 
-export function validateEnv() {
+	VERIFICATION_TOKEN_SECRET: z.string(),
+	OTP_SEND_URL: z.url(),
+	OTP_SEND_API_KEY: z.string(),
+	EMAIL_SENDER_NAME: z.string(),
+	EMAIL_SENDER_EMAIL: z.email()
+});
+function validateEnv() {
 	try {
-		envSchema.parse(process.env);
-		console.log("Env validation passed");
-		return;
+		const envs = envSchema.parse(process.env);
+		console.log("Env validation passed ",);
+		return envs;
 	} catch (err) {
 		const error = err as ZodError;
 		console.error("❌ Environment validation failed:");
@@ -57,3 +63,4 @@ export function validateEnv() {
 		process.exit(1);
 	}
 }
+export const ENVS = validateEnv()

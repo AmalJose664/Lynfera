@@ -1,8 +1,8 @@
-import { IUserRepository } from "../interfaces/repository/IUserRepository.js";
-import { IUser, User } from "../models/User.js";
-import { BaseRepository } from "./base/base.repository.js";
-import { IPlans } from "../constants/plan.js";
 import { Document, Types } from "mongoose";
+import { BaseRepository } from "./base/base.repository.js";
+import { IUser, User } from "@/models/User.js";
+import { IUserRepository } from "@/interfaces/repository/IUserRepository.js";
+import { IPlans } from "@/constants/plan.js";
 
 class UserRepository extends BaseRepository<IUser> implements IUserRepository {
 	constructor() {

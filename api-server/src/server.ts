@@ -1,12 +1,13 @@
+import "./config/env.config.js"
 import httpServer from "./app.js";
 import { redisCacheService } from "./instances.js";
-import { validateEnv } from "./config/env.config.js";
 import { startKafkaConsumer, stopKafkaConsumer } from "./events/index.js";
 import { analyticsService } from "./instances.js";
-const PORT = process.env.PORT || 8000;
+import { ENVS } from "@/config/env.config.js";
+const PORT = ENVS.PORT || 8000;
+
 const startServer = async () => {
 	console.log("starting.....");
-	validateEnv();
 	httpServer.listen(PORT, () => console.log(`🎉🎉 Server running on port ${PORT}`));
 	// await startKafkaConsumer()
 };

@@ -1,6 +1,9 @@
 import { ClickHouseClient } from "@clickhouse/client";
-import { IAnalyticsRepository, QueryOptions } from "../interfaces/repository/IAnalyticsRepository.js";
-import { BufferAnalytics } from "../models/Analytics.js";
+
+import { IAnalyticsRepository, QueryOptions } from "@/interfaces/repository/IAnalyticsRepository.js";
+import { BufferAnalytics } from "@/models/Analytics.js";
+
+
 
 class AnalyticsRepository implements IAnalyticsRepository {
 	private client: ClickHouseClient;

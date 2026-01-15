@@ -1,12 +1,16 @@
 import { ZodError } from "zod";
-import DeploymentEventHandler from "./handlers/deployment.handler.js";
-import { DeploymentLogEventSchema, DeploymentUpdatesEventSchema } from "./schemas/deployment.schema.js";
-import ProjectAnalyticsHandler from "./handlers/analytics.handler.js";
-import { AnalyticsEvent, analyticsEventSchema } from "./schemas/analytics.schema.js";
-import { EventConfig, EventRegistryType } from "./types/event.js";
 import { EachBatchPayload, Offsets } from "kafkajs";
-import { BufferAnalytics } from "../models/Analytics.js";
-import { BandWidthWithProjectType } from "../interfaces/service/IAnalyticsService.js";
+
+
+import { EventConfig, EventRegistryType } from "@/events/types/event.js";
+import { DeploymentLogEventSchema, DeploymentUpdatesEventSchema } from "@/events/schemas/deployment.schema.js";
+import DeploymentEventHandler from "@/events/handlers/deployment.handler.js";
+import ProjectAnalyticsHandler from "@/events/handlers/analytics.handler.js";
+import { AnalyticsEvent, analyticsEventSchema } from "@/events/schemas/analytics.schema.js";
+import { BandWidthWithProjectType } from "@/interfaces/service/IAnalyticsService.js";
+import { BufferAnalytics } from "@/models/Analytics.js";
+
+
 
 export const EVENT_REGISTRY: EventRegistryType = {
 	logs: {

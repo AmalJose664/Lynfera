@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 
+import { ENVS } from "@/config/env.config.js";
+
 export const generateAccessToken = (user: Express.User | undefined) => {
 	if (!user) {
 		throw new Error("Error creating token");
@@ -9,8 +11,8 @@ export const generateAccessToken = (user: Express.User | undefined) => {
 			id: user?.id,
 			plan: user?.plan,
 		},
-		process.env.ACCESS_TOKEN_SECRET as string,
-		{ expiresIn: process.env.NODE_ENV === "production" ? "15m" : "2h" },
+		ENVS.ACCESS_TOKEN_SECRET as string,
+		{ expiresIn: ENVS.NODE_ENV === "production" ? "15m" : "2h" },
 	);
 	return token;
 };
@@ -24,7 +26,7 @@ export const generateRefreshToken = (user: Express.User | undefined) => {
 			id: user?.id,
 			plan: user?.plan,
 		},
-		process.env.REFRESH_TOKEN_SECRET as string,
+		ENVS.REFRESH_TOKEN_SECRET as string,
 		{ expiresIn: "1d" },
 	);
 	return token;
@@ -39,7 +41,7 @@ export const generateOtpToken = (userId: string) => {
 			id: userId,
 			purpose: "OTP_resend"
 		},
-		process.env.VERIFICATION_TOKEN_SECRET as string,
+		ENVS.VERIFICATION_TOKEN_SECRET as string,
 		{ expiresIn: "20m" },
 	);
 	return token;

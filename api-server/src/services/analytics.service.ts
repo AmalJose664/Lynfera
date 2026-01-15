@@ -1,9 +1,10 @@
-import { PLANS } from "../constants/plan.js";
-import { IAnalyticsRepository, QueryOptions } from "../interfaces/repository/IAnalyticsRepository.js";
-import { IProjectBandwidthRepository } from "../interfaces/repository/IProjectBandwidthRepository.js";
-import { BandWidthWithProjectType, IAnalyticsService } from "../interfaces/service/IAnalyticsService.js";
-import { BufferAnalytics } from "../models/Analytics.js";
-import { getInterval, getUnit, getRange, validateFreeAnalyticsParams, fillEmptyQueries } from "../utils/analyticsUnits.js";
+import { PLANS } from "@/constants/plan.js";
+import { IAnalyticsRepository, QueryOptions } from "@/interfaces/repository/IAnalyticsRepository.js";
+import { IProjectBandwidthRepository } from "@/interfaces/repository/IProjectBandwidthRepository.js";
+import { BandWidthWithProjectType, IAnalyticsService } from "@/interfaces/service/IAnalyticsService.js";
+import { BufferAnalytics } from "@/models/Analytics.js";
+import { fillEmptyQueries, getInterval, getRange, getUnit, validateFreeAnalyticsParams } from "@/utils/analyticsUnits.js";
+
 
 class AnalyticsService implements IAnalyticsService {
 	private analyticsRepo: IAnalyticsRepository;

@@ -1,10 +1,13 @@
 import Stripe from "stripe";
-import { stripe } from "../config/stripe.config.js";
-import { IPaymentService } from "../interfaces/service/IPaymentService.js";
-import { IUserRepository } from "../interfaces/repository/IUserRepository.js";
-import AppError from "../utils/AppError.js";
-import { SubscriptionStatus } from "../models/User.js";
-import { IPlans, PLANS } from "../constants/plan.js";
+
+
+import { IPaymentService } from "@/interfaces/service/IPaymentService.js";
+import { IUserRepository } from "@/interfaces/repository/IUserRepository.js";
+import AppError from "@/utils/AppError.js";
+import { stripe } from "@/config/stripe.config.js";
+import { SubscriptionStatus } from "@/models/User.js";
+import { IPlans, PLANS } from "@/constants/plan.js";
+
 
 class PaymentService implements IPaymentService {
 	private userRepo: IUserRepository;

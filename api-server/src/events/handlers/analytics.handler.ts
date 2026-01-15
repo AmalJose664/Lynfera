@@ -1,6 +1,6 @@
-import { analyticsService } from "../../instances.js";
-import { BandWidthWithProjectType } from "../../interfaces/service/IAnalyticsService.js";
-import { BufferAnalytics } from "../../models/Analytics.js";
+import { analyticsService } from "@/instances.js";
+import { BandWidthWithProjectType } from "@/interfaces/service/IAnalyticsService.js";
+import { BufferAnalytics } from "@/models/Analytics.js";
 
 class ProjectAnalyticsHandler {
 	static async handleDataBatch(data: { events: BufferAnalytics[]; bandwidthByProjectBatch: BandWidthWithProjectType }, dummy: boolean) {

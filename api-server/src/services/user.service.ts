@@ -1,15 +1,18 @@
 import { Profile } from "passport";
-import { IUserRepository } from "../interfaces/repository/IUserRepository.js";
-import { IUserSerivce } from "../interfaces/service/IUserService.js";
-import { AuthProvidersList, IUser } from "../models/User.js";
-import AppError from "../utils/AppError.js";
-import { IProjectService } from "../interfaces/service/IProjectService.js";
-import { PLANS } from "../constants/plan.js";
-import { LoginUserDTO, SignUpUserDTO } from "../dtos/auth.dto.js";
-import { IOtpService } from "../interfaces/service/IOtpService.js";
-import { OtpPurposes } from "../models/Otp.js";
 import { compare, hash } from "bcrypt";
-import { HTTP_STATUS_CODE } from "../utils/statusCodes.js";
+
+
+import { IUserSerivce } from "@/interfaces/service/IUserService.js";
+import { IUserRepository } from "@/interfaces/repository/IUserRepository.js";
+import { IProjectService } from "@/interfaces/service/IProjectService.js";
+import { IOtpService } from "@/interfaces/service/IOtpService.js";
+import { AuthProvidersList, IUser } from "@/models/User.js";
+import AppError from "@/utils/AppError.js";
+import { LoginUserDTO, SignUpUserDTO } from "@/dtos/auth.dto.js";
+import { OtpPurposes } from "@/models/Otp.js";
+import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+import { PLANS } from "@/constants/plan.js";
+
 
 class UserService implements IUserSerivce {
 	private userRepository: IUserRepository;
@@ -44,7 +47,8 @@ class UserService implements IUserSerivce {
 			};
 			user = await this.createUser(newUser);
 			console.log("No user found, created new...");
-			return user;
+
+			return { ...user, password: "" } as IUser;
 		}
 
 		const hasProvider = user.authProviders.some((p) => p.provider === provider);
@@ -56,7 +60,7 @@ class UserService implements IUserSerivce {
 			});
 		}
 
-		return user as IUser;
+		return { ...user, password: "" } as IUser;
 	}
 
 	async googleLoginStrategy(profile: Profile): Promise<IUser> {
@@ -68,7 +72,8 @@ class UserService implements IUserSerivce {
 	}
 
 	async getUser(userId: string): Promise<IUser | null> {
-		return await this.userRepository.findByUserId(userId);
+		const user = await this.userRepository.findByUserId(userId)
+		return { ...user, password: "" } as IUser;
 	}
 
 	async signUpUser(data: SignUpUserDTO): Promise<{ user: IUser, otpResult: boolean } | null> {
@@ -95,9 +100,8 @@ class UserService implements IUserSerivce {
 		}
 		const resultData = await sendResult.json()
 
-
 		console.log(resultData)
-		return { user: newUser, otpResult: sendResult.ok }
+		return { user: { ...newUser, password: "" } as IUser, otpResult: sendResult.ok }
 	}
 
 	async verifyUserOtp(email: string, otp: number): Promise<{ verifyResult: boolean, user: IUser | null }> {
@@ -113,7 +117,7 @@ class UserService implements IUserSerivce {
 			throw new AppError("OTP Verify Error", HTTP_STATUS_CODE.BAD_REQUEST)
 		}
 		const updatedUser = await this.userRepository.updateUser(user._id, { isVerified: true })
-		return { verifyResult: true, user: updatedUser }
+		return { verifyResult: true, user: { ...updatedUser, password: "" } as IUser }
 	}
 
 
@@ -153,7 +157,7 @@ class UserService implements IUserSerivce {
 				console.log("Error on getting otp on login", error)
 			}
 		}
-		return user
+		return { ...user, password: "" } as IUser
 
 	}
 
@@ -162,7 +166,7 @@ class UserService implements IUserSerivce {
 			this.userRepository.findByUserId(userId),
 			this.projectService.getUserBandwidthData(userId, true),
 		]);
-		return { user, bandwidth };
+		return { user: { ...user, password: "" } as IUser, bandwidth };
 	}
 
 	async userCanDeploy(userId: string): Promise<{ user: IUser | null; limit: number; allowed: boolean; remaining: number }> {
@@ -173,7 +177,7 @@ class UserService implements IUserSerivce {
 		const allowed = user.deploymentsToday < limit;
 		const remaining = Math.max(0, limit - user.deploymentsToday);
 
-		return { user, limit, allowed, remaining };
+		return { user: { ...user, password: "" } as IUser, limit, allowed, remaining };
 	}
 
 	async incrementDeployment(userId: string): Promise<void> {

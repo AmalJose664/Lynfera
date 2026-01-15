@@ -1,17 +1,14 @@
 import { Request, Response, NextFunction } from "express";
-import { IProjectController } from "../interfaces/controller/IProjectController.js";
-import ProjectService from "../services/project.service.js";
-import { HTTP_STATUS_CODE } from "../utils/statusCodes.js";
-import {
-	checkSubdomainDTO,
-	CreateProjectDTO,
-	ProjectDeploymentUpdateDTO,
-	QueryProjectDTO,
-	UpdateProjectDTO,
-	UpdateSubdomainDTO,
-} from "../dtos/project.dto.js";
-import { ProjectMapper } from "../mappers/ProjectMapper.js";
-import AppError from "../utils/AppError.js";
+
+
+import { IProjectController } from "@/interfaces/controller/IProjectController.js";
+import ProjectService from "@/services/project.service.js";
+import { checkSubdomainDTO, CreateProjectDTO, ProjectDeploymentUpdateDTO, QueryProjectDTO, UpdateProjectDTO, UpdateSubdomainDTO } from "@/dtos/project.dto.js";
+import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+import { ProjectMapper } from "@/mappers/ProjectMapper.js";
+import AppError from "@/utils/AppError.js";
+
+
 
 class ProjectController implements IProjectController {
 	private projectService: ProjectService;

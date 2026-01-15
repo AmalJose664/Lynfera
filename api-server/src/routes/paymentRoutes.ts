@@ -1,6 +1,7 @@
+import { paymentController } from "@/instances.js";
+import { authenticateToken } from "@/middlewares/authMiddleware.js";
+
 import express, { Router } from "express";
-import { authenticateToken } from "../middlewares/authMiddleware.js";
-import { paymentController } from "../instances.js";
 
 const paymentRouter = Router();
 

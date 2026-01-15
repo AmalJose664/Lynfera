@@ -1,7 +1,10 @@
 import { Router } from "express";
-import { validateObjectId } from "../middlewares/validateObjectId.js";
-import { authenticaContainerteToken } from "../middlewares/authContainerMiddleware.js";
-import { deploymentController, projectController } from "../instances.js";
+
+import { deploymentController, projectController } from "@/instances.js";
+import { authenticaContainerteToken } from "@/middlewares/authContainerMiddleware.js";
+import { validateObjectId } from "@/middlewares/validateObjectId.js";
+
+
 
 const internalRoutes = Router();
 

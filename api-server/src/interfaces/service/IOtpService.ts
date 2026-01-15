@@ -1,4 +1,5 @@
-import { IOtp, OtpPurposes } from "../../models/Otp.js";
+import { IOtp, OtpPurposes } from "@/models/Otp.js"
+
 
 export interface IOtpService {
 	createNew(userId: string, purpose: OtpPurposes): Promise<{ OtpObject: IOtp, otp: number }>

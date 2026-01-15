@@ -1,3 +1,4 @@
+import { ENVS } from "@/config/env.config.js";
 type OtpTemplateParams = {
 	name: string;
 	otp: number;
@@ -8,11 +9,11 @@ type OtpTemplateParams = {
 
 
 export async function sendEmail(payload: unknown): Promise<Response> {
-	const response = fetch(process.env.OTP_SEND_URL + "", {
+	const response = fetch(ENVS.OTP_SEND_URL + "", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			"api-key": process.env.OTP_SEND_API_KEY!,
+			"api-key": ENVS.OTP_SEND_API_KEY!,
 		},
 		body: JSON.stringify(payload),
 	});

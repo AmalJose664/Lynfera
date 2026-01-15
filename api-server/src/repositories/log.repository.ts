@@ -1,6 +1,7 @@
 import { v4 as uuidV4 } from "uuid";
-import { ILogRepository, LogModel } from "../interfaces/repository/ILogRepository.js";
 import { ClickHouseClient, ResponseJSON } from "@clickhouse/client";
+
+import { ILogRepository, LogModel } from "@/interfaces/repository/ILogRepository.js";
 
 class LogRepository implements ILogRepository {
 	private client: ClickHouseClient;

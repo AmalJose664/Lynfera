@@ -1,8 +1,9 @@
+import { ENVS } from "@/config/env.config.js";
 import mongoose from "mongoose";
 
 const connectDB = async () => {
 	try {
-		const mongouri = process.env.MONGO_URL;
+		const mongouri = ENVS.MONGO_URL;
 		if (!mongouri) {
 			throw new Error("MONGO_URI not found from .env.");
 		}

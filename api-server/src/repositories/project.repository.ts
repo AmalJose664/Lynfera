@@ -1,10 +1,10 @@
 import { FilterQuery, Types } from "mongoose";
-import { IProjectRepository } from "../interfaces/repository/IProjectRepository.js";
-import { IProject, Project, ProjectStatus } from "../models/Projects.js";
-import { IUser, User } from "../models/User.js";
+
 import { BaseRepository } from "./base/base.repository.js";
-import { QueryProjectDTO } from "../dtos/project.dto.js";
-import { PROJECT_POPULATE_MAP, projectUpdateFieldsString } from "../constants/populates/project.populate.js";
+import { IProject, Project } from "@/models/Projects.js";
+import { IProjectRepository } from "@/interfaces/repository/IProjectRepository.js";
+import { PROJECT_POPULATE_MAP, projectUpdateFieldsString } from "@/constants/populates/project.populate.js";
+import { QueryProjectDTO } from "@/dtos/project.dto.js";
 
 
 class ProjectRepository extends BaseRepository<IProject> implements IProjectRepository {

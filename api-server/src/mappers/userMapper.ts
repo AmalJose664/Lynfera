@@ -1,4 +1,5 @@
-import { IUser } from "../models/User.js";
+import { IUser } from "@/models/User.js";
+
 interface UserResponseDTO {
 	name: string;
 	profileImage: string;

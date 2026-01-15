@@ -1,4 +1,4 @@
-import { IProject } from "../../models/Projects.js";
+import { IProject } from "@/models/Projects.js";
 import { BandWidthWithProjectType } from "../service/IAnalyticsService.js";
 
 export interface IProjectBandwidthRepository {

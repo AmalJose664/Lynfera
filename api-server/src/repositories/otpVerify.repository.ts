@@ -1,7 +1,7 @@
-import { Document } from "mongoose";
-import { IOtpRepository } from "../interfaces/repository/IOtpRepository.js";
-import { IOtp, OtpModel, OtpPurposes } from "../models/Otp.js";
-import { BaseRepository } from "./base/base.repository.js";
+import { IOtp, OtpModel, OtpPurposes } from "@/models/Otp.js"
+import { BaseRepository } from "./base/base.repository.js"
+import { IOtpRepository } from "@/interfaces/repository/IOtpRepository.js"
+
 
 class OtpRepository extends BaseRepository<IOtp> implements IOtpRepository {
 	constructor() {

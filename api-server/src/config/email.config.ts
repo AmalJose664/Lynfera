@@ -1,4 +1,5 @@
+import { ENVS } from "@/config/env.config.js";
 export const EMAIL_SENDER = {
-	name: process.env.EMAIL_SENDER_NAME,
-	email: process.env.EMAIL_SENDER_EMAIL
+	name: ENVS.EMAIL_SENDER_NAME,
+	email: ENVS.EMAIL_SENDER_EMAIL
 }

@@ -1,9 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { IDeploymentController } from "../interfaces/controller/IDeploymentController.js";
-import { IDeploymentService } from "../interfaces/service/IDeploymentService.js";
-import { DeploymentMapper } from "../mappers/DeploymentMapper.js";
-import { HTTP_STATUS_CODE } from "../utils/statusCodes.js";
-import { CreateDeploymentDTO, QueryDeploymentDTO } from "../dtos/deployment.dto.js";
+
+
+import { IDeploymentController } from "@/interfaces/controller/IDeploymentController.js";
+import { IDeploymentService } from "@/interfaces/service/IDeploymentService.js";
+import { DeploymentMapper } from "@/mappers/DeploymentMapper.js";
+import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+import { QueryDeploymentDTO } from "@/dtos/deployment.dto.js";
+
 
 class DeploymentController implements IDeploymentController {
 	private deploymentService: IDeploymentService;

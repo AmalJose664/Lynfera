@@ -1,21 +1,24 @@
 import { Types } from "mongoose";
-import { IProjectRepository } from "../interfaces/repository/IProjectRepository.js";
-import { IUserRepository } from "../interfaces/repository/IUserRepository.js";
-import { IProjectService, options } from "../interfaces/service/IProjectService.js";
-import { IProject, ProjectStatus } from "../models/Projects.js";
-import { IUser } from "../models/User.js";
 import { generateSlug } from "random-word-slugs";
-import { CreateProjectDTO, QueryProjectDTO } from "../dtos/project.dto.js";
-import AppError from "../utils/AppError.js";
-import { HTTP_STATUS_CODE } from "../utils/statusCodes.js";
-import { PLANS } from "../constants/plan.js";
-import { IProjectBandwidthRepository } from "../interfaces/repository/IProjectBandwidthRepository.js";
-import { IDeploymentRepository } from "../interfaces/repository/IDeploymentRepository.js";
-import { DeploymentStatus, IDeployment } from "../models/Deployment.js";
-import { IRedisCache } from "../interfaces/cache/IRedisCache.js";
-import { ILogsService } from "../interfaces/service/ILogsService.js";
-import { nanoid } from "../utils/generateNanoid.js";
-import { projectBasicFields, projectSettingsFields } from "../constants/populates/project.populate.js";
+
+
+import { IProjectService, options } from "@/interfaces/service/IProjectService.js";
+import { IProjectRepository } from "@/interfaces/repository/IProjectRepository.js";
+import { IDeploymentRepository } from "@/interfaces/repository/IDeploymentRepository.js";
+import { IUserRepository } from "@/interfaces/repository/IUserRepository.js";
+import { ILogsService } from "@/interfaces/service/ILogsService.js";
+import { IProjectBandwidthRepository } from "@/interfaces/repository/IProjectBandwidthRepository.js";
+import { IRedisCache } from "@/interfaces/cache/IRedisCache.js";
+import { CreateProjectDTO, QueryProjectDTO } from "@/dtos/project.dto.js";
+import { IProject, ProjectStatus } from "@/models/Projects.js";
+import { nanoid } from "@/utils/generateNanoid.js";
+import AppError from "@/utils/AppError.js";
+import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+import { PLANS } from "@/constants/plan.js";
+import { projectBasicFields, projectSettingsFields } from "@/constants/populates/project.populate.js";
+import { DeploymentStatus } from "@/models/Deployment.js";
+
+
 
 
 class ProjectService implements IProjectService {
@@ -24,7 +27,7 @@ class ProjectService implements IProjectService {
 	private userRepository: IUserRepository;
 	private logsService: ILogsService;
 	private projectBandwidthRepo: IProjectBandwidthRepository;
-	private cacheInvalidator: IRedisCache
+	private cacheInvalidator: IRedisCache;
 
 	constructor(
 		projectRepo: IProjectRepository,

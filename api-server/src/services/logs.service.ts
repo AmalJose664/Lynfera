@@ -1,8 +1,8 @@
+import { IDeploymentRepository } from "@/interfaces/repository/IDeploymentRepository.js";
+import { ILogRepository } from "@/interfaces/repository/ILogRepository.js";
+import { ILogsService } from "@/interfaces/service/ILogsService.js";
+import AppError from "@/utils/AppError.js";
 import { ResponseJSON, ResultSet } from "@clickhouse/client";
-import { ILogRepository } from "../interfaces/repository/ILogRepository.js";
-import { ILogsService } from "../interfaces/service/ILogsService.js";
-import { IDeploymentRepository } from "../interfaces/repository/IDeploymentRepository.js";
-import AppError from "../utils/AppError.js";
 
 class LogsService implements ILogsService {
 	private logsRepository: ILogRepository;

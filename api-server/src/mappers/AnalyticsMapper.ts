@@ -1,4 +1,5 @@
-import { QueryOptions } from "../interfaces/repository/IAnalyticsRepository.js";
+import { QueryOptions } from "@/interfaces/repository/IAnalyticsRepository.js";
+
 type meta = Record<string, string | number>;
 interface bandWidthType {
 	date: string;

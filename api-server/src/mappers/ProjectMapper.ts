@@ -1,7 +1,5 @@
+import { IProject } from "@/models/Projects.js";
 import { Types } from "mongoose";
-import { IProject } from "../models/Projects.js";
-import { IUser } from "../models/User.js";
-import { Part } from "@aws-sdk/client-s3";
 
 interface ProjectResponseDTO {
 	project: {

@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import z from "zod";
-import AppError from "../utils/AppError.js";
-import { HTTP_STATUS_CODE } from "../utils/statusCodes.js";
+
+import AppError from "@/utils/AppError.js";
+import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+
 type source = "body" | "query";
 
 export function validateRequest<T extends z.ZodObject>(schema: T, source: source) {

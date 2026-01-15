@@ -1,3 +1,4 @@
+import { ENVS } from "@/config/env.config.js";
 import { Kafka } from "kafkajs";
 
 export const kafka = new Kafka({
@@ -6,8 +7,8 @@ export const kafka = new Kafka({
 	ssl: true,
 	sasl: {
 		mechanism: "plain",
-		username: process.env.KAFKA_USERNAME as string,
-		password: process.env.KAFKA_PASSWORD as string,
+		username: ENVS.KAFKA_USERNAME as string,
+		password: ENVS.KAFKA_PASSWORD as string,
 	},
 	retry: {
 		retries: 8,

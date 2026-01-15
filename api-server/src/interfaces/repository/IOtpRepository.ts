@@ -1,4 +1,4 @@
-import { IOtp, OtpPurposes } from "../../models/Otp.js";
+import { IOtp, OtpPurposes } from "@/models/Otp.js";
 
 export interface IOtpRepository {
 	createOtp(otpObj: Partial<IOtp>): Promise<IOtp>

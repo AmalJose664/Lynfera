@@ -1,16 +1,20 @@
 import { NextFunction, Request, Response } from "express";
 import { Profile, VerifyCallback } from "passport-google-oauth20";
-
-import { HTTP_STATUS_CODE } from "../utils/statusCodes.js";
 import jwt from "jsonwebtoken";
-import { userService } from "../instances.js";
-import { UserMapper } from "../mappers/userMapper.js";
-import AppError from "../utils/AppError.js";
-import { issueAuthAccessCookies, issueAuthRefreshCookies } from "../utils/authUtils.js";
 import { JwtPayload } from "jsonwebtoken";
-import { LoginUserDTO, ResendOtpDTO, SignUpUserDTO, VerifyOtpDTO } from "../dtos/auth.dto.js";
-import { generateOtpToken } from "../utils/generateToken.js";
-import { accessCookieConfig } from "../config/cookie.config.js";
+
+import { ENVS } from "@/config/env.config.js";
+import AppError from "@/utils/AppError.js";
+import { issueAuthAccessCookies, issueAuthRefreshCookies } from "@/utils/authUtils.js";
+import { userService } from "@/instances.js";
+import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+import { UserMapper } from "@/mappers/userMapper.js";
+import { LoginUserDTO, SignUpUserDTO, VerifyOtpDTO } from "@/dtos/auth.dto.js";
+import { generateOtpToken } from "@/utils/generateToken.js";
+import { accessCookieConfig } from "@/config/cookie.config.js";
+
+
+
 const OTP_COOKIE = "otp_Cookie"
 interface RefreshTokenPayload extends JwtPayload {
 	id: string;
@@ -26,7 +30,7 @@ export const oAuthLoginCallback = (req: Request, res: Response, next: NextFuncti
 		issueAuthAccessCookies(res, req.user)
 		issueAuthRefreshCookies(res, req.user)
 
-		const frontend = process.env.FRONTEND_URL + "/auth/success";
+		const frontend = ENVS.FRONTEND_URL + "/auth/success";
 		res.redirect(frontend);
 	} catch (error) {
 		next(new AppError("Error during google callback", 500, error));
@@ -81,7 +85,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 		return;
 	}
 	try {
-		const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET as string) as RefreshTokenPayload;
+		const decoded = jwt.verify(refreshToken, ENVS.REFRESH_TOKEN_SECRET as string) as RefreshTokenPayload;
 
 		console.log(decoded, "Trying to decode refesh");
 		const user = await userService.getUser(decoded.id)
@@ -227,7 +231,7 @@ export const resendOtp = async (req: Request, res: Response, next: NextFunction)
 			res.status(400).json({ message: "Cant send otp, insufficient data" })
 			return
 		}
-		const decoded = jwt.verify(otpCookie, process.env.VERIFICATION_TOKEN_SECRET as string) as { id: string };
+		const decoded = jwt.verify(otpCookie, ENVS.VERIFICATION_TOKEN_SECRET as string) as { id: string };
 		const { id } = decoded
 
 

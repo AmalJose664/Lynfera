@@ -1,5 +1,7 @@
 import { Router } from "express";
 import passport from "passport";
+
+
 import {
 	checkAuth,
 	getAuthenticatedUser,
@@ -11,11 +13,14 @@ import {
 	signUpUser,
 	userLogout,
 	verifyAuth,
-	verifyOtp,
-} from "../controllers/authController.js";
-import { authenticateToken } from "../middlewares/authMiddleware.js";
-import { validateBody } from "../middlewares/validateRequest.js";
-import { LoginSchema, ResendOtpSchema, SignUpSchema, VerifyOtpSchema } from "../dtos/auth.dto.js";
+	verifyOtp
+} from "@/controllers/authController.js";
+import { authenticateToken } from "@/middlewares/authMiddleware.js";
+import { validateBody } from "@/middlewares/validateRequest.js";
+import { LoginSchema, SignUpSchema, VerifyOtpSchema } from "@/dtos/auth.dto.js";
+
+
+
 
 const authRouter = Router();
 

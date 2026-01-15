@@ -1,6 +1,5 @@
-import { CreateProjectDTO, QueryProjectDTO } from "../../dtos/project.dto.js";
-import { IProject, ProjectStatus } from "../../models/Projects.js";
-import { IUser } from "../../models/User.js";
+import { CreateProjectDTO, QueryProjectDTO } from "@/dtos/project.dto.js";
+import { IProject } from "@/models/Projects.js";
 
 export type options = {
 	updateStatusOnlyIfNoCurrentDeployment?: boolean;

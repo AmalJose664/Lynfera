@@ -1,5 +1,7 @@
-import { kafka } from "../config/kafka.config.js";
-import KafkaEventConsumer from "./consumers.js";
+import { kafka } from "@/config/kafka.config.js";
+import KafkaEventConsumer from "@/events/consumers.js";
+
+
 
 let consumersInstance: KafkaEventConsumer | null = null;
 

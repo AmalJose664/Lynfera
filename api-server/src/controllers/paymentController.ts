@@ -1,11 +1,17 @@
+
 import Stripe from "stripe";
 import { Request, Response, NextFunction } from "express";
-import { IPaymentController } from "../interfaces/controller/IPaymentController.js";
-import { IPaymentService } from "../interfaces/service/IPaymentService.js";
-import { stripe } from "../config/stripe.config.js";
-import { HTTP_STATUS_CODE } from "../utils/statusCodes.js";
-import AppError from "../utils/AppError.js";
-import { issueAuthAccessCookies, issueAuthRefreshCookies } from "../utils/authUtils.js";
+
+
+import { IPaymentController } from "@/interfaces/controller/IPaymentController.js";
+import { IPaymentService } from "@/interfaces/service/IPaymentService.js";
+import { ENVS } from "@/config/env.config.js";
+import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+import { issueAuthAccessCookies, issueAuthRefreshCookies } from "@/utils/authUtils.js";
+import AppError from "@/utils/AppError.js";
+import { stripe } from "@/config/stripe.config.js";
+
+
 
 class PaymentController implements IPaymentController {
 	private paymentService: IPaymentService;
@@ -15,8 +21,8 @@ class PaymentController implements IPaymentController {
 	async checkout(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const userId = req.user?.id as string;
-			const successUrl = process.env.FRONTEND_URL + "/payment-success?session_id=";
-			const cancelUrl = process.env.FRONTEND_URL + "/projects";
+			const successUrl = ENVS.FRONTEND_URL + "/payment-success?session_id=";
+			const cancelUrl = ENVS.FRONTEND_URL + "/projects";
 			const { session, status } = await this.paymentService.createCheckoutSession(userId, successUrl, cancelUrl);
 			if (!session || !status) {
 				res.status(HTTP_STATUS_CODE.BAD_REQUEST).json({ url: null, message: "No session , already pro member" });
@@ -45,7 +51,7 @@ class PaymentController implements IPaymentController {
 		try {
 			const sig = req.headers["stripe-signature"];
 			let event;
-			const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
+			const endpointSecret = ENVS.STRIPE_WEBHOOK_SECRET as string;
 
 			event = stripe.webhooks.constructEvent(req.body, sig ?? "", endpointSecret);
 
