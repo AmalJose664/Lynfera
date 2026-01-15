@@ -27,7 +27,7 @@ export const Footer = () => {
 					<div>
 						<h3 className="text-primary font-bold mb-4">Legal</h3>
 						<ul className="space-y-2">
-							<li><a href="#" className="text-gray-500 hover:text-some-less text-sm">Privacy Policy</a></li>
+							<li><a href="/privacy" className="text-gray-500 hover:text-some-less text-sm">Privacy Policy</a></li>
 						</ul>
 					</div>
 				</div>

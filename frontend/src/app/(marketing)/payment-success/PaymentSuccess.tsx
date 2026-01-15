@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/button";
 import axiosInstance from "@/lib/axios";
 import { AxiosError } from "axios";
@@ -20,11 +21,10 @@ interface ErrorResponse {
 export default function PaymentSuccess({ sessionId }: { sessionId: string }) {
 	const [data, setData] = useState<PaymentDetails | null>(null);
 	const [error, setError] = useState<ErrorResponse | null>(null);
-	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
 	useEffect(() => {
 		async function fetchSession() {
 			try {
-				setIsLoading(true)
 				setError(null);
 				const res = await axiosInstance.get(`/billing/retrieve?session_id=${sessionId}`);
 				setData(res.data);
@@ -55,7 +55,15 @@ export default function PaymentSuccess({ sessionId }: { sessionId: string }) {
 		fetchSession();
 	}, [sessionId]);
 
-	if (isLoading) return <p>Loading...</p>;
+	if (isLoading) return (
+		<div className="flex items-center justify-around gap-2 flex-col mt-40">
+
+			<div className="flex items-center gap-2 my-4 flex-col">
+				<p className="text-less text-sm">Loading ...</p>
+				<LoadingSpinner />
+			</div>
+		</div>
+	);
 	if (error) {
 		return (
 			<div className="flex items-center justify-around gap-2 flex-col mt-40">
@@ -73,9 +81,6 @@ export default function PaymentSuccess({ sessionId }: { sessionId: string }) {
 				</Button>
 			</div>
 		);
-	}
-	if (!data) {
-		return <div>No data available</div>;
 	}
 	if (!data?.valid) {
 		return (

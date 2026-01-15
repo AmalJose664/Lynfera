@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
 
 import { projectApis, useGetProjectFullQuery } from "@/store/services/projectsApi"
 import { useCreateDeploymentMutation, useGetDeploymentByIdQuery } from "@/store/services/deploymentApi"

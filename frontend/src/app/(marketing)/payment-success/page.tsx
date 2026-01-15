@@ -7,8 +7,8 @@ export const metadata = {
 	description:
 		"Verify your payment",
 };
-export default function SuccessPage({ searchParams }: any) {
-	const sessionId = searchParams.session_id;
+export default async function SuccessPage({ searchParams }: any) {
+	const { session_id: sessionId } = await searchParams;
 
 	if (!sessionId) {
 		redirect("/");

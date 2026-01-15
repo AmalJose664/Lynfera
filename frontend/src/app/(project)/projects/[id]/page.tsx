@@ -10,7 +10,7 @@ export default async function Page({
 	const { tab } = await searchParams
 	const filteredTab = ["overview", "deployments", "monitoring", "settings", "files"].includes((tab as string) || "") ? tab : ""
 	return (
-		<div className="min-h-screen flex flex-col overflow-x-hidden">
+		<div className="min-h-screen flex flex-col overflow-x-clip">
 
 			<Navbar className="" />
 			<main className="flex-1">
