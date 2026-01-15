@@ -4,7 +4,7 @@ import { IPaymentService } from "@/interfaces/service/IPaymentService.js";
 import { IUserRepository } from "@/interfaces/repository/IUserRepository.js";
 import AppError from "@/utils/AppError.js";
 import { stripe } from "@/config/stripe.config.js";
-import { SubscriptionStatus } from "@/models/User.js";
+import { IUser, SubscriptionStatus } from "@/models/User.js";
 import { IPlans, PLANS } from "@/constants/plan.js";
 import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { PAYMENT_ERRORS, USER_ERRORS } from "@/constants/errors.js";
@@ -41,7 +41,7 @@ class PaymentService implements IPaymentService {
 		const session = await stripe.checkout.sessions.create({
 			mode: "subscription",
 			customer: stripeCustomerId,
-			line_items: [{ price: "price_1SaX6n2efzyFmja4tb11B8Cs", quantity: 1 }],
+			line_items: [{ price: "price_1Spriu2efzyFmja4x3JAJUs7", quantity: 1 }],
 			success_url: successUrl + "{CHECKOUT_SESSION_ID}",
 			cancel_url: cancelUrl,
 			metadata: {
@@ -70,15 +70,17 @@ class PaymentService implements IPaymentService {
 		currency: string | null;
 		amountPaid?: number;
 		paymentStatus: string;
+		user: IUser | null
 	}> {
-		const session = await stripe.checkout.sessions.retrieve(sessionId);
-		console.log(session);
+		const [session, user] = await Promise.all([stripe.checkout.sessions.retrieve(sessionId), this.userRepo.findByUserId(userId)])
+
 		return {
 			valid: session.payment_status === "paid",
 			customerName: session.customer_details?.name || "",
 			...(session.amount_total && { amountPaid: session.amount_total / 100 }),
 			currency: session.currency,
 			paymentStatus: session.payment_status,
+			user
 		};
 	}
 

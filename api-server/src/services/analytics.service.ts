@@ -99,7 +99,6 @@ class AnalyticsService implements IAnalyticsService {
 			range: getRange(filteredRange),
 			rangeUnit: getUnit(filteredRange),
 		};
-		console.log(queryOptions);
 		if (userPlan !== PLANS.PRO.name) {
 			validateFreeAnalyticsParams(queryOptions, range, interval);
 		}
@@ -120,7 +119,6 @@ class AnalyticsService implements IAnalyticsService {
 			range: getRange(filteredRange),
 			rangeUnit: getUnit(filteredRange),
 		};
-		console.log(queryOptions);
 		if (userPlan !== PLANS.PRO.name) {
 			validateFreeAnalyticsParams(queryOptions, range, interval);
 		}

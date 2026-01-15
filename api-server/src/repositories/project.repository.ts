@@ -70,8 +70,8 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 		return await Project.findOneAndUpdate(
 			{ _id: projectId, user: userId },
 			{ $set: { ...updateData } },
-			{ new: true, select: [...projectUpdateFieldsString, "subdomain"] },
-		);
+			{ new: true, },
+		).select([...projectUpdateFieldsString, "subdomain"]);
 	}
 
 	async pushToDeployments(projectId: string, userId: string, newDeployment: string | Types.ObjectId): Promise<IProject | null> {
@@ -83,8 +83,8 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 				lastDeployment: newDeployment.toString(),
 				$addToSet: { deployments: newDeployment },
 			},
-			{ new: true, select: projectUpdateFieldsString },
-		);
+			{ new: true, },
+		).select(projectUpdateFieldsString);
 	}
 
 	async pullDeployments(
@@ -99,8 +99,8 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 				currentDeployment: backUpDeployment,
 				$pull: { deployments: deployment },
 			},
-			{ new: true, select: projectUpdateFieldsString },
-		);
+			{ new: true, }
+		).select(projectUpdateFieldsString);
 	}
 
 	async __findProject(projectId: string): Promise<IProject | null> {
@@ -109,7 +109,7 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 	}
 	async __updateProject(projectId: string, updateData: Partial<IProject>): Promise<IProject | null> {
 		// container
-		return await Project.findOneAndUpdate({ _id: projectId }, { $set: { ...updateData } }, { new: true, select: projectUpdateFieldsString });
+		return await Project.findOneAndUpdate({ _id: projectId }, { $set: { ...updateData } }, { new: true, }).select(projectUpdateFieldsString);
 	}
 }
 export default ProjectRepository;

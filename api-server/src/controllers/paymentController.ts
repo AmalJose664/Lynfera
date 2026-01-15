@@ -68,6 +68,9 @@ class PaymentController implements IPaymentController {
 			const sessionId = req.query.session_id;
 			const userId = req.user?.id as string;
 			const result = await this.paymentService.retriveSession(userId, sessionId as string);
+			const { user } = result
+			issueAuthAccessCookies(res, { id: userId, plan: user?.plan as string })
+			issueAuthRefreshCookies(res, { id: userId, plan: user?.plan as string })
 			res.status(200).json({
 				valid: result.valid,
 				customerName: result.customerName,
@@ -75,6 +78,8 @@ class PaymentController implements IPaymentController {
 				amountPaid: result.amountPaid,
 				paymentStatus: result.paymentStatus,
 			});
+
+
 		} catch (err) {
 			const error = err as Stripe.errors.StripeError;
 			if (error.type === "StripeInvalidRequestError") {
