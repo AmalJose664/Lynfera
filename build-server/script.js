@@ -326,7 +326,6 @@ async function fetchProjectData(deploymentId = "") {
 			throw error
 		}
 		if (axios.isAxiosError(error)) {
-			console.log("Error on fetching Project data", error)
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.ERROR,
@@ -485,7 +484,6 @@ async function runCommand(command, args, cwd, env = []) {
 		return
 	}
 	const envVars = Object.fromEntries(env.map((e) => [e.name, e.value]))
-	console.log(env, args)
 	try {
 		const subprocess = execa(command, args, {
 			cwd,
@@ -499,7 +497,6 @@ async function runCommand(command, args, cwd, env = []) {
 		});
 		currentProcess = subprocess;
 		subprocess.stdout?.on("data", (data) => {
-			console.log(data.toString(), "--");
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.INFO,
@@ -597,7 +594,7 @@ async function uploadNonAws(dir, fileName) {
 			}
 		)
 		const result = res.data
-		console.log(result, " <<< <<",)
+
 		return
 	} catch (error) {
 		console.log("Error on uploading files", error)
@@ -612,9 +609,9 @@ async function uploadNonAws(dir, fileName) {
 
 }
 async function validateAnduploadFiles(sourceDir) {
-	console.log("trying to move", sourceDir,)
+
 	const zipFileName = "output__" + Math.random().toString(36).slice(2, 12).replaceAll(".", "") + ".zip"
-	console.log("Creating as ", zipFileName)
+
 	const output = createWriteStream(path.join(sourceDir, zipFileName));
 	const archive = archiver('zip', {
 		zlib: { level: 9 }
@@ -664,7 +661,7 @@ async function validateAnduploadFiles(sourceDir) {
 					});
 					archive.file(fullPath, { name: relPath });
 					// await rename(fullPath, targetPath);
-					console.log("Moved " + relPath)
+
 				} else {
 					uploadsArray.push(limit(async () => {
 						publishLogs({
@@ -756,10 +753,9 @@ async function init() {
 		const outputFilesDir = projectData.outputDirectory || "dist"
 
 
-		console.log({ projectData, deploymentData, installCommand, buildCommand, outputFiles: outputFilesDir })
 
 		const runDir = path.join(taskDir, projectData.rootDir)
-		// console.log(runDir)
+
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
 			level: logValues.INFO,
@@ -779,14 +775,13 @@ async function init() {
 
 		const framweworkIdentified = await validatePackageJsonAndGetFramework(runDir, projectData.rootDir)
 		const buildOptions = getDynamicBuildRoot(framweworkIdentified.tool)
-		console.log(framweworkIdentified, buildOptions);
 
 		["Detected 1 framework", "Framework " + framweworkIdentified.framework + " identified",
-			repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m INSTALL " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 10)].map((v) => publishLogs({
-				DEPLOYMENT_ID, PROJECT_ID,
-				level: logValues.DECOR,
-				message: v, stream: "system"
-			}))
+		repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m INSTALL " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 10)].map((v) => publishLogs({
+			DEPLOYMENT_ID, PROJECT_ID,
+			level: logValues.DECOR,
+			message: v, stream: "system"
+		}))
 		printInfoLogs();
 
 
