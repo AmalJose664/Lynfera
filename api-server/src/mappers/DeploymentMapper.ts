@@ -1,7 +1,5 @@
-
 import { IDeployment } from "@/models/Deployment.js";
 import { IUser } from "@/models/User.js";
-
 
 interface toDeploymentResponseDTO {
 	deployment: {
@@ -58,28 +56,26 @@ interface toDeploymentsFullResponseDTO {
 		totalPages: number;
 	};
 }
-type Options = { total: number, page: number, limit: number }
+type Options = { total: number; page: number; limit: number };
 interface toDeploymentsBasicResponse {
-	deployments: toDeploymentBasicResponseDTO['deployment'][]
-	pagination: toDeploymentsFullResponseDTO['pagination']
+	deployments: toDeploymentBasicResponseDTO["deployment"][];
+	pagination: toDeploymentsFullResponseDTO["pagination"];
 }
-type ResponseType = "full" | "overview"
+type ResponseType = "full" | "overview";
 export class DeploymentMapper {
-
-	static toDeployment(deployment: IDeployment, response: ResponseType): { deployment: Partial<toDeploymentResponseDTO['deployment']> } {
-		return response === "overview"
-			? this.toDeploymentBasicResponse(deployment)
-			: this.toDeploymentFullResponse(deployment)
+	static toDeployment(deployment: IDeployment, response: ResponseType): { deployment: Partial<toDeploymentResponseDTO["deployment"]> } {
+		return response === "overview" ? this.toDeploymentBasicResponse(deployment) : this.toDeploymentFullResponse(deployment);
 	}
-	static toDeployments(deployments: IDeployment[], options: Options, response: ResponseType): {
-		deployments: Partial<toDeploymentResponseDTO['deployment']>[];
-		pagination: toDeploymentsFullResponseDTO['pagination'];
+	static toDeployments(
+		deployments: IDeployment[],
+		options: Options,
+		response: ResponseType,
+	): {
+		deployments: Partial<toDeploymentResponseDTO["deployment"]>[];
+		pagination: toDeploymentsFullResponseDTO["pagination"];
 	} {
-		return response === "overview"
-			? this.toDeploymentsBasicResponse(deployments, options)
-			: this.toDeploymentsFullResponse(deployments, options)
+		return response === "overview" ? this.toDeploymentsBasicResponse(deployments, options) : this.toDeploymentsFullResponse(deployments, options);
 	}
-
 
 	static toDeploymentBasicResponse(deployment: IDeployment): toDeploymentBasicResponseDTO {
 		return {
@@ -87,12 +83,12 @@ export class DeploymentMapper {
 				_id: deployment._id,
 				project: this.isPopulatedObject(deployment.project, ["branch", "_id", "name"])
 					? {
-						name: (deployment.project as any).name,
-						_id: (deployment.project as any)._id,
-						subdomain: (deployment.project as any).subdomain,
-						branch: (deployment.project as any).branch,
-						repoURL: (deployment.project as any).repoURL,
-					}
+							name: (deployment.project as any).name,
+							_id: (deployment.project as any)._id,
+							subdomain: (deployment.project as any).subdomain,
+							branch: (deployment.project as any).branch,
+							repoURL: (deployment.project as any).repoURL,
+						}
 					: deployment.project.toString(),
 				commit: { msg: deployment.commit_hash.split("||")[1], id: deployment.commit_hash.split("||")[0] },
 				status: deployment.status,
@@ -108,20 +104,20 @@ export class DeploymentMapper {
 				_id: deployment._id,
 				project: this.isPopulatedObject(deployment.project, ["branch", "_id", "name"])
 					? {
-						name: (deployment.project as any).name,
-						_id: (deployment.project as any)._id,
-						subdomain: (deployment.project as any).subdomain,
-						branch: (deployment.project as any).branch,
-						repoURL: (deployment.project as any).repoURL,
-					}
+							name: (deployment.project as any).name,
+							_id: (deployment.project as any)._id,
+							subdomain: (deployment.project as any).subdomain,
+							branch: (deployment.project as any).branch,
+							repoURL: (deployment.project as any).repoURL,
+						}
 					: deployment.project.toString(),
 				commit: { msg: deployment.commit_hash.split("||")[1], id: deployment.commit_hash.split("||")[0] },
 				user: this.isPopulatedObject(deployment.user, ["profileImage", "email", "name"])
 					? {
-						name: (deployment.user as any).name,
-						profileImage: (deployment.user as any).profileImage,
-						email: (deployment.user as any).email,
-					}
+							name: (deployment.user as any).name,
+							profileImage: (deployment.user as any).profileImage,
+							email: (deployment.user as any).email,
+						}
 					: deployment.user.toString(),
 				status: deployment.status,
 				performance: {
@@ -143,7 +139,7 @@ export class DeploymentMapper {
 	}
 
 	static toDeploymentsFullResponse(deployments: IDeployment[], options: Options): toDeploymentsFullResponseDTO {
-		const { total, limit, page } = options
+		const { total, limit, page } = options;
 		return {
 			deployments: deployments.map((dep) => this.toDeploymentFullResponse(dep).deployment),
 			pagination: {
@@ -156,7 +152,7 @@ export class DeploymentMapper {
 	}
 
 	static toDeploymentsBasicResponse(deployments: IDeployment[], options: Options): toDeploymentsBasicResponse {
-		const { total, limit, page } = options
+		const { total, limit, page } = options;
 		return {
 			deployments: deployments.map((dep) => this.toDeploymentBasicResponse(dep).deployment),
 			pagination: {
@@ -167,11 +163,6 @@ export class DeploymentMapper {
 			},
 		};
 	}
-
-
-
-
-
 
 	static isPopulatedObject(object: any, fields: string[]): boolean {
 		return object && fields.every((f) => f in object);
@@ -186,8 +177,6 @@ export class DeploymentMapper {
 			createdAt: deployment.createdAt,
 		};
 	}
-
-
 
 	static toDeploymentFilesResponse(deployment: IDeployment): toDeploymentFilesResponse {
 		return {

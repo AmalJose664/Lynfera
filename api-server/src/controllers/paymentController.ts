@@ -1,7 +1,5 @@
-
 import Stripe from "stripe";
 import { Request, Response, NextFunction } from "express";
-
 
 import { IPaymentController } from "@/interfaces/controller/IPaymentController.js";
 import { IPaymentService } from "@/interfaces/service/IPaymentService.js";
@@ -14,8 +12,6 @@ import { PAYMENT_ERRORS } from "@/constants/errors.js";
 import { FRONTEND_PAYMENT_CANCEL_PATH, FRONTEND_PAYMENT_SUCCESS_PATH } from "@/constants/paths.js";
 import { PLANS } from "@/constants/plan.js";
 
-
-
 class PaymentController implements IPaymentController {
 	private paymentService: IPaymentService;
 	constructor(service: IPaymentService) {
@@ -24,11 +20,14 @@ class PaymentController implements IPaymentController {
 	async checkout(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const userId = req.user?.id as string;
-			const successUrl = ENVS.FRONTEND_URL + FRONTEND_PAYMENT_SUCCESS_PATH
-			const cancelUrl = ENVS.FRONTEND_URL + FRONTEND_PAYMENT_CANCEL_PATH
+			const successUrl = ENVS.FRONTEND_URL + FRONTEND_PAYMENT_SUCCESS_PATH;
+			const cancelUrl = ENVS.FRONTEND_URL + FRONTEND_PAYMENT_CANCEL_PATH;
 			const { session, status } = await this.paymentService.createCheckoutSession(userId, successUrl, cancelUrl);
 			if (!session || !status) {
-				res.status(STATUS_CODES.BAD_REQUEST).json({ url: null, message: "No session , already pro member " + PAYMENT_ERRORS.NO_ACTION_TAKEN });
+				res.status(STATUS_CODES.BAD_REQUEST).json({
+					url: null,
+					message: "No session , already pro member " + PAYMENT_ERRORS.NO_ACTION_TAKEN,
+				});
 				return;
 			}
 			res.status(STATUS_CODES.OK).json({ url: session.url, sessionId: session.id });
@@ -40,8 +39,8 @@ class PaymentController implements IPaymentController {
 		try {
 			const userId = req.user?.id as string;
 			await this.paymentService.handleCancelSubscription(userId);
-			issueAuthAccessCookies(res, { id: userId, plan: PLANS.FREE.name })
-			issueAuthRefreshCookies(res, { id: userId, plan: PLANS.FREE.name })
+			issueAuthAccessCookies(res, { id: userId, plan: PLANS.FREE.name });
+			issueAuthRefreshCookies(res, { id: userId, plan: PLANS.FREE.name });
 			res.status(STATUS_CODES.OK).json({
 				message: PAYMENT_ERRORS.SUBSCRIPTION_CANCELLED,
 				status: true,

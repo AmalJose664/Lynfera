@@ -3,9 +3,15 @@ import { Router } from "express";
 import { deploymentController, logsController, projectController } from "@/instances.js";
 import { authenticateToken } from "@/middlewares/authMiddleware.js";
 
-
 import { validateBody, validateQuery } from "@/middlewares/validateRequest.js";
-import { CreateProjectSchema, ProjectDeploymentUpdateSchema, ProjectQuerySchema, ProjectSubdomainSchema, SubdomainQuerySchema, UpdateProjectSchema } from "@/dtos/project.dto.js";
+import {
+	CreateProjectSchema,
+	ProjectDeploymentUpdateSchema,
+	ProjectQuerySchema,
+	ProjectSubdomainSchema,
+	SubdomainQuerySchema,
+	UpdateProjectSchema,
+} from "@/dtos/project.dto.js";
 import { validateObjectId } from "@/middlewares/validateObjectId.js";
 import { DeploymentQueryScheme } from "@/dtos/deployment.dto.js";
 
@@ -29,7 +35,12 @@ projectRouter.patch(
 	projectController.updateProject.bind(projectController),
 );
 projectRouter.get("/:projectId/full", authenticateToken, validateObjectId("projectId"), projectController.getProjectComplete.bind(projectController));
-projectRouter.get("/:projectId/settings", authenticateToken, validateObjectId("projectId"), projectController.getProjectSettings.bind(projectController));
+projectRouter.get(
+	"/:projectId/settings",
+	authenticateToken,
+	validateObjectId("projectId"),
+	projectController.getProjectSettings.bind(projectController),
+);
 projectRouter.patch(
 	"/:projectId/subdomain",
 	authenticateToken,

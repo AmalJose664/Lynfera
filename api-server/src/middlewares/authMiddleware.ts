@@ -13,7 +13,7 @@ interface DecodedUser {
 
 declare global {
 	namespace Express {
-		interface User extends DecodedUser { }
+		interface User extends DecodedUser {}
 		interface Request {
 			validatedQuery?: any;
 			validatedBody?: any;

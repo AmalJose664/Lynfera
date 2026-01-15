@@ -1,4 +1,3 @@
-
 import { PassportStatic } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { googleLoginStrategy } from "../../controllers/authController.js";

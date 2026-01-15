@@ -4,8 +4,6 @@ import { _Object, DeleteObjectsCommand, ListObjectsV2Command } from "@aws-sdk/cl
 import { spawn } from "child_process";
 import { generateSlug } from "random-word-slugs";
 
-
-
 import { IDeploymentService } from "@/interfaces/service/IDeploymentService.js";
 import { IDeploymentRepository } from "@/interfaces/repository/IDeploymentRepository.js";
 import { IProjectRepository } from "@/interfaces/repository/IProjectRepository.js";
@@ -27,31 +25,27 @@ import { S3_OUTPUTS_DIR } from "@/constants/paths.js";
 import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { DEPLOYMENT_ERRORS, PROJECT_ERRORS } from "@/constants/errors.js";
 
-
-
-
-
 class DeploymentService implements IDeploymentService {
-
-
 	private deploymentRepository: IDeploymentRepository;
 	private projectRepository: IProjectRepository;
 	private userService: IUserSerivce;
 	private MAX_CONCURRENT_RUNNABLE_DPYMNTS = 20;
-	private DEPLOYMENTS_SET_KEY = "deployments:running"
-	private redisCache: IRedisCache
+	private DEPLOYMENTS_SET_KEY = "deployments:running";
+	private redisCache: IRedisCache;
 	private logsService: ILogsService;
 
-	constructor(deploymentRepo: IDeploymentRepository,
+	constructor(
+		deploymentRepo: IDeploymentRepository,
 		projectRepo: IProjectRepository,
 		userService: IUserSerivce,
 		logsService: ILogsService,
-		redisCache: IRedisCache) {
+		redisCache: IRedisCache,
+	) {
 		this.deploymentRepository = deploymentRepo;
 		this.projectRepository = projectRepo;
 		this.userService = userService;
-		this.logsService = logsService
-		this.redisCache = redisCache
+		this.logsService = logsService;
+		this.redisCache = redisCache;
 	}
 	async newDeployment(deploymentData: Partial<IDeployment>, userId: string, projectId: string): Promise<IDeployment | null> {
 		const canDeploy = await this.userService.userCanDeploy(userId);
@@ -76,7 +70,7 @@ class DeploymentService implements IDeploymentService {
 		deploymentData.status = DeploymentStatus.QUEUED;
 		deploymentData.overWrite = false;
 		deploymentData.commit_hash = "------||------";
-		deploymentData.publicId = nanoid(DEPLOYMENT_ID_LENGTH)
+		deploymentData.publicId = nanoid(DEPLOYMENT_ID_LENGTH);
 		deploymentData.identifierSlug = generateSlug(3);
 		deploymentData.project = new Types.ObjectId(correspondindProject._id);
 		deploymentData.user = correspondindProject.user;
@@ -95,8 +89,8 @@ class DeploymentService implements IDeploymentService {
 			}
 			return deployment;
 		} catch (error) {
-			await this.decrementRunningDeplymnts(projectId)
-			throw error
+			await this.decrementRunningDeplymnts(projectId);
+			throw error;
 		}
 	}
 
@@ -105,7 +99,7 @@ class DeploymentService implements IDeploymentService {
 	}
 	async getDeploymentFiles(id: string, userId: string, includes?: string): Promise<IDeployment | null> {
 		return await this.deploymentRepository.findDeploymentById(id, userId, {
-			fields: ['file_structure']
+			fields: ["file_structure"],
 		});
 	}
 
@@ -164,11 +158,10 @@ class DeploymentService implements IDeploymentService {
 			this.deploymentRepository.deleteDeployment(projectId, deploymentId, userId),
 			this.deleteCloud(deploymentId, project._id),
 			this.logsService.deleteDeploymentLogs(deploymentId),
-			...(project.status !== nextStatus ? [this.projectRepository.__updateProject(project._id, { status: (nextStatus as ProjectStatus) })] : [])
+			...(project.status !== nextStatus ? [this.projectRepository.__updateProject(project._id, { status: nextStatus as ProjectStatus })] : []),
 		]);
 		return deleteResult;
 	}
-
 
 	async deployLocal(deploymentId: string, projectId: string): Promise<void> {
 		try {
@@ -196,17 +189,16 @@ class DeploymentService implements IDeploymentService {
 			// 	console.error("Failed to start process:", err);
 			// });
 			// return
-			const result = await dispatchBuild(deploymentId, projectId)
-			console.log(result, " - - - ")
-
+			const result = await dispatchBuild(deploymentId, projectId);
+			console.log(result, " - - - ");
 		} catch (error: any) {
-			console.log("Error on build")
+			console.log("Error on build");
 			await this.__updateDeployment(projectId, deploymentId, {
 				status: DeploymentStatus.FAILED,
-				error_message: DEPLOYMENT_ERRORS.DEPLOY_FAILED
+				error_message: DEPLOYMENT_ERRORS.DEPLOY_FAILED,
 			});
-			await this.decrementRunningDeplymnts(projectId)
-			throw error
+			await this.decrementRunningDeplymnts(projectId);
+			throw error;
 		}
 	}
 	async deployCloud(project: IProject, deployment: IDeployment): Promise<void> {
@@ -240,9 +232,9 @@ class DeploymentService implements IDeploymentService {
 		} catch (error: any) {
 			await this.__updateDeployment(project._id, deployment._id, {
 				status: DeploymentStatus.FAILED,
-				error_message: DEPLOYMENT_ERRORS.DEPLOY_FAILED
+				error_message: DEPLOYMENT_ERRORS.DEPLOY_FAILED,
 			});
-			throw error
+			throw error;
 		}
 	}
 
@@ -270,20 +262,17 @@ class DeploymentService implements IDeploymentService {
 		await s3Client.send(deleteCommand);
 	}
 
-
 	async incrementRunningDeplymnts(projectId: string) {
-		await this.redisCache.setAdd(this.DEPLOYMENTS_SET_KEY, projectId)
-		const currentRunningDpymnts = await this.redisCache.getSetLength(this.DEPLOYMENTS_SET_KEY)
+		await this.redisCache.setAdd(this.DEPLOYMENTS_SET_KEY, projectId);
+		const currentRunningDpymnts = await this.redisCache.getSetLength(this.DEPLOYMENTS_SET_KEY);
 		if (currentRunningDpymnts > this.MAX_CONCURRENT_RUNNABLE_DPYMNTS) {
-			await this.redisCache.setRemove(this.DEPLOYMENTS_SET_KEY, projectId)
-			throw new AppError(DEPLOYMENT_ERRORS.BUSY_RUNNERS, STATUS_CODES.SERVICE_UNAVAILABLE)
+			await this.redisCache.setRemove(this.DEPLOYMENTS_SET_KEY, projectId);
+			throw new AppError(DEPLOYMENT_ERRORS.BUSY_RUNNERS, STATUS_CODES.SERVICE_UNAVAILABLE);
 		}
 	}
 	async decrementRunningDeplymnts(projectId: string) {
-		await this.redisCache.setRemove(this.DEPLOYMENTS_SET_KEY, projectId)
+		await this.redisCache.setRemove(this.DEPLOYMENTS_SET_KEY, projectId);
 	}
-
-
 
 	async __getDeploymentById(id: string): Promise<IDeployment | null> {
 		//container

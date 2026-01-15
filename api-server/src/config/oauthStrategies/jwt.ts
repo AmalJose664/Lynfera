@@ -1,4 +1,3 @@
-
 import { PassportStatic } from "passport";
 import { ExtractJwt, Strategy as JWTStrategy } from "passport-jwt";
 import { ENVS } from "@/config/env.config.js";

@@ -3,8 +3,6 @@ import { ClickHouseClient } from "@clickhouse/client";
 import { IAnalyticsRepository, QueryOptions } from "@/interfaces/repository/IAnalyticsRepository.js";
 import { BufferAnalytics } from "@/models/Analytics.js";
 
-
-
 class AnalyticsRepository implements IAnalyticsRepository {
 	private client: ClickHouseClient;
 
@@ -25,7 +23,6 @@ class AnalyticsRepository implements IAnalyticsRepository {
 		});
 
 		console.log(`Network time: ${(performance.now() - recordStartTime).toFixed(2)}ms`);
-
 	}
 	async insertSingle(data: BufferAnalytics): Promise<void> {
 		this.insertBatch([data]);

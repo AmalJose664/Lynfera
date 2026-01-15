@@ -58,10 +58,10 @@ class LogsService implements ILogsService {
 		};
 	}
 	async deleteProjectLogs(projectId: string): Promise<void> {
-		return this.logsRepository.deleteProjectLogs(projectId)
+		return this.logsRepository.deleteProjectLogs(projectId);
 	}
 	async deleteDeploymentLogs(deploymentId: string): Promise<void> {
-		return this.logsRepository.deletedeploymentLogs(deploymentId)
+		return this.logsRepository.deletedeploymentLogs(deploymentId);
 	}
 
 	async __insertLog(log: string, projectId: string, deploymentId: string, reportTime: Date, info: string, sequence?: number): Promise<void> {

@@ -1,6 +1,5 @@
 import { BufferAnalytics } from "@/models/Analytics.js";
 
-
 export interface QueryOptions {
 	range?: number;
 	rangeUnit?: string;

@@ -25,7 +25,7 @@ export class UserMapper {
 				_id: user._id.toString(),
 				name: user.name,
 				profileImage: user.profileImage,
-				plan: user.plan
+				plan: user.plan,
 			},
 		};
 	}

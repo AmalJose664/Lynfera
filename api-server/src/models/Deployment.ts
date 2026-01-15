@@ -18,7 +18,7 @@ export interface FileStructureType {
 enum EnvsAvailable {
 	development = "development",
 	staging = "staging",
-	production = "production"
+	production = "production",
 }
 
 export interface IDeployment extends Document {
@@ -34,8 +34,8 @@ export interface IDeployment extends Document {
 		install_ms: number;
 		build_ms: number;
 		duration_ms: number;
-		upload_ms: number
-	}
+		upload_ms: number;
+	};
 	overWrite: boolean;
 	complete_at: Date;
 	identifierSlug: string;

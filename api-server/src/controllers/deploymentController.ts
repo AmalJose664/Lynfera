@@ -1,13 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 
-
 import { IDeploymentController } from "@/interfaces/controller/IDeploymentController.js";
 import { IDeploymentService } from "@/interfaces/service/IDeploymentService.js";
 import { DeploymentMapper } from "@/mappers/DeploymentMapper.js";
 import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { QueryDeploymentDTO } from "@/dtos/deployment.dto.js";
 import { COMMON_ERRORS } from "@/constants/errors.js";
-
 
 class DeploymentController implements IDeploymentController {
 	private deploymentService: IDeploymentService;
@@ -38,7 +36,6 @@ class DeploymentController implements IDeploymentController {
 			const deploymentId = req.params.deploymentId;
 			const includesField = req.query.include as string;
 
-
 			const result = await this.deploymentService.getDeploymentById(deploymentId, userId, includesField);
 			if (result) {
 				const response = DeploymentMapper.toDeploymentFullResponse(result);
@@ -59,11 +56,15 @@ class DeploymentController implements IDeploymentController {
 			const projectId = req.params.projectId;
 
 			const result = await this.deploymentService.getProjectDeployments(userId, projectId, query);
-			const response = DeploymentMapper.toDeployments(result.deployments, {
-				total: result.total,
-				page: query.page,
-				limit: query.limit
-			}, query.full ? "full" : "overview");
+			const response = DeploymentMapper.toDeployments(
+				result.deployments,
+				{
+					total: result.total,
+					page: query.page,
+					limit: query.limit,
+				},
+				query.full ? "full" : "overview",
+			);
 			res.status(STATUS_CODES.OK).json(response);
 		} catch (error) {
 			next(error);
@@ -78,8 +79,9 @@ class DeploymentController implements IDeploymentController {
 			const result = await this.deploymentService.getDeploymentFiles(deploymentId, userId);
 			if (!result) {
 				res.status(STATUS_CODES.NOT_FOUND).json({
-					status: 404, error: "not_found",
-					message: COMMON_ERRORS.NOT_FOUND
+					status: 404,
+					error: "not_found",
+					message: COMMON_ERRORS.NOT_FOUND,
 				});
 				return;
 			}
@@ -95,11 +97,15 @@ class DeploymentController implements IDeploymentController {
 			const query = req.validatedQuery as QueryDeploymentDTO;
 
 			const result = await this.deploymentService.getAllDeployments(userId, query);
-			const response = DeploymentMapper.toDeployments(result.deployments, {
-				total: result.total,
-				page: query.page,
-				limit: query.limit
-			}, query.full ? "full" : "overview");
+			const response = DeploymentMapper.toDeployments(
+				result.deployments,
+				{
+					total: result.total,
+					page: query.page,
+					limit: query.limit,
+				},
+				query.full ? "full" : "overview",
+			);
 			res.status(STATUS_CODES.OK).json(response);
 		} catch (error) {
 			next(error);

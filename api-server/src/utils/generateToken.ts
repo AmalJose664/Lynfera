@@ -39,10 +39,10 @@ export const generateOtpToken = (userId: string) => {
 	const token = jwt.sign(
 		{
 			id: userId,
-			purpose: "OTP_resend"
+			purpose: "OTP_resend",
 		},
 		ENVS.VERIFICATION_TOKEN_SECRET as string,
 		{ expiresIn: "20m" },
 	);
 	return token;
-}
+};

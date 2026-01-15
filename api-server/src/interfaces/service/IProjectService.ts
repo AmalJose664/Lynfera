@@ -9,7 +9,7 @@ export interface IProjectService {
 
 	getAllProjects(userId: string, query: QueryProjectDTO): Promise<{ projects: IProject[]; total: number }>;
 	getProjectById(id: string, userId: string, include?: string, full?: boolean): Promise<IProject | null>;
-	getProjectSettings(id: string, userId: string, include?: string): Promise<IProject | null>
+	getProjectSettings(id: string, userId: string, include?: string): Promise<IProject | null>;
 	updateProject(id: string, userId: string, data: Partial<IProject>): Promise<IProject | null>;
 	deleteProject(projectId: string, userId: string): Promise<boolean>;
 	getProjectBandwidthData(projectId: string, userId: string, isMonthly: boolean): Promise<number>;

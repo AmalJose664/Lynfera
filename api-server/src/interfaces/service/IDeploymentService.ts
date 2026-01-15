@@ -14,7 +14,7 @@ export interface IDeploymentService {
 	): Promise<{ deployments: IDeployment[]; total: number }>;
 
 	getDeploymentById(id: string, userId: string, includes?: string): Promise<IDeployment | null>;
-	getDeploymentFiles(id: string, userId: string, includes?: string): Promise<IDeployment | null>
+	getDeploymentFiles(id: string, userId: string, includes?: string): Promise<IDeployment | null>;
 	getProjectDeployments(
 		userId: string,
 		projectId: string,
@@ -27,7 +27,6 @@ export interface IDeploymentService {
 	): Promise<{ deployments: IDeployment[]; total: number }>;
 
 	deleteDeployment(projectId: string, deploymentId: string, userId: string): Promise<number>;
-
 
 	__getDeploymentById(id: string): Promise<IDeployment | null>;
 	__updateDeployment(projectId: string, deploymentId: string, updateData: Partial<IDeployment>): Promise<IDeployment | null>;

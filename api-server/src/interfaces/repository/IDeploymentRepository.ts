@@ -5,14 +5,23 @@ export type DeploymentDbOptions = {
 	fields?: string[];
 	includes?: string;
 	exclude?: string[];
-}
+};
 
 export interface IDeploymentRepository {
 	createDeployment(deploymentData: Partial<IDeployment>): Promise<IDeployment | null>;
 	findDeploymentById(id: string, userId: string, options?: DeploymentDbOptions): Promise<IDeployment | null>;
 
-	findAllDeployments(userId: string, query: QueryDeploymentDTO, options?: DeploymentDbOptions): Promise<{ deployments: IDeployment[]; total: number }>;
-	findProjectDeployments(userId: string, projectId: string, query: QueryDeploymentDTO, options?: DeploymentDbOptions): Promise<{ deployments: IDeployment[]; total: number }>;
+	findAllDeployments(
+		userId: string,
+		query: QueryDeploymentDTO,
+		options?: DeploymentDbOptions,
+	): Promise<{ deployments: IDeployment[]; total: number }>;
+	findProjectDeployments(
+		userId: string,
+		projectId: string,
+		query: QueryDeploymentDTO,
+		options?: DeploymentDbOptions,
+	): Promise<{ deployments: IDeployment[]; total: number }>;
 
 	deleteDeployment(projectId: string, deploymentId: string, userId: string): Promise<number>;
 	__findDeployment(id: string): Promise<IDeployment | null>;

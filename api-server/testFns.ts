@@ -9,11 +9,10 @@ import mongoose, { Types } from "mongoose";
 import connectDb from "./src/config/mongo.config";
 import { User } from "./src/models/User";
 import { client } from "./src/config/clickhouse.config";
-import { generateSlug } from "random-word-slugs"
-import { nanoid } from "./src/utils/generateNanoid"
-import crypto from "crypto"
+import { generateSlug } from "random-word-slugs";
+import { nanoid } from "./src/utils/generateNanoid";
+import crypto from "crypto";
 import { OtpModel } from "./src/models/Otp";
-
 
 function formatTimeWithSeconds(input: Date | string | number): string {
 	const date = input instanceof Date ? input : new Date(input);
@@ -45,23 +44,25 @@ async function mongodbData() {
 		const p = new P_repo();
 		const de = new D_repo();
 
-
-
 		// const obj = new OtpModel({ userId: "68c8d40ce28583b09f575555", otpHash: "heysuuu", expiresAt: new Date(Date.now() + 60 * 1000) })
 		// const saved = await OtpModel.find()
 		// console.log(saved)
 		// await Promise.all(dpls.map(async (d) => {
 		// 	return await Deployment.updateMany({ _id: d._id }, { publicId: nanoid(10) })
 		// }))
-		return
-		console.log(await Project.updateMany({ _id: "6934502adfa2d8c1c254aabc" }, {
-			status: "NOT_STARTED", deployments: [],
-			lastDeployment: null,
-			tempDeployment: null,
-			currentDeployment: null
-		}))
-
-
+		return;
+		console.log(
+			await Project.updateMany(
+				{ _id: "6934502adfa2d8c1c254aabc" },
+				{
+					status: "NOT_STARTED",
+					deployments: [],
+					lastDeployment: null,
+					tempDeployment: null,
+					currentDeployment: null,
+				},
+			),
+		);
 	} catch (error) {
 		console.log(error);
 	} finally {
@@ -152,22 +153,20 @@ async function getClickhouseData() {
 }
 // getClickhouseData().then(() => process.exit(0))
 async function idChecker() {
-	const obj = new Set()
-	const id = ''
-	return
+	const obj = new Set();
+	const id = "";
+	return;
 	for (let i = 0; i < 50; i++) {
-
 		if (obj.has(id)) {
-			console.log(" found at ", i, id)
+			console.log(" found at ", i, id);
 		}
 		try {
-			obj.add(id)
+			obj.add(id);
 		} catch (error) {
-			console.log(i, " _ _ __ _ _")
-			throw error
+			console.log(i, " _ _ __ _ _");
+			throw error;
 		}
 	}
-	console.log(obj)
-
+	console.log(obj);
 }
 // idChecker()

@@ -15,33 +15,25 @@ import { accessCookieConfig } from "@/config/cookie.config.js";
 import { COMMON_ERRORS, OTP_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 import { FRONTEND_REDIRECT_PATH } from "@/constants/paths.js";
 
-
-
-const OTP_COOKIE = "otp_Cookie"
+const OTP_COOKIE = "otp_Cookie";
 interface RefreshTokenPayload extends JwtPayload {
 	id: string;
 }
-
-
 
 export const oAuthLoginCallback = (req: Request, res: Response, next: NextFunction) => {
 	try {
 		if (!req.user) {
 			return next(new AppError(USER_ERRORS.NOT_AUTHENTICATED, STATUS_CODES.UNAUTHORIZED));
 		}
-		issueAuthAccessCookies(res, req.user)
-		issueAuthRefreshCookies(res, req.user)
+		issueAuthAccessCookies(res, req.user);
+		issueAuthRefreshCookies(res, req.user);
 
-		const frontend = ENVS.FRONTEND_URL + FRONTEND_REDIRECT_PATH
+		const frontend = ENVS.FRONTEND_URL + FRONTEND_REDIRECT_PATH;
 		res.redirect(frontend);
 	} catch (error) {
 		next(new AppError(USER_ERRORS.CALLBACK_ERROR, STATUS_CODES.INTERNAL_SERVER_ERROR, error));
 	}
 };
-
-
-
-
 
 export const googleLoginStrategy = async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
 	console.log("strategy google");
@@ -57,10 +49,6 @@ export const googleLoginStrategy = async (accessToken: string, refreshToken: str
 	}
 };
 
-
-
-
-
 export const githubLoginStrategy = async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
 	try {
 		console.log("strategy github");
@@ -75,10 +63,6 @@ export const githubLoginStrategy = async (accessToken: string, refreshToken: str
 	}
 };
 
-
-
-
-
 export const refresh = async (req: Request, res: Response, next: NextFunction) => {
 	const refreshToken = req.cookies.refresh_token;
 	if (!refreshToken) {
@@ -90,11 +74,11 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 		const decoded = jwt.verify(refreshToken, ENVS.REFRESH_TOKEN_SECRET as string) as RefreshTokenPayload;
 
 		console.log(decoded, "Trying to decode refesh");
-		const user = await userService.getUser(decoded.id)
+		const user = await userService.getUser(decoded.id);
 		if (!user) {
-			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND)
+			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
-		issueAuthAccessCookies(res, { id: user._id, plan: user.plan })
+		issueAuthAccessCookies(res, { id: user._id, plan: user.plan });
 		return res.status(STATUS_CODES.OK).json({ ok: true });
 	} catch (error) {
 		next(new AppError(COMMON_ERRORS.TOKEN_VALIDATION, STATUS_CODES.INTERNAL_SERVER_ERROR, error));
@@ -102,30 +86,19 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 	}
 };
 
-
-
-
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
 	return res.status(STATUS_CODES.OK).json({ ok: true, randomNumber: Math.floor(Math.random() * 1000) });
 };
 
-
-
 export const verifyAuth = (req: Request, res: Response) => {
 	return res.status(STATUS_CODES.OK).json({ valid: true, user: req.user });
 };
-
-
 
 export const userLogout = (req: Request, res: Response) => {
 	res.clearCookie("refresh_token");
 	res.clearCookie("access_token");
 	res.status(STATUS_CODES.OK).json({ message: "user logged out" });
 };
-
-
-
-
 
 export const getAuthenticatedUser = async (req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -134,7 +107,7 @@ export const getAuthenticatedUser = async (req: Request, res: Response, next: Ne
 		if (!user) {
 			res.status(STATUS_CODES.NOT_FOUND).json({
 				error: USER_ERRORS.NOT_AUTHENTICATED,
-				message: USER_ERRORS.NOT_FOUND
+				message: USER_ERRORS.NOT_FOUND,
 			});
 			return;
 		}
@@ -145,111 +118,92 @@ export const getAuthenticatedUser = async (req: Request, res: Response, next: Ne
 	}
 };
 
-
-
-
-
 export const signUpUser = async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const userData = req.validatedBody as SignUpUserDTO
-		const result = await userService.signUpUser(userData)
+		const userData = req.validatedBody as SignUpUserDTO;
+		const result = await userService.signUpUser(userData);
 
 		if (!result) {
 			res.status(STATUS_CODES.BAD_REQUEST).json({ error: USER_ERRORS.CREATION_ERROR });
 			return;
 		}
-		const user = result.user
-		const otpSent = result.otpResult
+		const user = result.user;
+		const otpSent = result.otpResult;
 		const response = UserMapper.toUserResponse(user);
-		res.cookie(OTP_COOKIE, generateOtpToken(response.user._id), { ...accessCookieConfig })
+		res.cookie(OTP_COOKIE, generateOtpToken(response.user._id), { ...accessCookieConfig });
 		res.status(STATUS_CODES.CREATED).json({ message: "OTP Sent", otpSent, user: response.user });
 	} catch (error) {
-		next(error)
+		next(error);
 	}
-}
-
-
-
-
-
+};
 
 export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const userData = req.validatedBody as LoginUserDTO
-		const user = await userService.loginUser(userData)
+		const userData = req.validatedBody as LoginUserDTO;
+		const user = await userService.loginUser(userData);
 		if (user) {
-			const response = UserMapper.toUserResponse(user)
+			const response = UserMapper.toUserResponse(user);
 			if (!user.isVerified) {
-				res.cookie(OTP_COOKIE, generateOtpToken(response.user._id), { ...accessCookieConfig })
+				res.cookie(OTP_COOKIE, generateOtpToken(response.user._id), { ...accessCookieConfig });
 				res.status(STATUS_CODES.FORBIDDEN).json({
 					message: USER_ERRORS.EMAIL_NOT_VERIFIED,
 					requiresOtpVerification: true,
-					loginSuccess: false
-				})
-				return
+					loginSuccess: false,
+				});
+				return;
 			}
-			issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan })
-			issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan })
-			res.status(STATUS_CODES.OK).json({ loginSuccess: true, user: response.user })
-			return
+			issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan });
+			issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan });
+			res.status(STATUS_CODES.OK).json({ loginSuccess: true, user: response.user });
+			return;
 		}
-		res.status(STATUS_CODES.NOT_FOUND).json({ message: USER_ERRORS.NOT_FOUND, statusCode: 404 })
-		return
+		res.status(STATUS_CODES.NOT_FOUND).json({ message: USER_ERRORS.NOT_FOUND, statusCode: 404 });
+		return;
 	} catch (error) {
-		next(error)
+		next(error);
 	}
-}
-
-
-
-
+};
 
 export const verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const userData = req.validatedBody as VerifyOtpDTO
-		const result = await userService.verifyUserOtp(userData.email, userData.otp)
+		const userData = req.validatedBody as VerifyOtpDTO;
+		const result = await userService.verifyUserOtp(userData.email, userData.otp);
 		if (result.verifyResult) {
-			const { user } = result
+			const { user } = result;
 			if (user) {
-				const response = UserMapper.toUserResponse(user)
-				issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan })
-				issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan })
-				res.clearCookie(OTP_COOKIE)
+				const response = UserMapper.toUserResponse(user);
+				issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan });
+				issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan });
+				res.clearCookie(OTP_COOKIE);
 				res.status(STATUS_CODES.OK).json({ message: "OTP Verified succesfully", user: response.user });
-				return
+				return;
 			}
 		}
 		res.status(STATUS_CODES.BAD_REQUEST).json({
 			message: OTP_ERRORS.VERIFICATION_FAILED,
-			statusCode: STATUS_CODES.BAD_REQUEST
+			statusCode: STATUS_CODES.BAD_REQUEST,
 		});
 	} catch (error) {
-		next(error)
+		next(error);
 	}
-}
-
-
-
-
+};
 
 export const resendOtp = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const otpCookie = req.cookies.otp_Cookie;
 		if (!otpCookie) {
-			res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Cant send otp, insufficient data" })
-			return
+			res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Cant send otp, insufficient data" });
+			return;
 		}
 		const decoded = jwt.verify(otpCookie, ENVS.VERIFICATION_TOKEN_SECRET as string) as { id: string };
-		const { id } = decoded
+		const { id } = decoded;
 
-
-		const result = await userService.resentOtp(id || "---")
+		const result = await userService.resentOtp(id || "---");
 		res.status(STATUS_CODES.OK).json({ message: "OTP Sent", otpsent: result });
 	} catch (error) {
-		next(error)
+		next(error);
 	}
-}
-
+};
 
 export const getAuthenticatedUserDetails = async (req: Request, res: Response, next: NextFunction) => {
 	try {

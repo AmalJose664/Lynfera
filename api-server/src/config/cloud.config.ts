@@ -17,7 +17,7 @@ export const s3Client = new S3Client({
 		secretAccessKey: ENVS.CLOUD_SECRETKEY as string,
 	},
 	endpoint: ENVS.CLOUD_ENDPOINT,
-	forcePathStyle: true
+	forcePathStyle: true,
 });
 
 export const config = {

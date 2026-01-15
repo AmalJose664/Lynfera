@@ -1,6 +1,5 @@
 import Stripe from "stripe";
 
-
 import { IPaymentService } from "@/interfaces/service/IPaymentService.js";
 import { IUserRepository } from "@/interfaces/repository/IUserRepository.js";
 import AppError from "@/utils/AppError.js";
@@ -9,7 +8,6 @@ import { SubscriptionStatus } from "@/models/User.js";
 import { IPlans, PLANS } from "@/constants/plan.js";
 import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { PAYMENT_ERRORS, USER_ERRORS } from "@/constants/errors.js";
-
 
 class PaymentService implements IPaymentService {
 	private userRepo: IUserRepository;

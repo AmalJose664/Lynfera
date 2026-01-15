@@ -1,15 +1,16 @@
 export const PROJECT_POPULATE_MAP = {
 	user: {
 		path: "user",
-		select: "name email profileImage"
+		select: "name email profileImage",
 	},
 	deployments: {
 		path: "deployments",
-		select: "status createdAt"
-	}
-} as const
+		select: "status createdAt",
+	},
+} as const;
 
-export const projectBasicFields = ["name",
+export const projectBasicFields = [
+	"name",
 	"branch",
 	"repoURL",
 	"techStack",
@@ -21,11 +22,25 @@ export const projectBasicFields = ["name",
 	"user",
 	"deployments",
 	"lastDeployedAt",
-	"createdAt",]
+	"createdAt",
+];
 
 export const projectSettingsFields = [
-	"_id", "name", "branch", "repoURL", "status", "subdomain", "user",
-	"createdAt", "buildCommand", "env", "outputDirectory", "rootDir", "isDisabled", "isDeleted", "rewriteNonFilePaths"
-]
+	"_id",
+	"name",
+	"branch",
+	"repoURL",
+	"status",
+	"subdomain",
+	"user",
+	"createdAt",
+	"buildCommand",
+	"env",
+	"outputDirectory",
+	"rootDir",
+	"isDisabled",
+	"isDeleted",
+	"rewriteNonFilePaths",
+];
 
-export const projectUpdateFieldsString = ["name", "_id"]
+export const projectUpdateFieldsString = ["name", "_id"];

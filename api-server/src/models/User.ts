@@ -2,7 +2,6 @@ import mongoose, { Document, Schema, Types } from "mongoose";
 
 import { IPlans } from "@/constants/plan.js";
 
-
 export enum AuthProvidersList {
 	GOOGLE = "google",
 	GITHUB = "github",

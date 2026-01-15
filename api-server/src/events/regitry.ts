@@ -1,7 +1,6 @@
 import { ZodError } from "zod";
 import { EachBatchPayload, Offsets } from "kafkajs";
 
-
 import { EventConfig, EventRegistryType } from "@/events/types/event.js";
 import { DeploymentLogEventSchema, DeploymentUpdatesEventSchema } from "@/events/schemas/deployment.schema.js";
 import DeploymentEventHandler from "@/events/handlers/deployment.handler.js";
@@ -9,8 +8,6 @@ import ProjectAnalyticsHandler from "@/events/handlers/analytics.handler.js";
 import { AnalyticsEvent, analyticsEventSchema } from "@/events/schemas/analytics.schema.js";
 import { BandWidthWithProjectType } from "@/interfaces/service/IAnalyticsService.js";
 import { BufferAnalytics } from "@/models/Analytics.js";
-
-
 
 export const EVENT_REGISTRY: EventRegistryType = {
 	logs: {
@@ -107,7 +104,7 @@ export async function processAnalyticsEvent(
 }
 
 export async function processConumerLogs({ batch, heartbeat, commitOffsetsIfNecessary, resolveOffset }: EachBatchPayload) {
-	process.stdout.write(" %-%-%-%-%-% ")
+	process.stdout.write(" %-%-%-%-%-% ");
 	const processFn = getEventProcessFn(batch.topic, "logs");
 	await Promise.all(
 		batch.messages.map(async (msg) => {
@@ -128,7 +125,7 @@ export async function processConumerLogs({ batch, heartbeat, commitOffsetsIfNece
 }
 
 export async function processConumerAnalytics({ batch }: EachBatchPayload) {
-	process.stdout.write(" *-*-*-*-*-*-*-* -> " + batch.messages.length)
+	process.stdout.write(" *-*-*-*-*-*-*-* -> " + batch.messages.length);
 	const schema = getEventSchema(batch.topic, "analytics");
 	const processFn = getEventProcessFn(batch.topic, "analytics");
 	const bandwidthByProjectBatch: BandWidthWithProjectType = {};

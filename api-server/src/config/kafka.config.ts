@@ -13,8 +13,8 @@ export const kafka = new Kafka({
 	retry: {
 		retries: 8,
 		restartOnFailure: async () => {
-			process.stdout.write("   ---- kafka retry ----   ")
-			return true
-		}
-	}
+			process.stdout.write("   ---- kafka retry ----   ");
+			return true;
+		},
+	},
 });

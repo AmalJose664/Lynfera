@@ -1,15 +1,19 @@
 import { Request, Response, NextFunction } from "express";
 
-
 import { IProjectController } from "@/interfaces/controller/IProjectController.js";
 import ProjectService from "@/services/project.service.js";
-import { checkSubdomainDTO, CreateProjectDTO, ProjectDeploymentUpdateDTO, QueryProjectDTO, UpdateProjectDTO, UpdateSubdomainDTO } from "@/dtos/project.dto.js";
+import {
+	checkSubdomainDTO,
+	CreateProjectDTO,
+	ProjectDeploymentUpdateDTO,
+	QueryProjectDTO,
+	UpdateProjectDTO,
+	UpdateSubdomainDTO,
+} from "@/dtos/project.dto.js";
 import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { ProjectMapper } from "@/mappers/ProjectMapper.js";
 import AppError from "@/utils/AppError.js";
 import { PROJECT_ERRORS } from "@/constants/errors.js";
-
-
 
 class ProjectController implements IProjectController {
 	private projectService: ProjectService;
@@ -38,7 +42,13 @@ class ProjectController implements IProjectController {
 			const userId = req.user?.id as string;
 			const query = req.validatedQuery as unknown as QueryProjectDTO;
 			const result = await this.projectService.getAllProjects(userId, query);
-			const response = ProjectMapper.toProjectsResponse(result.projects, result.total, query.page, query.limit, query.full ? "full" : "overview");
+			const response = ProjectMapper.toProjectsResponse(
+				result.projects,
+				result.total,
+				query.page,
+				query.limit,
+				query.full ? "full" : "overview",
+			);
 
 			res.status(STATUS_CODES.OK).json(response);
 		} catch (err) {

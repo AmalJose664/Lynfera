@@ -3,7 +3,7 @@ import mongoose, { Document, Schema, Types } from "mongoose";
 export enum OtpPurposes {
 	SIGNUP = "SIGNUP",
 	RESET_PASSWORD = "RESET_PASSWORD",
-	LOGIN = "LOGIN"
+	LOGIN = "LOGIN",
 }
 export interface IOtp extends Document {
 	userId: Types.ObjectId | string;
@@ -25,12 +25,11 @@ const OtpSchema = new Schema<IOtp>(
 			type: String,
 			enum: Object.values(OtpPurposes),
 			required: true,
-			default: OtpPurposes.SIGNUP
+			default: OtpPurposes.SIGNUP,
 		},
-		attempts: { type: Number, default: 0 }
-	}
-	,
-	{ timestamps: true }
-)
+		attempts: { type: Number, default: 0 },
+	},
+	{ timestamps: true },
+);
 
-export const OtpModel = mongoose.model<IOtp>("OtpVerification", OtpSchema)
+export const OtpModel = mongoose.model<IOtp>("OtpVerification", OtpSchema);

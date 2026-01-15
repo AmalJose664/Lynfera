@@ -11,7 +11,7 @@ export interface LogModel {
 export interface ILogRepository {
 	getProjectLogs(deploymentId: string, page: number, limit: number): Promise<ResponseJSON<unknown>>;
 	getLogs(projectId: string, page: number, limit: number): Promise<ResponseJSON<unknown>>;
-	deletedeploymentLogs(deploymentId: string): Promise<void>
-	deleteProjectLogs(projectId: string): Promise<void>
+	deletedeploymentLogs(deploymentId: string): Promise<void>;
+	deleteProjectLogs(projectId: string): Promise<void>;
 	__insertLogs(data: LogModel): Promise<void>;
 }

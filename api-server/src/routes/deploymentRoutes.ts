@@ -6,13 +6,9 @@ import { validateQuery } from "@/middlewares/validateRequest.js";
 import { DeploymentQueryScheme } from "@/dtos/deployment.dto.js";
 import { validateObjectId } from "@/middlewares/validateObjectId.js";
 
-
-
-
 const deploymentRouter = Router();
 
 deploymentRouter.get("/", authenticateToken, validateQuery(DeploymentQueryScheme), deploymentController.getAllDeployments.bind(deploymentController));
-
 
 deploymentRouter.get(
 	"/:deploymentId",

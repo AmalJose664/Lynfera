@@ -1,4 +1,3 @@
-
 import { PassportStatic } from "passport";
 import { Strategy as GithubStategy } from "passport-github2";
 import { githubLoginStrategy } from "../../controllers/authController.js";

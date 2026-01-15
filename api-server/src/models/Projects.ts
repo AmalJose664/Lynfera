@@ -59,7 +59,7 @@ const projectSchema = new Schema<IProject>(
 		isDisabled: { type: Boolean, default: false },
 		rewriteNonFilePaths: {
 			type: Boolean,
-			default: false
+			default: false,
 		},
 		status: {
 			type: String,

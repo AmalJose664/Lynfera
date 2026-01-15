@@ -6,8 +6,6 @@ import { ILogsService } from "@/interfaces/service/ILogsService.js";
 import { LogMapper } from "@/mappers/LogsMapper.js";
 import { deploymentEmitter, sseManager } from "@/events/deploymentEmitter.js";
 
-
-
 class LogsController implements ILogsController {
 	private logsService: ILogsService;
 	constructor(logsService: ILogsService) {
@@ -58,7 +56,6 @@ class LogsController implements ILogsController {
 			listerners: sseManager.getEventFns(),
 		});
 	}
-
 }
 
 export default LogsController;

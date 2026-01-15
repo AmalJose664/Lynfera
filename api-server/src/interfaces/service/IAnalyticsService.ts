@@ -9,7 +9,12 @@ export interface IAnalyticsService {
 	addEventBatch(event: BufferAnalytics[], bandwidthByProjectBatch: BandWidthWithProjectType): Promise<void>;
 	exitService(): Promise<void>;
 
-	getBandwidthData(projectId: string, range: string | undefined, interval: string | undefined, userPlan: string): Promise<[unknown[], QueryOptions]>;
+	getBandwidthData(
+		projectId: string,
+		range: string | undefined,
+		interval: string | undefined,
+		userPlan: string,
+	): Promise<[unknown[], QueryOptions]>;
 	getOverView(projectId: string, range: string | undefined, interval: string | undefined, userPlan: string): Promise<[unknown[], QueryOptions]>;
 	getRealtime(projectId: string, interval: string): Promise<[unknown[], QueryOptions]>;
 	getTopPages(projectId: string, interval: string, limit: number): Promise<[unknown[], QueryOptions]>;

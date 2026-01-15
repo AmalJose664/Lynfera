@@ -26,7 +26,6 @@ const envSchema = z.object({
 	CLOUD_SECRETKEY: z.string(),
 	CLOUD_ENDPOINT: z.url(),
 
-
 	CLUSTER_ARN: z.string(),
 	TASK_ARN: z.string(),
 	SECURITY_GROUPS: z.string(), // groups seperated by comma
@@ -50,12 +49,12 @@ const envSchema = z.object({
 	OTP_SEND_URL: z.url(),
 	OTP_SEND_API_KEY: z.string(),
 	EMAIL_SENDER_NAME: z.string(),
-	EMAIL_SENDER_EMAIL: z.email()
+	EMAIL_SENDER_EMAIL: z.email(),
 });
 function validateEnv() {
 	try {
 		const envs = envSchema.parse(process.env);
-		console.log("Env validation passed ",);
+		console.log("Env validation passed ");
 		return envs;
 	} catch (err) {
 		const error = err as ZodError;
@@ -64,4 +63,4 @@ function validateEnv() {
 		process.exit(1);
 	}
 }
-export const ENVS = validateEnv()
+export const ENVS = validateEnv();

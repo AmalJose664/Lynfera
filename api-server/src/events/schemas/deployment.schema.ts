@@ -3,7 +3,6 @@ import { EventTypes, UpdateTypes } from "@/events/types/event.js";
 import { mongoIdSchema } from "@/dtos/zodHelpers.js";
 import { DeploymentStatus } from "@/models/Deployment.js";
 
-
 export const DeploymentLogEventSchema = z.object({
 	eventId: z.uuidv4(),
 	eventType: z.enum(Object.values(EventTypes)),

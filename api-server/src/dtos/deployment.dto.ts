@@ -3,7 +3,6 @@ import z from "zod";
 import { mongoIdSchema } from "@/dtos/zodHelpers.js";
 import { DeploymentStatus } from "@/models/Deployment.js";
 
-
 export const CreateDeploymentSchema = z.object({
 	projectId: mongoIdSchema,
 });
@@ -14,7 +13,7 @@ export const DeploymentQueryScheme = z
 		limit: z.coerce.number().int().min(1).max(100).default(10),
 		search: z.string().max(100).default("").optional(),
 		include: z.string().optional(),
-		full: z.string().optional()
+		full: z.string().optional(),
 	})
 	.strict();
 

@@ -4,8 +4,6 @@ import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 
-
-
 export const validateObjectId = (parameter: string) => {
 	return (req: Request, res: Response, next: NextFunction) => {
 		const id = req.params[parameter];

@@ -1,11 +1,8 @@
 import z from "zod";
 
-
 import { mongoIdSchema } from "@/dtos/zodHelpers.js";
 import { ProjectStatus } from "@/models/Projects.js";
 import { DEPLOYMENT_ID_LENGTH, DEPLOYMENT_SEPARATOR_LENGTH, MAX_SUBDOMAIN_LENGTH } from "@/constants/subdomain.js";
-
-
 
 export const envSchema = z
 	.object({
@@ -103,7 +100,7 @@ export const ProjectQuerySchema = z
 		limit: z.coerce.number().int().min(1).max(100).default(10),
 		search: z.string().max(100).optional().default(""),
 		include: z.string().optional(),
-		full: z.string().optional()
+		full: z.string().optional(),
 	})
 	.strict();
 

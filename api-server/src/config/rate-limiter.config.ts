@@ -1,7 +1,6 @@
-
 import { COMMON_ERRORS } from "@/constants/errors.js";
 import { STATUS_CODES } from "@/utils/statusCodes.js";
-import { Options } from "express-rate-limit"
+import { Options } from "express-rate-limit";
 const baseRateLimitConfig: Partial<Options> = {
 	standardHeaders: true,
 	legacyHeaders: false,
@@ -13,45 +12,38 @@ const baseRateLimitConfig: Partial<Options> = {
 	},
 };
 
-
-
 export const dashboardLimiter: Partial<Options> = {
 	windowMs: 1 * 60 * 1000,
 	max: 100,
-	...baseRateLimitConfig
+	...baseRateLimitConfig,
 };
-
 
 export const authLimiter: Partial<Options> = {
 	windowMs: 15 * 60 * 1000,
 	max: 80,
-	...baseRateLimitConfig
+	...baseRateLimitConfig,
 };
-
 
 export const analyticsLimiter: Partial<Options> = {
 	windowMs: 1 * 60 * 1000,
 	max: 20,
-	...baseRateLimitConfig
+	...baseRateLimitConfig,
 };
-
 
 export const logsLimiter: Partial<Options> = {
 	windowMs: 1 * 60 * 1000,
 	max: 40,
-	...baseRateLimitConfig
+	...baseRateLimitConfig,
 };
-
 
 export const deploymentLimiter: Partial<Options> = {
 	windowMs: 10 * 60 * 1000,
 	max: 40,
-	...baseRateLimitConfig
+	...baseRateLimitConfig,
 };
-
 
 export const billingLimiter: Partial<Options> = {
 	windowMs: 15 * 60 * 1000,
 	max: 40,
-	...baseRateLimitConfig
+	...baseRateLimitConfig,
 };

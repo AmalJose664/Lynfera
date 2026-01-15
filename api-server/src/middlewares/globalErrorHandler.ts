@@ -4,7 +4,6 @@ import { ENVS } from "@/config/env.config.js";
 import AppError from "@/utils/AppError.js";
 import { COMMON_ERRORS } from "@/constants/errors.js";
 
-
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
 	let statusCode = err.statusCode || 500;
 	let message = err.message || COMMON_ERRORS.INTERNAL_SERVER;

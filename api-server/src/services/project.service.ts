@@ -1,7 +1,6 @@
 import { Types } from "mongoose";
 import { generateSlug } from "random-word-slugs";
 
-
 import { IProjectService, options } from "@/interfaces/service/IProjectService.js";
 import { IProjectRepository } from "@/interfaces/repository/IProjectRepository.js";
 import { IDeploymentRepository } from "@/interfaces/repository/IDeploymentRepository.js";
@@ -19,9 +18,6 @@ import { projectBasicFields, projectSettingsFields } from "@/constants/populates
 import { DeploymentStatus } from "@/models/Deployment.js";
 import { DEPLOYMENT_ERRORS, PROJECT_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 
-
-
-
 class ProjectService implements IProjectService {
 	private projectRepository: IProjectRepository;
 	private deploymentRepository: IDeploymentRepository;
@@ -36,14 +32,14 @@ class ProjectService implements IProjectService {
 		projectBandwidthRepo: IProjectBandwidthRepository,
 		deploymentRepo: IDeploymentRepository,
 		logsService: ILogsService,
-		cacheInvalidator: IRedisCache
+		cacheInvalidator: IRedisCache,
 	) {
 		this.projectRepository = projectRepo;
 		this.userRepository = userRepo;
 		this.projectBandwidthRepo = projectBandwidthRepo;
 		this.deploymentRepository = deploymentRepo;
-		this.logsService = logsService
-		this.cacheInvalidator = cacheInvalidator
+		this.logsService = logsService;
+		this.cacheInvalidator = cacheInvalidator;
 	}
 	async createProject(dto: CreateProjectDTO, userId: string): Promise<IProject | null> {
 		const projectData: Partial<Omit<IProject, keyof Document>> = {
@@ -65,7 +61,6 @@ class ProjectService implements IProjectService {
 		}
 		if (user?.projects > PLANS[user.plan].maxProjects) {
 			throw new AppError(PROJECT_ERRORS.LIMIT_REACHED, STATUS_CODES.FORBIDDEN);
-
 		}
 		const newProject = await this.projectRepository.createProject(projectData);
 		await this.projectBandwidthRepo.addProjectField(newProject as IProject);
@@ -76,13 +71,12 @@ class ProjectService implements IProjectService {
 
 	async getAllProjects(userId: string, query: QueryProjectDTO): Promise<{ projects: IProject[]; total: number }> {
 		return await this.projectRepository.getAllProjects(userId, {
-			...query, ...(!query.full && {
-				fields: projectBasicFields
-			})
+			...query,
+			...(!query.full && {
+				fields: projectBasicFields,
+			}),
 		});
 	}
-
-
 
 	async getProjectById(id: string, userId: string, include?: string, full?: boolean): Promise<IProject | null> {
 		const user = await this.userRepository.findByUserId(userId);
@@ -90,9 +84,10 @@ class ProjectService implements IProjectService {
 			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		const project = await this.projectRepository.findProject(id, userId, {
-			include: include, ...(!full && {
-				fields: projectBasicFields
-			})
+			include: include,
+			...(!full && {
+				fields: projectBasicFields,
+			}),
 		});
 		return project;
 	}
@@ -102,13 +97,12 @@ class ProjectService implements IProjectService {
 			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		const project = await this.projectRepository.findProject(id, userId, {
-			include: include, fields: projectSettingsFields
+			include: include,
+			fields: projectSettingsFields,
 		});
 
 		return project;
 	}
-
-
 
 	async updateProject(id: string, userId: string, dto: Partial<IProject>): Promise<IProject | null> {
 		const user = await this.userRepository.findByUserId(userId);
@@ -125,7 +119,6 @@ class ProjectService implements IProjectService {
 			...(dto.hasOwnProperty("rewriteNonFilePaths") && { rewriteNonFilePaths: dto.rewriteNonFilePaths }),
 			...(dto.hasOwnProperty("isDisabled") && { isDisabled: dto.isDisabled }),
 			...(dto.env?.length && { env: dto.env.map((en) => ({ name: en.name, value: en.value })) }),
-
 		};
 		console.log(newData, dto);
 		if (!newData || Object.keys(newData).length === 0) {
@@ -139,7 +132,6 @@ class ProjectService implements IProjectService {
 		const user = await this.userRepository.findByUserId(userId);
 		if (!user) {
 			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
-
 		}
 
 		const result = await this.projectRepository.deleteProject(projectId, userId);
@@ -148,7 +140,7 @@ class ProjectService implements IProjectService {
 		}
 		await this.userRepository.decrementProjects(userId);
 		await this.logsService.deleteProjectLogs(projectId);
-		await this.cacheInvalidator.publishInvalidation("project", result.subdomain)
+		await this.cacheInvalidator.publishInvalidation("project", result.subdomain);
 		return true;
 	}
 
@@ -172,10 +164,10 @@ class ProjectService implements IProjectService {
 		return true;
 	}
 	async changeProjectSubdomain(userId: string, projectId: string, newSubdomain: string): Promise<IProject | null> {
-
-		const [project, isAvailable] = await Promise.all(
-			[this.projectRepository.findProject(projectId, userId), this.checkSubdomainAvaiable(newSubdomain)]
-		)
+		const [project, isAvailable] = await Promise.all([
+			this.projectRepository.findProject(projectId, userId),
+			this.checkSubdomainAvaiable(newSubdomain),
+		]);
 		if (!project) {
 			throw new AppError(PROJECT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
@@ -183,8 +175,8 @@ class ProjectService implements IProjectService {
 			throw new AppError(PROJECT_ERRORS.SUBDOMAIN_NOT_AVAILABLE, STATUS_CODES.CONFLICT);
 		}
 		const result = await this.projectRepository.updateProject(project._id, userId, { subdomain: newSubdomain });
-		if (result) await this.cacheInvalidator.publishInvalidation("project", project.subdomain)
-		return result
+		if (result) await this.cacheInvalidator.publishInvalidation("project", project.subdomain);
+		return result;
 	}
 	async changeProjectDeployment(userId: string, projectId: string, newDeploymentId: string): Promise<IProject | null> {
 		const [project, deployment] = await Promise.all([
@@ -214,7 +206,7 @@ class ProjectService implements IProjectService {
 			currentDeployment: deployment._id.toString(),
 		});
 		if (result) await this.cacheInvalidator.publishInvalidation("project", result.subdomain);
-		return result
+		return result;
 	}
 	async findProjectSimpleStats(
 		userId: string,

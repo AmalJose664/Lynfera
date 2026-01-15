@@ -13,7 +13,6 @@ async function createIndexes() {
 	try {
 		console.log("Starting index creation...");
 
-
 		console.log("Creating User indexes...");
 		await User.collection.createIndex({ email: 1 }, { unique: true, name: "email_unique" });
 		await User.collection.createIndex({ stripeCustomerId: 1 }, { sparse: true, name: "stripe_customer_lookup" });
@@ -21,8 +20,8 @@ async function createIndexes() {
 		//-------------------------------------------------------------------------------------------------------------------------------------
 		console.log("Creating User OTP indexes...");
 
-		await OtpModel.collection.createIndex({ userId: 1, purpose: 1 }, { unique: true, name: "otp_user_purpose" })
-		await OtpModel.collection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 60 * 10 })
+		await OtpModel.collection.createIndex({ userId: 1, purpose: 1 }, { unique: true, name: "otp_user_purpose" });
+		await OtpModel.collection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 60 * 10 });
 		console.log("✓ User OTP indexes created");
 
 		console.log("Creating Project indexes...");

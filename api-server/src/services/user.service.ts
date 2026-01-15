@@ -1,7 +1,6 @@
 import { Profile } from "passport";
 import { compare, hash } from "bcrypt";
 
-
 import { IUserSerivce } from "@/interfaces/service/IUserService.js";
 import { IUserRepository } from "@/interfaces/repository/IUserRepository.js";
 import { IProjectService } from "@/interfaces/service/IProjectService.js";
@@ -14,15 +13,14 @@ import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { PLANS } from "@/constants/plan.js";
 import { OTP_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 
-
 class UserService implements IUserSerivce {
 	private userRepository: IUserRepository;
 	private projectService: IProjectService;
-	private otpService: IOtpService
+	private otpService: IOtpService;
 	constructor(userRepo: IUserRepository, projectServce: IProjectService, otpService: IOtpService) {
 		this.userRepository = userRepo;
 		this.projectService = projectServce;
-		this.otpService = otpService
+		this.otpService = otpService;
 	}
 
 	async createUser(userData: Partial<IUser>): Promise<IUser> {
@@ -44,7 +42,7 @@ class UserService implements IUserSerivce {
 				email: emails[0].value,
 				profileImage: profile.photos?.[0].value || "",
 				authProviders: [{ provider, id: profile.id }],
-				isVerified: true
+				isVerified: true,
 			};
 			user = await this.createUser(newUser);
 			console.log("No user found, created new...");
@@ -57,7 +55,7 @@ class UserService implements IUserSerivce {
 		if (!hasProvider) {
 			user = await this.userRepository.updateUser(user._id, {
 				authProviders: [...user.authProviders, { provider, id: profile.id }],
-				isVerified: true
+				isVerified: true,
 			});
 		}
 
@@ -73,18 +71,17 @@ class UserService implements IUserSerivce {
 	}
 
 	async getUser(userId: string): Promise<IUser | null> {
-		const user = await this.userRepository.findByUserId(userId)
+		const user = await this.userRepository.findByUserId(userId);
 		return { ...user, password: "" } as IUser;
 	}
 
-	async signUpUser(data: SignUpUserDTO): Promise<{ user: IUser, otpResult: boolean } | null> {
-
-		const emailExists = await this.userRepository.findByUserEmail(data.email)
+	async signUpUser(data: SignUpUserDTO): Promise<{ user: IUser; otpResult: boolean } | null> {
+		const emailExists = await this.userRepository.findByUserEmail(data.email);
 		if (emailExists) {
-			throw new AppError(USER_ERRORS.ALREADY_EXISTS, STATUS_CODES.CONFLICT)
+			throw new AppError(USER_ERRORS.ALREADY_EXISTS, STATUS_CODES.CONFLICT);
 		}
 
-		const hashedPass = await hash(data.password, 10)
+		const hashedPass = await hash(data.password, 10);
 		const newUser = await this.userRepository.createUser({
 			name: data.name,
 			email: data.email,
@@ -92,74 +89,71 @@ class UserService implements IUserSerivce {
 			isVerified: false,
 			authProviders: [],
 			plan: "FREE",
-		})
+		});
 
-		const otp = await this.otpService.createNew(newUser._id, OtpPurposes.SIGNUP)
-		const sendResult = await this.otpService.sendOtp(newUser.email, newUser.name, otp.otp)
+		const otp = await this.otpService.createNew(newUser._id, OtpPurposes.SIGNUP);
+		const sendResult = await this.otpService.sendOtp(newUser.email, newUser.name, otp.otp);
 		if (!sendResult.ok) {
-			throw new AppError("OTP Sent Error", 500)
+			throw new AppError("OTP Sent Error", 500);
 		}
-		const resultData = await sendResult.json()
+		const resultData = await sendResult.json();
 
-		console.log(resultData)
-		return { user: { ...newUser, password: "" } as IUser, otpResult: sendResult.ok }
+		console.log(resultData);
+		return { user: { ...newUser, password: "" } as IUser, otpResult: sendResult.ok };
 	}
 
-	async verifyUserOtp(email: string, otp: number): Promise<{ verifyResult: boolean, user: IUser | null }> {
-		const user = await this.userRepository.findByUserEmail(email)
+	async verifyUserOtp(email: string, otp: number): Promise<{ verifyResult: boolean; user: IUser | null }> {
+		const user = await this.userRepository.findByUserEmail(email);
 		if (!user) {
-			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.CONFLICT)
+			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.CONFLICT);
 		}
 		if (user.isVerified) {
-			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.CONFLICT)
+			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.CONFLICT);
 		}
-		const verifyResult = await this.otpService.verifyOtp(user._id, otp, OtpPurposes.SIGNUP)
+		const verifyResult = await this.otpService.verifyOtp(user._id, otp, OtpPurposes.SIGNUP);
 		if (!verifyResult) {
-			throw new AppError(OTP_ERRORS.INVALID_OTP, STATUS_CODES.BAD_REQUEST)
+			throw new AppError(OTP_ERRORS.INVALID_OTP, STATUS_CODES.BAD_REQUEST);
 		}
-		const updatedUser = await this.userRepository.updateUser(user._id, { isVerified: true })
-		return { verifyResult: true, user: { ...updatedUser, password: "" } as IUser }
+		const updatedUser = await this.userRepository.updateUser(user._id, { isVerified: true });
+		return { verifyResult: true, user: { ...updatedUser, password: "" } as IUser };
 	}
-
-
 
 	async resentOtp(id: string): Promise<boolean> {
-		const user = await this.userRepository.findByUserId(id)
+		const user = await this.userRepository.findByUserId(id);
 		if (!user) {
-			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.CONFLICT)
+			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.CONFLICT);
 		}
 		if (user.isVerified) {
-			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.CONFLICT)
+			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.CONFLICT);
 		}
-		const otp = await this.otpService.getResendOtp(user._id, OtpPurposes.SIGNUP)
+		const otp = await this.otpService.getResendOtp(user._id, OtpPurposes.SIGNUP);
 
-		const sendResult = await this.otpService.sendOtp(user.email, user.name, otp.otp)
+		const sendResult = await this.otpService.sendOtp(user.email, user.name, otp.otp);
 		if (!sendResult.ok) {
-			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.INTERNAL_SERVER_ERROR)
+			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.INTERNAL_SERVER_ERROR);
 		}
-		const resultData = await sendResult.json()
-		console.log(resultData)
-		return sendResult.ok
+		const resultData = await sendResult.json();
+		console.log(resultData);
+		return sendResult.ok;
 	}
 
 	async loginUser(data: LoginUserDTO): Promise<IUser | null> {
-		const user = await this.userRepository.findByUserEmail(data.email)
+		const user = await this.userRepository.findByUserEmail(data.email);
 		if (!user) {
-			throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.BAD_REQUEST)
+			throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.BAD_REQUEST);
 		}
-		const isMatch = await compare(data.password, user.password)
+		const isMatch = await compare(data.password, user.password);
 		if (!isMatch) {
-			throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.BAD_REQUEST)
+			throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.BAD_REQUEST);
 		}
 		if (!user.isVerified) {
 			try {
-				await this.resentOtp(user._id.toString())
+				await this.resentOtp(user._id.toString());
 			} catch (error) {
-				console.log("Error on getting otp on login", error)
+				console.log("Error on getting otp on login", error);
 			}
 		}
-		return { ...user, password: "" } as IUser
-
+		return { ...user, password: "" } as IUser;
 	}
 
 	async getUserDetailed(userId: string): Promise<{ user: IUser | null; bandwidth: number }> {
@@ -172,7 +166,7 @@ class UserService implements IUserSerivce {
 
 	async userCanDeploy(userId: string): Promise<{ user: IUser | null; limit: number; allowed: boolean; remaining: number }> {
 		const user = await this.userRepository.getOrUpdateDeployments(userId);
-		if (!user) throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.NOT_FOUND)
+		if (!user) throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.NOT_FOUND);
 
 		const limit = PLANS[user.plan].maxDailyDeployments;
 		const allowed = user.deploymentsToday < limit;

@@ -4,8 +4,6 @@ import { deploymentController, projectController } from "@/instances.js";
 import { authenticaContainerteToken } from "@/middlewares/authContainerMiddleware.js";
 import { validateObjectId } from "@/middlewares/validateObjectId.js";
 
-
-
 const internalRoutes = Router();
 
 internalRoutes.get("/projects/:id", authenticaContainerteToken, validateObjectId("id"), projectController.__getProjects.bind(projectController));

@@ -2,7 +2,6 @@ import { FREE_ALLOWED_COMBINATIONS } from "@/constants/analytics.js";
 import { QueryOptions } from "@/interfaces/repository/IAnalyticsRepository.js";
 import AppError from "./AppError.js";
 
-
 type TimesFieldTypes = "5m" | "15m" | "1h" | "1d" | "7d" | "30d";
 type RangeFieldsTypes = "1h" | "24h" | "7d" | "30d";
 
@@ -11,7 +10,7 @@ type RangeFieldsTypes = "1h" | "24h" | "7d" | "30d";
  * 								   _______interval_______ _______interval_______ _______interval_______ _______interval________
  *
  * 				range	 >>---->  |--------------------------------------------------------------------------------------------|
- *  
+ *
  * 				Basic range Interval understanding......
  */
 
@@ -44,7 +43,6 @@ export const getInterval = (interval: string): number => {
 };
 
 export const getUnit = (string: string): string => {
-
 	const normalized = string.toLowerCase().trim();
 
 	if (normalized.endsWith("m")) return "MINUTE";
@@ -67,7 +65,7 @@ export const fillEmptyQueries = (range?: string, interval?: string) => {
 		return [interval.includes("h") ? "24h" : "7d", interval];
 	}
 	return [range, interval] as [string, string];
-}
+};
 
 export function validateFreeAnalyticsParams(params: QueryOptions, range: string | undefined, interval: string | undefined) {
 	const allowed = FREE_ALLOWED_COMBINATIONS.some(
@@ -75,7 +73,7 @@ export function validateFreeAnalyticsParams(params: QueryOptions, range: string 
 			rule.interval === params.interval &&
 			rule.intervalUnit === params.intervalUnit &&
 			rule.range === params.range &&
-			rule.rangeUnit === params.rangeUnit
+			rule.rangeUnit === params.rangeUnit,
 	);
 
 	if (!allowed) {

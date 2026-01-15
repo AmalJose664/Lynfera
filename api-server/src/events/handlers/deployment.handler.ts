@@ -49,7 +49,7 @@ class DeploymentEventHandler {
 				break;
 			}
 			case UpdateTypes.END: {
-				await deploymentService.decrementRunningDeplymnts(projectId)
+				await deploymentService.decrementRunningDeplymnts(projectId);
 				await deploymentService.__updateDeployment(projectId, deploymentId, {
 					status: updates.status,
 					complete_at: new Date(updates.complete_at || ""),
@@ -75,7 +75,7 @@ class DeploymentEventHandler {
 				break;
 			}
 			case UpdateTypes.ERROR: {
-				await deploymentService.decrementRunningDeplymnts(projectId)
+				await deploymentService.decrementRunningDeplymnts(projectId);
 				await deploymentService.__updateDeployment(projectId, deploymentId, {
 					status: updates.status,
 					error_message: updates.error_message,

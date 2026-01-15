@@ -5,7 +5,6 @@ import { BandWidthWithProjectType, IAnalyticsService } from "@/interfaces/servic
 import { BufferAnalytics } from "@/models/Analytics.js";
 import { fillEmptyQueries, getInterval, getRange, getUnit, validateFreeAnalyticsParams } from "@/utils/analyticsUnits.js";
 
-
 class AnalyticsService implements IAnalyticsService {
 	private analyticsRepo: IAnalyticsRepository;
 	private projectBandwidthRepo: IProjectBandwidthRepository;
@@ -86,8 +85,13 @@ class AnalyticsService implements IAnalyticsService {
 		}
 	}
 
-	async getBandwidthData(projectId: string, range: string | undefined, interval: string | undefined, userPlan: string): Promise<[unknown[], QueryOptions]> {
-		const [filteredRange, fillteredInterval] = fillEmptyQueries(range, interval)
+	async getBandwidthData(
+		projectId: string,
+		range: string | undefined,
+		interval: string | undefined,
+		userPlan: string,
+	): Promise<[unknown[], QueryOptions]> {
+		const [filteredRange, fillteredInterval] = fillEmptyQueries(range, interval);
 
 		const queryOptions = {
 			interval: getInterval(fillteredInterval),
@@ -95,15 +99,20 @@ class AnalyticsService implements IAnalyticsService {
 			range: getRange(filteredRange),
 			rangeUnit: getUnit(filteredRange),
 		};
-		console.log(queryOptions)
+		console.log(queryOptions);
 		if (userPlan !== PLANS.PRO.name) {
-			validateFreeAnalyticsParams(queryOptions, range, interval)
+			validateFreeAnalyticsParams(queryOptions, range, interval);
 		}
 		const data = await this.analyticsRepo.getBandwidth(projectId, queryOptions);
 		return [data, queryOptions];
 	}
-	async getOverView(projectId: string, range: string | undefined, interval: string | undefined, userPlan: string): Promise<[unknown[], QueryOptions]> {
-		const [filteredRange, fillteredInterval] = fillEmptyQueries(range, interval)
+	async getOverView(
+		projectId: string,
+		range: string | undefined,
+		interval: string | undefined,
+		userPlan: string,
+	): Promise<[unknown[], QueryOptions]> {
+		const [filteredRange, fillteredInterval] = fillEmptyQueries(range, interval);
 
 		const queryOptions = {
 			interval: getInterval(fillteredInterval),
@@ -111,9 +120,9 @@ class AnalyticsService implements IAnalyticsService {
 			range: getRange(filteredRange),
 			rangeUnit: getUnit(filteredRange),
 		};
-		console.log(queryOptions)
+		console.log(queryOptions);
 		if (userPlan !== PLANS.PRO.name) {
-			validateFreeAnalyticsParams(queryOptions, range, interval)
+			validateFreeAnalyticsParams(queryOptions, range, interval);
 		}
 		const data = await this.analyticsRepo.getOverview(projectId, queryOptions);
 		return [data, queryOptions];

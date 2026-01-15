@@ -1,4 +1,4 @@
-import "./config/env.config.js"
+import "./config/env.config.js";
 import httpServer from "./app.js";
 import { redisCacheService } from "./instances.js";
 import { startKafkaConsumer, stopKafkaConsumer } from "./events/index.js";

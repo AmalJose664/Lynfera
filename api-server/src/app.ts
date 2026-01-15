@@ -5,8 +5,7 @@ import cookieParser from "cookie-parser";
 
 import passport from "passport";
 import "./config/passport.js";
-import rateLimit from 'express-rate-limit';
-
+import rateLimit from "express-rate-limit";
 
 import connectDB from "./config/mongo.config.js";
 import authRouter from "./routes/authRoutes.js";
@@ -25,7 +24,6 @@ const httpServer = createServer(app);
 
 app.use(cors(corsOptions));
 
-
 app.use("/api/billing/stripe-webhook", express.raw({ type: "application/json" }));
 app.use(express.json());
 app.use(cookieParser());
@@ -37,16 +35,12 @@ app.use((req: any, res: any, next: any) => {
 	next();
 });
 
-
-
 app.use("/api/analytics", rateLimit(analyticsLimiter), analyticsRouter);
 app.use("/api/logs", rateLimit(logsLimiter), logsRouter);
 app.use("/api/deployments", rateLimit(deploymentLimiter), deploymentRouter);
 app.use("/api/projects", rateLimit(dashboardLimiter), projectRouter);
 app.use("/api/auth", rateLimit(authLimiter), authRouter);
 app.use("/api/billing", rateLimit(billingLimiter), paymentRouter);
-
-
 
 // ------- CONTAINER ROUTES--------------
 

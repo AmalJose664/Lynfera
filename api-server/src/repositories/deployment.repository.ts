@@ -6,8 +6,6 @@ import { DeploymentDbOptions, IDeploymentRepository } from "@/interfaces/reposit
 import { DEPLOYMENT_POPULATE_MAP } from "@/constants/populates/deployment.populate.js";
 import { QueryDeploymentDTO } from "@/dtos/deployment.dto.js";
 
-
-
 class DeploymentRepository extends BaseRepository<IDeployment> implements IDeploymentRepository {
 	constructor() {
 		super(Deployment);
@@ -21,14 +19,14 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 	async findDeploymentById(id: string, userId: string, options?: DeploymentDbOptions): Promise<IDeployment | null> {
 		let dbQuery: FilterQuery<IDeployment> = { user: userId, _id: id };
 		let deploymentQuery = this.findOne(dbQuery);
-		const fields = options?.fields || []
-		let exclude = options?.exclude || []
+		const fields = options?.fields || [];
+		let exclude = options?.exclude || [];
 		let projection: string | undefined;
 
 		if (fields.length) {
 			projection = fields.join(" ");
 		} else if (exclude.length) {
-			projection = exclude.map(f => `-${f}`).join(" ");
+			projection = exclude.map((f) => `-${f}`).join(" ");
 		}
 		if (projection) {
 			deploymentQuery = deploymentQuery.select(projection);
@@ -41,9 +39,13 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 		}
 		return await deploymentQuery.exec();
 	}
-	async findAllDeployments(userId: string, query: QueryDeploymentDTO, options?: DeploymentDbOptions): Promise<{ deployments: IDeployment[]; total: number }> {
+	async findAllDeployments(
+		userId: string,
+		query: QueryDeploymentDTO,
+		options?: DeploymentDbOptions,
+	): Promise<{ deployments: IDeployment[]; total: number }> {
 		let dbQuery: FilterQuery<IDeployment> = { user: userId };
-		const fields = options?.fields
+		const fields = options?.fields;
 
 		if (query.search) {
 			dbQuery = { ...dbQuery, commit_hash: { $regex: query.search, $options: "i" } };
@@ -62,9 +64,9 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 			deploymentsQuery = deploymentsQuery.populate(DEPLOYMENT_POPULATE_MAP.user.path, DEPLOYMENT_POPULATE_MAP.user.select);
 		}
 		if (fields && fields.length) {
-			deploymentsQuery = deploymentsQuery.select(fields.join(" "))
+			deploymentsQuery = deploymentsQuery.select(fields.join(" "));
 		} else {
-			deploymentsQuery = deploymentsQuery.select("-file_structure")
+			deploymentsQuery = deploymentsQuery.select("-file_structure");
 		}
 		const [deployments, total] = await Promise.all([deploymentsQuery.sort("-createdAt").exec(), this.count(dbQuery)]);
 
@@ -74,11 +76,11 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 	async findProjectDeployments(
 		userId: string,
 		projectId: string,
-		query: QueryDeploymentDTO, options?: DeploymentDbOptions
+		query: QueryDeploymentDTO,
+		options?: DeploymentDbOptions,
 	): Promise<{ deployments: IDeployment[]; total: number }> {
-
 		let dbQuery: FilterQuery<IDeployment> = { user: userId, project: projectId };
-		const fields = options?.fields
+		const fields = options?.fields;
 		if (query.search) {
 			dbQuery = { ...dbQuery, commit_hash: { $regex: query.search, $options: "i" } };
 		}
@@ -95,9 +97,9 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 			deploymentsQuery = deploymentsQuery.populate(DEPLOYMENT_POPULATE_MAP.user.path, DEPLOYMENT_POPULATE_MAP.user.select);
 		}
 		if (fields && fields.length) {
-			deploymentsQuery = deploymentsQuery.select(fields.join(" "))
+			deploymentsQuery = deploymentsQuery.select(fields.join(" "));
 		} else {
-			deploymentsQuery = deploymentsQuery.select("-file_structure")
+			deploymentsQuery = deploymentsQuery.select("-file_structure");
 		}
 		const [deployments, total] = await Promise.all([deploymentsQuery.sort("-createdAt").exec(), this.count(dbQuery)]);
 		return { deployments, total };
