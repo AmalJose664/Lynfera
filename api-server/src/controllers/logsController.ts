@@ -5,7 +5,7 @@ import { ILogsController } from "@/interfaces/controller/ILogsController.js";
 import { ILogsService } from "@/interfaces/service/ILogsService.js";
 import { LogMapper } from "@/mappers/LogsMapper.js";
 import { deploymentEmitter, sseManager } from "@/events/deploymentEmitter.js";
-import { deploymentService } from "@/instances.js";
+
 
 
 class LogsController implements ILogsController {
@@ -58,13 +58,7 @@ class LogsController implements ILogsController {
 			listerners: sseManager.getEventFns(),
 		});
 	}
-	async test(req: Request, res: Response, next: NextFunction): Promise<void> {
-		await deploymentService.deployLocal("53443424242424", "69246647869c614a349015fc")
 
-
-		res.json({ done: true });
-		return;
-	}
 }
 
 export default LogsController;

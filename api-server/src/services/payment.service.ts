@@ -7,6 +7,8 @@ import AppError from "@/utils/AppError.js";
 import { stripe } from "@/config/stripe.config.js";
 import { SubscriptionStatus } from "@/models/User.js";
 import { IPlans, PLANS } from "@/constants/plan.js";
+import { STATUS_CODES } from "@/utils/statusCodes.js";
+import { PAYMENT_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 
 
 class PaymentService implements IPaymentService {
@@ -20,8 +22,8 @@ class PaymentService implements IPaymentService {
 		cancelUrl: string,
 	): Promise<{ session: Stripe.Checkout.Session | null; status: boolean }> {
 		const user = await this.userRepo.findByUserId(userId);
-		if (!user) throw new AppError("User not found", 404);
-		if (user.plan === "PRO") {
+		if (!user) throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
+		if (user.plan === PLANS.PRO.name) {
 			return {
 				session: null,
 				status: false,
@@ -53,10 +55,10 @@ class PaymentService implements IPaymentService {
 	}
 	async handleCancelSubscription(userId: string): Promise<void> {
 		const user = await this.userRepo.findByUserId(userId);
-		if (!user) throw new AppError("User not found", 404);
-		if (user.plan === "FREE") throw new AppError("Invalid request", 400);
+		if (!user) throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
+		if (user.plan === PLANS.FREE.name) throw new AppError(PAYMENT_ERRORS.NO_ACTION_TAKEN, STATUS_CODES.CONFLICT);
 		if (!user.payment?.subscriptionId) {
-			throw new AppError("No active subscription", 400);
+			throw new AppError(PAYMENT_ERRORS.NOT_FOUND, STATUS_CODES.CONFLICT);
 		}
 		const result = await stripe.subscriptions.cancel(user.payment?.subscriptionId as string);
 		console.log(result);

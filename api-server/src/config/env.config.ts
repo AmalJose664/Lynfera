@@ -19,6 +19,7 @@ const envSchema = z.object({
 	GITHUB_CLIENT_SECRET: z.string(),
 
 	CONTAINER_API_TOKEN: z.string(),
+	CONTAINER_NAME: z.string(),
 	SUBNETS_STRING: z.string(), //subnets seperated by comma
 
 	CLOUD_ACCESSKEY: z.string(),

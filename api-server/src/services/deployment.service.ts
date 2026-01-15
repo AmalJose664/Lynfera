@@ -24,6 +24,8 @@ import { dispatchBuild } from "@/utils/dispatchBuild.js";
 import { config, ecsClient, s3Client } from "@/config/cloud.config.js";
 import { ENVS } from "@/config/env.config.js";
 import { S3_OUTPUTS_DIR } from "@/constants/paths.js";
+import { STATUS_CODES } from "@/utils/statusCodes.js";
+import { DEPLOYMENT_ERRORS, PROJECT_ERRORS } from "@/constants/errors.js";
 
 
 
@@ -54,21 +56,21 @@ class DeploymentService implements IDeploymentService {
 	async newDeployment(deploymentData: Partial<IDeployment>, userId: string, projectId: string): Promise<IDeployment | null> {
 		const canDeploy = await this.userService.userCanDeploy(userId);
 		if (!canDeploy.allowed) {
-			throw new AppError("Daily deployment limit exceeded", 400);
+			throw new AppError(DEPLOYMENT_ERRORS.DAILY_DEPLOYMENT_LIMIT, STATUS_CODES.TOO_MANY_REQUESTS);
 		}
 
 		const correspondindProject = await this.projectRepository.findProject(projectId, userId);
 		if (!correspondindProject) {
-			throw new AppError("Project not found", 404);
+			throw new AppError(PROJECT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		if (correspondindProject.status === ProjectStatus.BUILDING) {
-			throw new AppError("Project deployment already in progress", 400);
+			throw new AppError(PROJECT_ERRORS.PROJECT_IN_PROGRESS, STATUS_CODES.CONFLICT);
 		}
 		if (correspondindProject.status === ProjectStatus.QUEUED) {
-			throw new AppError("Project deployment already in progress", 400);
+			throw new AppError(PROJECT_ERRORS.PROJECT_IN_PROGRESS, STATUS_CODES.CONFLICT);
 		}
 		if (correspondindProject.isDeleted) {
-			throw new AppError("Project not available for deployment", 400);
+			throw new AppError(PROJECT_ERRORS.NOT_FOUND, 404);
 		}
 
 		deploymentData.status = DeploymentStatus.QUEUED;
@@ -118,21 +120,21 @@ class DeploymentService implements IDeploymentService {
 	): Promise<{ deployments: IDeployment[]; total: number }> {
 		const correspondindProject = await this.projectRepository.findProject(projectId, userId);
 		if (!correspondindProject) {
-			throw new AppError("Project not found", 404);
+			throw new AppError(PROJECT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		return await this.deploymentRepository.findProjectDeployments(userId, projectId, query, { fields: !query.full ? deploymentBasicFields : [] });
 	}
 
 	async deleteDeployment(projectId: string, deploymentId: string, userId: string): Promise<number> {
 		const project = await this.projectRepository.findProject(projectId, userId);
-		if (!project) throw new AppError("Project not found", 404);
+		if (!project) throw new AppError(PROJECT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 
 		if (project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED) {
-			throw new AppError("Project is currently in progress state, please try later", 400);
+			throw new AppError(PROJECT_ERRORS.PROJECT_IN_PROGRESS, STATUS_CODES.CONFLICT);
 		}
 
 		if (!project.deployments?.includes(deploymentId as any)) {
-			throw new AppError("Deployment not found", 404);
+			throw new AppError(DEPLOYMENT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		let newCurrentDeployment = null;
 
@@ -199,7 +201,10 @@ class DeploymentService implements IDeploymentService {
 
 		} catch (error: any) {
 			console.log("Error on build")
-			await this.__updateDeployment(projectId, deploymentId, { status: DeploymentStatus.FAILED, error_message: "Error on starting deployment" });
+			await this.__updateDeployment(projectId, deploymentId, {
+				status: DeploymentStatus.FAILED,
+				error_message: DEPLOYMENT_ERRORS.DEPLOY_FAILED
+			});
 			await this.decrementRunningDeplymnts(projectId)
 			throw error
 		}
@@ -221,7 +226,7 @@ class DeploymentService implements IDeploymentService {
 				overrides: {
 					containerOverrides: [
 						{
-							name: "custom-build-container", // docker image after build,
+							name: ENVS.CONTAINER_NAME, // docker image after build,
 							environment: [
 								...getNessesaryEnvs(),
 								{ name: "SERVER_PUSHED_D_ID", value: deployment._id },
@@ -233,7 +238,10 @@ class DeploymentService implements IDeploymentService {
 			});
 			await ecsClient.send(command);
 		} catch (error: any) {
-			await this.__updateDeployment(project._id, deployment._id, { status: DeploymentStatus.FAILED, error_message: "Error on starting deployment" });
+			await this.__updateDeployment(project._id, deployment._id, {
+				status: DeploymentStatus.FAILED,
+				error_message: DEPLOYMENT_ERRORS.DEPLOY_FAILED
+			});
 			throw error
 		}
 	}
@@ -268,7 +276,7 @@ class DeploymentService implements IDeploymentService {
 		const currentRunningDpymnts = await this.redisCache.getSetLength(this.DEPLOYMENTS_SET_KEY)
 		if (currentRunningDpymnts > this.MAX_CONCURRENT_RUNNABLE_DPYMNTS) {
 			await this.redisCache.setRemove(this.DEPLOYMENTS_SET_KEY, projectId)
-			throw new AppError("Busy Runners", 503)
+			throw new AppError(DEPLOYMENT_ERRORS.BUSY_RUNNERS, STATUS_CODES.SERVICE_UNAVAILABLE)
 		}
 	}
 	async decrementRunningDeplymnts(projectId: string) {

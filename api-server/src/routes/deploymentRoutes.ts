@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { deploymentController, deploymentService, logsController } from "@/instances.js";
+import { deploymentController, logsController } from "@/instances.js";
 import { authenticateToken } from "@/middlewares/authMiddleware.js";
 import { validateQuery } from "@/middlewares/validateRequest.js";
 import { DeploymentQueryScheme } from "@/dtos/deployment.dto.js";
@@ -13,10 +13,6 @@ const deploymentRouter = Router();
 
 deploymentRouter.get("/", authenticateToken, validateQuery(DeploymentQueryScheme), deploymentController.getAllDeployments.bind(deploymentController));
 
-deploymentRouter.get("/test", (_, res) => {
-	deploymentService.deployLocal("68fb232493aa0518027f51d5", "68fb1ccb10b93de245fa9f55");
-	res.json({ ok: "true" });
-});
 
 deploymentRouter.get(
 	"/:deploymentId",

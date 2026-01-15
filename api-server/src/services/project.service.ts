@@ -13,10 +13,11 @@ import { CreateProjectDTO, QueryProjectDTO } from "@/dtos/project.dto.js";
 import { IProject, ProjectStatus } from "@/models/Projects.js";
 import { nanoid } from "@/utils/generateNanoid.js";
 import AppError from "@/utils/AppError.js";
-import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { PLANS } from "@/constants/plan.js";
 import { projectBasicFields, projectSettingsFields } from "@/constants/populates/project.populate.js";
 import { DeploymentStatus } from "@/models/Deployment.js";
+import { DEPLOYMENT_ERRORS, PROJECT_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 
 
 
@@ -60,10 +61,11 @@ class ProjectService implements IProjectService {
 
 		const user = await this.userRepository.findByUserId(userId);
 		if (!user) {
-			throw new AppError("User not found", HTTP_STATUS_CODE.NOT_FOUND);
+			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		if (user?.projects > PLANS[user.plan].maxProjects) {
-			throw new AppError("Reached maximum projects", HTTP_STATUS_CODE.SERVICE_UNAVAILABLE);
+			throw new AppError(PROJECT_ERRORS.LIMIT_REACHED, STATUS_CODES.FORBIDDEN);
+
 		}
 		const newProject = await this.projectRepository.createProject(projectData);
 		await this.projectBandwidthRepo.addProjectField(newProject as IProject);
@@ -85,7 +87,7 @@ class ProjectService implements IProjectService {
 	async getProjectById(id: string, userId: string, include?: string, full?: boolean): Promise<IProject | null> {
 		const user = await this.userRepository.findByUserId(userId);
 		if (!user) {
-			throw new AppError("User not found", 404);
+			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		const project = await this.projectRepository.findProject(id, userId, {
 			include: include, ...(!full && {
@@ -97,7 +99,7 @@ class ProjectService implements IProjectService {
 	async getProjectSettings(id: string, userId: string, include?: string): Promise<IProject | null> {
 		const user = await this.userRepository.findByUserId(userId);
 		if (!user) {
-			throw new AppError("User not found", 404);
+			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		const project = await this.projectRepository.findProject(id, userId, {
 			include: include, fields: projectSettingsFields
@@ -111,7 +113,7 @@ class ProjectService implements IProjectService {
 	async updateProject(id: string, userId: string, dto: Partial<IProject>): Promise<IProject | null> {
 		const user = await this.userRepository.findByUserId(userId);
 		if (!user) {
-			throw new AppError("User not found", 404);
+			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		const newData: Partial<IProject> = {
 			...(dto.name && { name: dto.name }),
@@ -136,7 +138,8 @@ class ProjectService implements IProjectService {
 	async deleteProject(projectId: string, userId: string): Promise<boolean> {
 		const user = await this.userRepository.findByUserId(userId);
 		if (!user) {
-			throw new AppError("User not found, Cant delete project", 404);
+			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
+
 		}
 
 		const result = await this.projectRepository.deleteProject(projectId, userId);
@@ -157,7 +160,6 @@ class ProjectService implements IProjectService {
 	}
 	async getUserBandwidthData(userId: string, isMonthly: boolean): Promise<number> {
 		if (isMonthly) {
-			console.log("through here ");
 			return this.projectBandwidthRepo.getUserMonthlyBandwidth(userId);
 		}
 		return await this.projectBandwidthRepo.getUserTotalBandwidth(userId);
@@ -175,10 +177,10 @@ class ProjectService implements IProjectService {
 			[this.projectRepository.findProject(projectId, userId), this.checkSubdomainAvaiable(newSubdomain)]
 		)
 		if (!project) {
-			throw new AppError("Project not found", 404);
+			throw new AppError(PROJECT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		if (!isAvailable) {
-			throw new AppError("Subdomain already taken", 409);
+			throw new AppError(PROJECT_ERRORS.SUBDOMAIN_NOT_AVAILABLE, STATUS_CODES.CONFLICT);
 		}
 		const result = await this.projectRepository.updateProject(project._id, userId, { subdomain: newSubdomain });
 		if (result) await this.cacheInvalidator.publishInvalidation("project", project.subdomain)
@@ -190,22 +192,22 @@ class ProjectService implements IProjectService {
 			this.deploymentRepository.findDeploymentById(newDeploymentId, userId),
 		]);
 		if (!project) {
-			throw new AppError("Project not found", 404);
+			throw new AppError(PROJECT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		if (!deployment) {
-			throw new AppError("Deployment not found", 404);
+			throw new AppError(DEPLOYMENT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		if (project.currentDeployment === deployment._id.toString()) {
-			throw new AppError("Deployment is already active", 400);
+			throw new AppError(DEPLOYMENT_ERRORS.ALREADY_ACTIVE, STATUS_CODES.CONFLICT);
 		}
 		if (deployment.project.toString() !== project._id.toString()) {
-			throw new AppError("Deployment not related to project || unknown deployment", 403);
+			throw new AppError(DEPLOYMENT_ERRORS.NOT_RELATED, STATUS_CODES.FORBIDDEN);
 		}
 		if (project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED) {
-			throw new AppError("Cannot perform action while project is in progress", 400);
+			throw new AppError(PROJECT_ERRORS.PROJECT_IN_PROGRESS, STATUS_CODES.CONFLICT);
 		}
 		if (deployment.status !== DeploymentStatus.READY) {
-			throw new AppError(`Cannot promote to deployment with status: ${deployment.status}. Only successful deployments can be activated.`, 400);
+			throw new AppError(DEPLOYMENT_ERRORS.CANT_MAKE_ACTIVE(deployment.status), STATUS_CODES.CONFLICT);
 		}
 		const result = await this.projectRepository.updateProject(project._id, userId, {
 			lastDeployment: project.currentDeployment,

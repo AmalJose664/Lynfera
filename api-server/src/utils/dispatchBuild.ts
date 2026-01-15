@@ -1,6 +1,6 @@
 import { ENVS } from "@/config/env.config.js";
 import AppError from "./AppError.js";
-import { HTTP_STATUS_CODE } from "./statusCodes.js";
+import { STATUS_CODES } from "./statusCodes.js";
 
 const buildDispatchUrl = ENVS.BUILD_DISPATCH_URL || ""
 const buildDispatchEventType = "run-build"
@@ -23,7 +23,7 @@ export async function dispatchBuild(deploymentId: string, projectId: string): Pr
 	})
 	if (!result.ok) {
 		const text = await result.text();
-		throw new AppError(`Build dispatch failed: ${result.status} ${text}`, HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR);
+		throw new AppError(`Build dispatch failed: ${result.status} ${text}`, STATUS_CODES.INTERNAL_SERVER_ERROR);
 	}
 
 }

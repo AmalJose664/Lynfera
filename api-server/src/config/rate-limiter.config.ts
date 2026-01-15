@@ -1,12 +1,14 @@
 
+import { COMMON_ERRORS } from "@/constants/errors.js";
+import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { Options } from "express-rate-limit"
 const baseRateLimitConfig: Partial<Options> = {
 	standardHeaders: true,
 	legacyHeaders: false,
 	handler: (req, res) => {
-		res.status(429).json({
+		res.status(STATUS_CODES.TOO_MANY_REQUESTS).json({
 			success: false,
-			message: "Too many requests. Try again later.",
+			message: COMMON_ERRORS.RATE_LIMIT_EXCEEDED,
 		});
 	},
 };

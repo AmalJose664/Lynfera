@@ -4,9 +4,10 @@ import { Request, Response, NextFunction } from "express";
 import { IProjectController } from "@/interfaces/controller/IProjectController.js";
 import ProjectService from "@/services/project.service.js";
 import { checkSubdomainDTO, CreateProjectDTO, ProjectDeploymentUpdateDTO, QueryProjectDTO, UpdateProjectDTO, UpdateSubdomainDTO } from "@/dtos/project.dto.js";
-import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { ProjectMapper } from "@/mappers/ProjectMapper.js";
 import AppError from "@/utils/AppError.js";
+import { PROJECT_ERRORS } from "@/constants/errors.js";
 
 
 
@@ -23,11 +24,11 @@ class ProjectController implements IProjectController {
 
 			const dbResult = await this.projectService.createProject(dto, user || "");
 			if (!dbResult) {
-				throw new AppError("Cannot create project", HTTP_STATUS_CODE.BAD_REQUEST);
+				throw new AppError(PROJECT_ERRORS.CREATE_FAILED, STATUS_CODES.INTERNAL_SERVER_ERROR);
 			}
 			const response = ProjectMapper.toProjectResponse(dbResult, "full");
 
-			res.status(HTTP_STATUS_CODE.CREATED).json(response);
+			res.status(STATUS_CODES.CREATED).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -39,7 +40,7 @@ class ProjectController implements IProjectController {
 			const result = await this.projectService.getAllProjects(userId, query);
 			const response = ProjectMapper.toProjectsResponse(result.projects, result.total, query.page, query.limit, query.full ? "full" : "overview");
 
-			res.status(HTTP_STATUS_CODE.OK).json(response);
+			res.status(STATUS_CODES.OK).json(response);
 		} catch (err) {
 			next(err);
 		}
@@ -52,11 +53,11 @@ class ProjectController implements IProjectController {
 
 			const result = await this.projectService.getProjectById(projectId, userId, include);
 			if (!result) {
-				res.status(HTTP_STATUS_CODE.NOT_FOUND).json({ project: null });
+				res.status(STATUS_CODES.NOT_FOUND).json({ project: null });
 				return;
 			}
 			const response = ProjectMapper.toProjectResponse(result, "overview");
-			res.status(HTTP_STATUS_CODE.OK).json(response);
+			res.status(STATUS_CODES.OK).json(response);
 		} catch (err) {
 			next(err);
 		}
@@ -69,11 +70,11 @@ class ProjectController implements IProjectController {
 
 			const result = await this.projectService.getProjectById(projectId, userId, include, true);
 			if (!result) {
-				res.status(HTTP_STATUS_CODE.NOT_FOUND).json({ project: null });
+				res.status(STATUS_CODES.NOT_FOUND).json({ project: null });
 				return;
 			}
 			const response = ProjectMapper.toProjectResponse(result, "full");
-			res.status(HTTP_STATUS_CODE.OK).json(response);
+			res.status(STATUS_CODES.OK).json(response);
 		} catch (err) {
 			next(err);
 		}
@@ -87,11 +88,11 @@ class ProjectController implements IProjectController {
 
 			const result = await this.projectService.getProjectSettings(projectId, userId, include);
 			if (!result) {
-				res.status(HTTP_STATUS_CODE.NOT_FOUND).json({ project: null });
+				res.status(STATUS_CODES.NOT_FOUND).json({ project: null });
 				return;
 			}
 			const response = ProjectMapper.toProjectResponse(result, "setting");
-			res.status(HTTP_STATUS_CODE.OK).json(response);
+			res.status(STATUS_CODES.OK).json(response);
 		} catch (err) {
 			next(err);
 		}
@@ -104,11 +105,11 @@ class ProjectController implements IProjectController {
 
 			const result = await this.projectService.updateProject(projectId, userId, dto);
 			if (!result) {
-				res.status(HTTP_STATUS_CODE.NOT_FOUND).json({ project: null });
+				res.status(STATUS_CODES.NOT_FOUND).json({ project: null });
 				return;
 			}
 			const response = ProjectMapper.toProjectResponse(result, "update");
-			res.status(HTTP_STATUS_CODE.OK).json(response);
+			res.status(STATUS_CODES.OK).json(response);
 		} catch (err) {
 			next(err);
 		}
@@ -119,11 +120,11 @@ class ProjectController implements IProjectController {
 			const dto = req.validatedBody as UpdateSubdomainDTO;
 			const updatedProject = await this.projectService.changeProjectSubdomain(userId, dto.projectId, dto.newSubdomain);
 			if (!updatedProject) {
-				res.status(HTTP_STATUS_CODE.NOT_FOUND).json({ project: null });
+				res.status(STATUS_CODES.NOT_FOUND).json({ project: null });
 				return;
 			}
 			const response = ProjectMapper.toProjectResponse(updatedProject, "update");
-			res.status(HTTP_STATUS_CODE.OK).json(response);
+			res.status(STATUS_CODES.OK).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -144,11 +145,11 @@ class ProjectController implements IProjectController {
 			const projectId = req.params.projectId;
 			const updatedProject = await this.projectService.changeProjectDeployment(userId, projectId, dto.newCurrentDeployment);
 			if (!updatedProject) {
-				res.status(HTTP_STATUS_CODE.NOT_FOUND).json({ project: null });
+				res.status(STATUS_CODES.NOT_FOUND).json({ project: null });
 				return;
 			}
 			const response = ProjectMapper.toProjectResponse(updatedProject, "update");
-			res.status(HTTP_STATUS_CODE.OK).json(response);
+			res.status(STATUS_CODES.OK).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -160,7 +161,7 @@ class ProjectController implements IProjectController {
 			const projectId = req.params.projectId;
 
 			const stats = await this.projectService.findProjectSimpleStats(userId, projectId);
-			res.status(HTTP_STATUS_CODE.OK).json({ stats });
+			res.status(STATUS_CODES.OK).json({ stats });
 		} catch (error) {
 			next(error);
 		}
@@ -173,7 +174,7 @@ class ProjectController implements IProjectController {
 			const result = await this.projectService.deleteProject(projectId, userId);
 			console.log(result);
 
-			res.status(HTTP_STATUS_CODE.NO_CONTENT).json({ deleted: result });
+			res.status(STATUS_CODES.NO_CONTENT).json({ deleted: result });
 		} catch (err) {
 			next(err);
 		}

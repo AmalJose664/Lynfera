@@ -8,6 +8,8 @@ import { IOtp, OtpPurposes } from "@/models/Otp.js";
 import AppError from "@/utils/AppError.js";
 import { otpEmailTemplate, sendEmail } from "@/utils/email.js";
 import { EMAIL_SENDER } from "@/config/email.config.js";
+import { STATUS_CODES } from "@/utils/statusCodes.js";
+import { OTP_ERRORS } from "@/constants/errors.js";
 
 
 
@@ -36,18 +38,18 @@ class OtpService implements IOtpService {
 	async verifyOtp(userId: string, otpEntered: number, purpose: OtpPurposes): Promise<boolean> {
 		const savedOtp = await this.otpRepository.getOtp(userId, purpose)
 		if (!savedOtp) {
-			throw new AppError("No otp was found", 404)
+			throw new AppError(OTP_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		if (savedOtp.expiresAt < new Date()) {
-			throw new AppError("Otp Expired", 400)
+			throw new AppError(OTP_ERRORS.EXPIRED, STATUS_CODES.BAD_REQUEST)
 		}
 		if (savedOtp.attempts >= this.MAX_OTP_ATTEMPTS) {
-			throw new AppError("Otp Max attempts reached; Please try again after some time", 400)
+			throw new AppError(OTP_ERRORS.MAX_ATTEMPTS(this.MAX_OTP_ATTEMPTS), STATUS_CODES.TOO_MANY_REQUESTS)
 		}
 		const isMatch = await compare(otpEntered.toString(), savedOtp.otpHash);
 		if (!isMatch) {
 			await this.otpRepository.updateOtp(userId, purpose, { attempts: savedOtp.attempts + 1 })
-			throw new AppError("Otp Wrong", 400)
+			throw new AppError(OTP_ERRORS.INVALID_OTP, STATUS_CODES.BAD_REQUEST);
 		}
 		await this.otpRepository.deleteOtp(userId, purpose)
 		return true
@@ -60,7 +62,7 @@ class OtpService implements IOtpService {
 			return this.createNew(userId, purpose);
 		}
 		if (oldOtp.resentCount >= this.MAX_OTP_RESENTS) {
-			throw new AppError("Otp resend limit reached; Please try again after 20 minutes", 429);
+			throw new AppError(OTP_ERRORS.RESEND_LIMIT, STATUS_CODES.TOO_MANY_REQUESTS)
 		}
 		const now = Date.now();
 		const latestTime = Math.max(
@@ -72,10 +74,7 @@ class OtpService implements IOtpService {
 		const COOLDOWN_SECONDS = 60;
 		if (diffInSeconds < COOLDOWN_SECONDS) {
 			const waitTime = COOLDOWN_SECONDS - diffInSeconds;
-			throw new AppError(
-				`Please wait ${waitTime} seconds before requesting a new OTP`,
-				429
-			);
+			throw new AppError(OTP_ERRORS.COOLDOWN_ACTIVE(waitTime), STATUS_CODES.TOO_MANY_REQUESTS)
 		}
 
 		const newOtp = randomInt(100000, 999999)
@@ -87,7 +86,7 @@ class OtpService implements IOtpService {
 			attempts: 0,
 		})
 		if (!newUpdated) {
-			throw new AppError("Error in providing new OTP", 500);
+			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.INTERNAL_SERVER_ERROR);
 		}
 		return { OtpObject: newUpdated, otp: newOtp }
 	}

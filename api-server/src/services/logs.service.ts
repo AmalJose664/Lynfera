@@ -1,7 +1,9 @@
+import { DEPLOYMENT_ERRORS } from "@/constants/errors.js";
 import { IDeploymentRepository } from "@/interfaces/repository/IDeploymentRepository.js";
 import { ILogRepository } from "@/interfaces/repository/ILogRepository.js";
 import { ILogsService } from "@/interfaces/service/ILogsService.js";
 import AppError from "@/utils/AppError.js";
+import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { ResponseJSON, ResultSet } from "@clickhouse/client";
 
 class LogsService implements ILogsService {
@@ -24,7 +26,7 @@ class LogsService implements ILogsService {
 	}> {
 		const deployment = await this.deploymentRepository.findDeploymentById(deploymentId, userId);
 		if (!deployment) {
-			throw new AppError("Deployment not found ", 404);
+			throw new AppError(DEPLOYMENT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 		const { limit, page } = pagination;
 

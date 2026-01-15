@@ -2,11 +2,12 @@ import { Request, Response, NextFunction } from "express";
 
 import { ENVS } from "@/config/env.config.js";
 import AppError from "@/utils/AppError.js";
+import { COMMON_ERRORS } from "@/constants/errors.js";
 
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
 	let statusCode = err.statusCode || 500;
-	let message = err.message || "Internal server error";
+	let message = err.message || COMMON_ERRORS.INTERNAL_SERVER;
 	console.log("New error 🎉🎉🎉🎉🎉");
 	if (err.cause) console.error("Cause: ", err.cause, "\n----------------------------------------------------------------");
 	console.log(err);
@@ -17,7 +18,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
 			statusCode = 400;
 		} else {
 			console.error("Unhandled Error:", err);
-			message = "Something went wrong, please try again later.";
+			message = COMMON_ERRORS.SOMETHING_WENT_WRONG;
 		}
 	}
 	const errorResponse = {

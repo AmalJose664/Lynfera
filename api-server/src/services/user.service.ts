@@ -10,8 +10,9 @@ import { AuthProvidersList, IUser } from "@/models/User.js";
 import AppError from "@/utils/AppError.js";
 import { LoginUserDTO, SignUpUserDTO } from "@/dtos/auth.dto.js";
 import { OtpPurposes } from "@/models/Otp.js";
-import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { PLANS } from "@/constants/plan.js";
+import { OTP_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 
 
 class UserService implements IUserSerivce {
@@ -33,7 +34,7 @@ class UserService implements IUserSerivce {
 
 		const { emails } = profile;
 		if (emails?.length === 0 || !emails) {
-			throw new AppError("User email not found", 400);
+			throw new AppError(USER_ERRORS.EMAIL_REQUIRED, STATUS_CODES.BAD_REQUEST);
 		}
 
 		let user = await this.userRepository.findByUserEmail(emails[0].value);
@@ -80,7 +81,7 @@ class UserService implements IUserSerivce {
 
 		const emailExists = await this.userRepository.findByUserEmail(data.email)
 		if (emailExists) {
-			throw new AppError("Email not available", 409)
+			throw new AppError(USER_ERRORS.ALREADY_EXISTS, STATUS_CODES.CONFLICT)
 		}
 
 		const hashedPass = await hash(data.password, 10)
@@ -107,14 +108,14 @@ class UserService implements IUserSerivce {
 	async verifyUserOtp(email: string, otp: number): Promise<{ verifyResult: boolean, user: IUser | null }> {
 		const user = await this.userRepository.findByUserEmail(email)
 		if (!user) {
-			throw new AppError("OTP Not sent", 409)
+			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.CONFLICT)
 		}
 		if (user.isVerified) {
-			throw new AppError("OTP Not sent", 409)
+			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.CONFLICT)
 		}
 		const verifyResult = await this.otpService.verifyOtp(user._id, otp, OtpPurposes.SIGNUP)
 		if (!verifyResult) {
-			throw new AppError("OTP Verify Error", HTTP_STATUS_CODE.BAD_REQUEST)
+			throw new AppError(OTP_ERRORS.INVALID_OTP, STATUS_CODES.BAD_REQUEST)
 		}
 		const updatedUser = await this.userRepository.updateUser(user._id, { isVerified: true })
 		return { verifyResult: true, user: { ...updatedUser, password: "" } as IUser }
@@ -125,16 +126,16 @@ class UserService implements IUserSerivce {
 	async resentOtp(id: string): Promise<boolean> {
 		const user = await this.userRepository.findByUserId(id)
 		if (!user) {
-			throw new AppError("OTP Not sent", 409)
+			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.CONFLICT)
 		}
 		if (user.isVerified) {
-			throw new AppError("OTP Not sent", 409)
+			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.CONFLICT)
 		}
 		const otp = await this.otpService.getResendOtp(user._id, OtpPurposes.SIGNUP)
 
 		const sendResult = await this.otpService.sendOtp(user.email, user.name, otp.otp)
 		if (!sendResult.ok) {
-			throw new AppError("OTP Sent Error", 500)
+			throw new AppError(OTP_ERRORS.SEND_FAILED, STATUS_CODES.INTERNAL_SERVER_ERROR)
 		}
 		const resultData = await sendResult.json()
 		console.log(resultData)
@@ -144,11 +145,11 @@ class UserService implements IUserSerivce {
 	async loginUser(data: LoginUserDTO): Promise<IUser | null> {
 		const user = await this.userRepository.findByUserEmail(data.email)
 		if (!user) {
-			throw new AppError("Email or password incorrect", 400)
+			throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.BAD_REQUEST)
 		}
 		const isMatch = await compare(data.password, user.password)
 		if (!isMatch) {
-			throw new AppError("Email or password incorrect", 400)
+			throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.BAD_REQUEST)
 		}
 		if (!user.isVerified) {
 			try {
@@ -171,7 +172,7 @@ class UserService implements IUserSerivce {
 
 	async userCanDeploy(userId: string): Promise<{ user: IUser | null; limit: number; allowed: boolean; remaining: number }> {
 		const user = await this.userRepository.getOrUpdateDeployments(userId);
-		if (!user) throw new Error("User not found");
+		if (!user) throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.NOT_FOUND)
 
 		const limit = PLANS[user.plan].maxDailyDeployments;
 		const allowed = user.deploymentsToday < limit;

@@ -4,8 +4,9 @@ import { Request, Response, NextFunction } from "express";
 import { IDeploymentController } from "@/interfaces/controller/IDeploymentController.js";
 import { IDeploymentService } from "@/interfaces/service/IDeploymentService.js";
 import { DeploymentMapper } from "@/mappers/DeploymentMapper.js";
-import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { QueryDeploymentDTO } from "@/dtos/deployment.dto.js";
+import { COMMON_ERRORS } from "@/constants/errors.js";
 
 
 class DeploymentController implements IDeploymentController {
@@ -21,11 +22,11 @@ class DeploymentController implements IDeploymentController {
 			const deployment = await this.deploymentService.newDeployment({}, userId, projectId);
 
 			if (!deployment) {
-				res.status(HTTP_STATUS_CODE.BAD_REQUEST).json({ deployment: null });
+				res.status(STATUS_CODES.BAD_REQUEST).json({ deployment: null });
 				return;
 			}
 			const response = DeploymentMapper.toDeploymentFullResponse(deployment);
-			res.status(HTTP_STATUS_CODE.CREATED).json(response);
+			res.status(STATUS_CODES.CREATED).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -41,10 +42,10 @@ class DeploymentController implements IDeploymentController {
 			const result = await this.deploymentService.getDeploymentById(deploymentId, userId, includesField);
 			if (result) {
 				const response = DeploymentMapper.toDeploymentFullResponse(result);
-				res.status(HTTP_STATUS_CODE.OK).json(response);
+				res.status(STATUS_CODES.OK).json(response);
 				return;
 			}
-			res.status(HTTP_STATUS_CODE.NOT_FOUND).json({ deployment: null });
+			res.status(STATUS_CODES.NOT_FOUND).json({ deployment: null });
 		} catch (error) {
 			next(error);
 		}
@@ -63,7 +64,7 @@ class DeploymentController implements IDeploymentController {
 				page: query.page,
 				limit: query.limit
 			}, query.full ? "full" : "overview");
-			res.status(HTTP_STATUS_CODE.OK).json(response);
+			res.status(STATUS_CODES.OK).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -76,11 +77,14 @@ class DeploymentController implements IDeploymentController {
 
 			const result = await this.deploymentService.getDeploymentFiles(deploymentId, userId);
 			if (!result) {
-				res.status(HTTP_STATUS_CODE.NOT_FOUND).json({ status: 404, error: "not_found" });
+				res.status(STATUS_CODES.NOT_FOUND).json({
+					status: 404, error: "not_found",
+					message: COMMON_ERRORS.NOT_FOUND
+				});
 				return;
 			}
 			const response = DeploymentMapper.toDeploymentFilesResponse(result);
-			res.status(HTTP_STATUS_CODE.OK).json(response);
+			res.status(STATUS_CODES.OK).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -96,7 +100,7 @@ class DeploymentController implements IDeploymentController {
 				page: query.page,
 				limit: query.limit
 			}, query.full ? "full" : "overview");
-			res.status(HTTP_STATUS_CODE.OK).json(response);
+			res.status(STATUS_CODES.OK).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -109,10 +113,10 @@ class DeploymentController implements IDeploymentController {
 
 			const result = await this.deploymentService.deleteDeployment(projectId, deploymentId, req.user?.id as string);
 			if (result !== 0) {
-				res.status(HTTP_STATUS_CODE.NO_CONTENT).json({ deleted: true });
+				res.status(STATUS_CODES.NO_CONTENT).json({ deleted: true });
 				return;
 			}
-			res.status(HTTP_STATUS_CODE.NO_CONTENT).json({});
+			res.status(STATUS_CODES.NO_CONTENT).json({});
 		} catch (error) {
 			next(error);
 		}
@@ -124,10 +128,10 @@ class DeploymentController implements IDeploymentController {
 			const deployment = await this.deploymentService.__getDeploymentById(deploymentId);
 			if (deployment) {
 				const response = DeploymentMapper.toDeploymentFullResponse(deployment);
-				res.status(HTTP_STATUS_CODE.OK).json(response);
+				res.status(STATUS_CODES.OK).json(response);
 				return;
 			}
-			res.status(HTTP_STATUS_CODE.NOT_FOUND).json({ deployment: null });
+			res.status(STATUS_CODES.NOT_FOUND).json({ deployment: null });
 			console.log("not finded");
 		} catch (error) {
 			next(error);

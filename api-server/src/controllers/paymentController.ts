@@ -6,10 +6,13 @@ import { Request, Response, NextFunction } from "express";
 import { IPaymentController } from "@/interfaces/controller/IPaymentController.js";
 import { IPaymentService } from "@/interfaces/service/IPaymentService.js";
 import { ENVS } from "@/config/env.config.js";
-import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { issueAuthAccessCookies, issueAuthRefreshCookies } from "@/utils/authUtils.js";
 import AppError from "@/utils/AppError.js";
 import { stripe } from "@/config/stripe.config.js";
+import { PAYMENT_ERRORS } from "@/constants/errors.js";
+import { FRONTEND_PAYMENT_CANCEL_PATH, FRONTEND_PAYMENT_SUCCESS_PATH } from "@/constants/paths.js";
+import { PLANS } from "@/constants/plan.js";
 
 
 
@@ -21,14 +24,14 @@ class PaymentController implements IPaymentController {
 	async checkout(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const userId = req.user?.id as string;
-			const successUrl = ENVS.FRONTEND_URL + "/payment-success?session_id=";
-			const cancelUrl = ENVS.FRONTEND_URL + "/projects";
+			const successUrl = ENVS.FRONTEND_URL + FRONTEND_PAYMENT_SUCCESS_PATH
+			const cancelUrl = ENVS.FRONTEND_URL + FRONTEND_PAYMENT_CANCEL_PATH
 			const { session, status } = await this.paymentService.createCheckoutSession(userId, successUrl, cancelUrl);
 			if (!session || !status) {
-				res.status(HTTP_STATUS_CODE.BAD_REQUEST).json({ url: null, message: "No session , already pro member" });
+				res.status(STATUS_CODES.BAD_REQUEST).json({ url: null, message: "No session , already pro member " + PAYMENT_ERRORS.NO_ACTION_TAKEN });
 				return;
 			}
-			res.json({ url: session.url, sessionId: session.id });
+			res.status(STATUS_CODES.OK).json({ url: session.url, sessionId: session.id });
 		} catch (error) {
 			next(error);
 		}
@@ -37,10 +40,10 @@ class PaymentController implements IPaymentController {
 		try {
 			const userId = req.user?.id as string;
 			await this.paymentService.handleCancelSubscription(userId);
-			issueAuthAccessCookies(res, { id: userId, plan: "FREE" })
-			issueAuthRefreshCookies(res, { id: userId, plan: "FREE" })
-			res.json({
-				message: "Subscription cancelled successfully",
+			issueAuthAccessCookies(res, { id: userId, plan: PLANS.FREE.name })
+			issueAuthRefreshCookies(res, { id: userId, plan: PLANS.FREE.name })
+			res.status(STATUS_CODES.OK).json({
+				message: PAYMENT_ERRORS.SUBSCRIPTION_CANCELLED,
 				status: true,
 			});
 		} catch (error) {
@@ -56,7 +59,7 @@ class PaymentController implements IPaymentController {
 			event = stripe.webhooks.constructEvent(req.body, sig ?? "", endpointSecret);
 
 			await this.paymentService.handleWebhookEvent(event);
-			res.json({ received: true });
+			res.status(STATUS_CODES.OK).json({ received: true });
 		} catch (error) {
 			next(error);
 		}
@@ -76,15 +79,15 @@ class PaymentController implements IPaymentController {
 		} catch (err) {
 			const error = err as Stripe.errors.StripeError;
 			if (error.type === "StripeInvalidRequestError") {
-				return next(new AppError("Payment session not found. It may have expired or is invalid.", 404));
+				return next(new AppError(error.message, error.statusCode || STATUS_CODES.NOT_FOUND));
 			}
 
 			if (error.type === "StripeAuthenticationError") {
-				return next(new AppError("Payment service authentication failed", 500));
+				return next(new AppError(error.message, error.statusCode || STATUS_CODES.INTERNAL_SERVER_ERROR));
 			}
 
 			if (error.type === "StripeAPIError") {
-				return next(new AppError("Payment service is temporarily unavailable", 503));
+				return next(new AppError(error.message, error.statusCode || STATUS_CODES.SERVICE_UNAVAILABLE));
 			}
 			next(err);
 		}

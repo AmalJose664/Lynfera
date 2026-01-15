@@ -2,7 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import z from "zod";
 
 import AppError from "@/utils/AppError.js";
-import { HTTP_STATUS_CODE } from "@/utils/statusCodes.js";
+import { STATUS_CODES } from "@/utils/statusCodes.js";
+import { COMMON_ERRORS } from "@/constants/errors.js";
 
 type source = "body" | "query";
 
@@ -14,7 +15,7 @@ export function validateRequest<T extends z.ZodObject>(schema: T, source: source
 		if (result.error || !result.success) {
 			const messages = result.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ");
 			console.log("validation error zod ");
-			next(new AppError(`${source} validation error =>` + messages, HTTP_STATUS_CODE.BAD_REQUEST, result.error));
+			next(new AppError(COMMON_ERRORS.VALIDATION_ERRORS(messages, source), STATUS_CODES.BAD_REQUEST, result.error));
 			return;
 		}
 
