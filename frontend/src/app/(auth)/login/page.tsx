@@ -134,6 +134,7 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 			setError(null)
 			if (result.data.loginSuccess) {
 				router.push("/auth/success")
+				console.clear()
 			}
 
 
