@@ -2,10 +2,12 @@ import { Types } from "mongoose";
 
 import { IUser } from "@/models/User.js";
 import { IPlans } from "@/constants/plan.js";
-
+export type SimpleOptions = {
+	fillPass: boolean;
+};
 export interface IUserRepository {
 	createUser(data: Partial<IUser>): Promise<IUser>;
-	findByUserEmail(email: string): Promise<IUser | null>;
+	findByUserEmail(email: string, options?: SimpleOptions): Promise<IUser | null>;
 	findByUserId(id: string): Promise<IUser | null>;
 	incrementProjects(userId: Types.ObjectId | string): Promise<void>;
 	decrementProjects(userId: Types.ObjectId | string): Promise<void>;

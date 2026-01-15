@@ -1,7 +1,7 @@
 import { Document, Types } from "mongoose";
 import { BaseRepository } from "./base/base.repository.js";
 import { IUser, User } from "@/models/User.js";
-import { IUserRepository } from "@/interfaces/repository/IUserRepository.js";
+import { IUserRepository, SimpleOptions } from "@/interfaces/repository/IUserRepository.js";
 import { IPlans } from "@/constants/plan.js";
 
 class UserRepository extends BaseRepository<IUser> implements IUserRepository {
@@ -15,8 +15,12 @@ class UserRepository extends BaseRepository<IUser> implements IUserRepository {
 		return await User.findById(id);
 	}
 
-	async findByUserEmail(email: string): Promise<IUser | null> {
-		return await this.findOne({ email });
+	async findByUserEmail(email: string, options?: SimpleOptions): Promise<IUser | null> {
+		let query = this.findOne({ email });
+		if (options?.fillPass) {
+			query = query.select("+password");
+		}
+		return await query.exec();
 	}
 
 	async updateUser(userId: string, updateData: Partial<IUser>): Promise<IUser | null> {

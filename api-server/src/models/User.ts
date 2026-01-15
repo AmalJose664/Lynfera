@@ -37,7 +37,7 @@ const userSchema = new Schema<IUser>(
 		name: { type: String, required: true },
 		email: { type: String, required: true, unique: true },
 		profileImage: { type: String, required: false, default: "FILL" },
-		password: { type: String, default: "" },
+		password: { type: String, default: "", select: false },
 		isVerified: { type: Boolean, defaul: false },
 		authProviders: [
 			{

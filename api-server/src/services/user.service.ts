@@ -47,7 +47,7 @@ class UserService implements IUserSerivce {
 			user = await this.createUser(newUser);
 			console.log("No user found, created new...");
 
-			return { ...user, password: "" } as IUser;
+			return user;
 		}
 
 		const hasProvider = user.authProviders.some((p) => p.provider === provider);
@@ -59,7 +59,7 @@ class UserService implements IUserSerivce {
 			});
 		}
 
-		return { ...user, password: "" } as IUser;
+		return user as IUser;
 	}
 
 	async googleLoginStrategy(profile: Profile): Promise<IUser> {
@@ -71,8 +71,8 @@ class UserService implements IUserSerivce {
 	}
 
 	async getUser(userId: string): Promise<IUser | null> {
-		const user = await this.userRepository.findByUserId(userId);
-		return { ...user, password: "" } as IUser;
+		console.log("hey - - ");
+		return await this.userRepository.findByUserId(userId);
 	}
 
 	async signUpUser(data: SignUpUserDTO): Promise<{ user: IUser; otpResult: boolean } | null> {
@@ -99,7 +99,7 @@ class UserService implements IUserSerivce {
 		const resultData = await sendResult.json();
 
 		console.log(resultData);
-		return { user: { ...newUser, password: "" } as IUser, otpResult: sendResult.ok };
+		return { user: newUser, otpResult: sendResult.ok };
 	}
 
 	async verifyUserOtp(email: string, otp: number): Promise<{ verifyResult: boolean; user: IUser | null }> {
@@ -115,7 +115,7 @@ class UserService implements IUserSerivce {
 			throw new AppError(OTP_ERRORS.INVALID_OTP, STATUS_CODES.BAD_REQUEST);
 		}
 		const updatedUser = await this.userRepository.updateUser(user._id, { isVerified: true });
-		return { verifyResult: true, user: { ...updatedUser, password: "" } as IUser };
+		return { verifyResult: true, user: updatedUser };
 	}
 
 	async resentOtp(id: string): Promise<boolean> {
@@ -138,7 +138,7 @@ class UserService implements IUserSerivce {
 	}
 
 	async loginUser(data: LoginUserDTO): Promise<IUser | null> {
-		const user = await this.userRepository.findByUserEmail(data.email);
+		const user = await this.userRepository.findByUserEmail(data.email, { fillPass: true });
 		if (!user) {
 			throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.BAD_REQUEST);
 		}
@@ -153,7 +153,7 @@ class UserService implements IUserSerivce {
 				console.log("Error on getting otp on login", error);
 			}
 		}
-		return { ...user, password: "" } as IUser;
+		return user;
 	}
 
 	async getUserDetailed(userId: string): Promise<{ user: IUser | null; bandwidth: number }> {
@@ -161,7 +161,7 @@ class UserService implements IUserSerivce {
 			this.userRepository.findByUserId(userId),
 			this.projectService.getUserBandwidthData(userId, true),
 		]);
-		return { user: { ...user, password: "" } as IUser, bandwidth };
+		return { user, bandwidth };
 	}
 
 	async userCanDeploy(userId: string): Promise<{ user: IUser | null; limit: number; allowed: boolean; remaining: number }> {
@@ -172,7 +172,7 @@ class UserService implements IUserSerivce {
 		const allowed = user.deploymentsToday < limit;
 		const remaining = Math.max(0, limit - user.deploymentsToday);
 
-		return { user: { ...user, password: "" } as IUser, limit, allowed, remaining };
+		return { user, limit, allowed, remaining };
 	}
 
 	async incrementDeployment(userId: string): Promise<void> {
