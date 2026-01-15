@@ -3,6 +3,7 @@ export const USER_ERRORS = {
 	ALREADY_EXISTS: "Email already exists",
 	INVALID_CREDENTIALS: "Invalid email or password",
 	UNAUTHORIZED: "Unauthorized access",
+	ACCOUNT_LOCKED: "Account temporarily locked. Try again later",
 	FORBIDDEN: "You do not have permission to perform this action",
 	EMAIL_REQUIRED: "Email is required",
 	EMAIL_NOT_VERIFIED: "Please verify your email before logging in",

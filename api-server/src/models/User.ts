@@ -16,7 +16,7 @@ export interface IUser extends Document {
 	name: string;
 	email: string;
 	profileImage: string;
-	password: string;
+	password?: string;
 	authProviders: { provider: AuthProvidersList; id: string }[];
 	plan: keyof IPlans;
 	projects: number;
@@ -24,6 +24,8 @@ export interface IUser extends Document {
 	isVerified: boolean;
 	currentDate: string;
 	stripeCustomerId?: string;
+	lockedUntil: Date | null;
+	failedLogins: number
 	payment: {
 		subscriptionId: string | null;
 		subscriptionStatus: SubscriptionStatus;
@@ -38,7 +40,9 @@ const userSchema = new Schema<IUser>(
 		email: { type: String, required: true, unique: true },
 		profileImage: { type: String, required: false, default: "FILL" },
 		password: { type: String, default: "", select: false },
-		isVerified: { type: Boolean, defaul: false },
+		isVerified: { type: Boolean, default: false },
+		failedLogins: { type: Number, default: 0 },
+		lockedUntil: { type: Date, required: false },
 		authProviders: [
 			{
 				provider: { type: String, enum: Object.values(AuthProvidersList) },

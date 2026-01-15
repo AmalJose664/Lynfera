@@ -17,6 +17,7 @@ class UserService implements IUserSerivce {
 	private userRepository: IUserRepository;
 	private projectService: IProjectService;
 	private otpService: IOtpService;
+	maxFailedLoginAttempts = 10;
 	constructor(userRepo: IUserRepository, projectServce: IProjectService, otpService: IOtpService) {
 		this.userRepository = userRepo;
 		this.projectService = projectServce;
@@ -138,13 +139,34 @@ class UserService implements IUserSerivce {
 	}
 
 	async loginUser(data: LoginUserDTO): Promise<IUser | null> {
-		const user = await this.userRepository.findByUserEmail(data.email, { fillPass: true });
+		let user = await this.userRepository.findByUserEmail(data.email, { fillPass: true });
 		if (!user) {
 			throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.BAD_REQUEST);
 		}
-		const isMatch = await compare(data.password, user.password);
+		if (user.lockedUntil && user.lockedUntil > new Date()) {
+			throw new AppError(USER_ERRORS.ACCOUNT_LOCKED, STATUS_CODES.TOO_MANY_REQUESTS)
+		}
+		const password = user.password
+
+		if (!password) {
+			throw new AppError("Please login via " + Object.values(AuthProvidersList).join(" or "), STATUS_CODES.BAD_REQUEST)
+		}
+		const isMatch = await compare(data.password, password);
 		if (!isMatch) {
+			const newFailedLogins = (user.lockedUntil && user.lockedUntil.getTime() <= new Date().getTime() && user.failedLogins >= this.maxFailedLoginAttempts)
+				? 1
+				: user.failedLogins + 1;
+
+			await this.userRepository.updateUser(user._id, {
+				failedLogins: newFailedLogins,
+				...(newFailedLogins >= this.maxFailedLoginAttempts && {
+					lockedUntil: new Date(Date.now() + 6 * 60 * 1000)
+				})
+			})
 			throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.BAD_REQUEST);
+		}
+		if (user.failedLogins > 0) {
+			await this.userRepository.updateUser(user._id, { failedLogins: 0, lockedUntil: null })
 		}
 		if (!user.isVerified) {
 			try {
