@@ -6,6 +6,7 @@ type GoogleLoginButtonProps = React.PropsWithChildren<{
 }>;
 export function GoogleLoginButton({ className, children, ...props }: GoogleLoginButtonProps) {
 	const handleLogin = () => {
+		localStorage.setItem("provider_last_used", "GOOGLE")
 		window.location.href = process.env.NEXT_PUBLIC_API_SERVER_ENDPOINT + "/auth/google";
 	};
 	return (

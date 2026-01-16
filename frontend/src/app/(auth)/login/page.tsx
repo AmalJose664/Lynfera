@@ -26,11 +26,14 @@ import OtpModal from "@/components/modals/OtpModal";
 export default function LoginPage() {
 	const router = useRouter();
 	const [toggleEmail, setToggleEmail] = useState(false)
+	const [providerLastUsed, setProviderLastUsed] = useState<string | null>(null)
+
 	useEffect(() => {
 		const verifySessionCode = () => {
-			localStorage.clear()
+			localStorage.removeItem("session_code")
 		}
 		verifySessionCode()
+		setProviderLastUsed(localStorage.getItem("provider_last_used"))
 	}, [router]);
 	return (<>
 		<div className="relative min-h-screen flex items-center justify-center p-3">
@@ -60,10 +63,15 @@ export default function LoginPage() {
 						{!toggleEmail ? (<motion.div key="buttons" animate={{ y: 0 }} exit={{ y: -300 }} initial={{ y: 0 }} transition={{ duration: .8, ease: "backInOut" }} >
 							<div className="mt-8 group">
 								<GoogleLoginButton
-									className="dark:bg-background  bg-white dark:hover:bg-gray-200  hover:bg-gray-800 border-zinc-300 dark:border-zinc-600 
+									className="dark:bg-background relative bg-white dark:hover:bg-gray-200  hover:bg-gray-800 border-zinc-300 dark:border-zinc-600 
 							hover:border-zinc-500
 						w-full inline-flex items-center justify-center px-4 py-3 border font-semibold rounded-lg shadow-md transition-colors duration-100 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-900 !transition-none"
 								>
+									{providerLastUsed === "GOOGLE" && (
+										<span className="absolute right-1 -top-1 bg-blue-400 text-black rounded-xl border-2 border-blue-600/50 text-[8px] px-2 py-[1px] uppercase">
+											Last Used
+										</span>
+									)}
 									<FcGoogle className="mr-2" />
 									<span
 										className="text-primary dark:group-hover:text-black group-hover:text-white"
@@ -74,9 +82,14 @@ export default function LoginPage() {
 							</div>
 							<div className="mt-8 group">
 								<GithubLoginButton
-									className="dark:bg-background  bg-white dark:hover:bg-gray-200  hover:bg-gray-800 border-zinc-300 dark:border-zinc-600 
+									className="dark:bg-background relative bg-white dark:hover:bg-gray-200  hover:bg-gray-800 border-zinc-300 dark:border-zinc-600 
 							hover:border-zinc-500   w-full inline-flex items-center justify-center px-4 py-3 border font-semibold rounded-lg shadow-md transition-colors duration-100 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-900 !transition-none"
 								>
+									{providerLastUsed === "GITHUB" && (
+										<span className="absolute right-1 -top-1 bg-blue-400 text-black rounded-xl border-2 border-blue-600/50 text-[8px] px-2 py-[1px] uppercase">
+											Last Used
+										</span>
+									)}
 									<FaGithub className='mr-2 text-primary dark:group-hover:text-black group-hover:text-white' />
 									<span className="text-primary dark:group-hover:text-black group-hover:text-white"
 									>
@@ -86,8 +99,14 @@ export default function LoginPage() {
 
 
 							<div className="mt-8 group">
-								<button onClick={() => setToggleEmail(true)} className="dark:bg-background  bg-white dark:hover:bg-gray-200  hover:bg-gray-800 border-zinc-300 dark:border-zinc-600 
+								<button onClick={() => setToggleEmail(true)}
+									className="dark:bg-background relative bg-white dark:hover:bg-gray-200  hover:bg-gray-800 border-zinc-300 dark:border-zinc-600 
 						hover:border-zinc-500   w-full inline-flex items-center justify-center px-4 py-3 border font-semibold rounded-lg shadow-md transition-colors duration-100 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-900 !transition-none">
+									{providerLastUsed === "EMAIL" && (
+										<span className="absolute right-1 -top-1 bg-blue-400 text-black rounded-xl border-2 border-blue-600/50 text-[8px] px-2 py-[1px]  uppercase">
+											Last Used
+										</span>
+									)}
 									<MdOutlineEmail className='mr-2 text-primary dark:group-hover:text-black group-hover:text-white' />
 									<span className="text-primary dark:group-hover:text-black group-hover:text-white"
 									>
@@ -126,6 +145,7 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 	const { register, handleSubmit, formState: { errors, isSubmitting } } = form
 	const email = form.getValues("email")
 	const router = useRouter()
+
 	const requiredVerification = useRef(false)
 	const onSubmit = async (data: LoginUserType) => {
 		try {

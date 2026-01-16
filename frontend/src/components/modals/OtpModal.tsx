@@ -62,6 +62,7 @@ const OtpModal = ({ userEmail, setShowOtpForm, showOtpForm }: { userEmail: strin
 				email: userEmail
 			})
 			if (response.status === 200) {
+				localStorage.setItem("provider_last_used", "EMAIL")
 				router.push("/auth/success")
 				console.clear()
 			}
