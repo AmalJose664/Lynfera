@@ -113,20 +113,20 @@ export default function LoginPage() {
 										Sign in with Email</span>
 								</button>
 							</div>
-						</motion.div>
+						</motion.div >
 						)
 							: <EmailMethodBox setToggleEmail={setToggleEmail} key={"inputs"} />
 						}
-					</AnimatePresence>
-				</div>
+					</AnimatePresence >
+				</div >
 				<div className="mt-12 flex items-center justify-between flex-col text-some-less">
 					No account yet?
 					<Link href={"/signup"} className='m-auto mt-2 text-blue-400 hover:underline'>
 						Sign up
 					</Link>
 				</div>
-			</div>
-		</div></>
+			</div >
+		</div ></>
 	);
 }
 
@@ -145,7 +145,6 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 	const { register, handleSubmit, formState: { errors, isSubmitting } } = form
 	const email = form.getValues("email")
 	const router = useRouter()
-
 	const requiredVerification = useRef(false)
 	const onSubmit = async (data: LoginUserType) => {
 		try {
@@ -232,6 +231,6 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 
 				</form>
 			</div>
-		</motion.div>
+		</motion.div >
 	)
 }
