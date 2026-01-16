@@ -9,7 +9,8 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build": "tsc",
-		"dev": "nodemon --exec tsx src/server.ts"
+		"dev": "nodemon --exec tsx src/server.ts",
+		"start": "node dist/server.js"
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.958.0",
