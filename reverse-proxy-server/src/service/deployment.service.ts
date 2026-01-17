@@ -21,7 +21,6 @@ class DeploymentService implements IDeploymentService {
 		if (dataFromCache) {
 			return dataFromCache as DeploymentResult
 		}
-		console.log("db calls deployment ====>")
 		const deployment = await this.deploymentRepo.getDeploymentByPublicId(publicId)
 		if (!deployment) {
 			return null

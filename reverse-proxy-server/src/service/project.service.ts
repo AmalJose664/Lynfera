@@ -29,7 +29,6 @@ class ProjectService implements IProjectService {
 		if (dataFromCache) {
 			return dataFromCache as IProject
 		}
-		console.log("db calls ====>")
 		const project = await this.projectRepository.getProjectBySlugWithUser(slug)
 		if (!project) {
 			return null

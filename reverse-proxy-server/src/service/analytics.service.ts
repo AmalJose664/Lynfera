@@ -9,7 +9,7 @@ class AnalyticsService implements IAnalyticsService {
 	private kafkaTopic: string
 	private analyticsBuffer: IAnalytics[] = []
 	MAX_QUEUE_SIZE = 2000;
-	BATCH_SIZE = 250;
+	BATCH_SIZE = 350;
 	FLUSH_INTERVAL = 7000;    //    7s 
 	isSending = false;
 	FLUSH_INTERVAL_REF: ReturnType<typeof setInterval>;
@@ -22,7 +22,7 @@ class AnalyticsService implements IAnalyticsService {
 	}
 
 	async sendAnalyticsBatch(): Promise<void> {
-		console.log("call to send ....", this.analyticsBuffer.length)
+		process.stdout.write(" - ")
 		if (this.isSending || this.analyticsBuffer.length === 0) return
 
 		this.isSending = true;

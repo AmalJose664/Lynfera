@@ -5,13 +5,12 @@ import { findProjectDplIds } from "./middleware/projectFinder.js"
 import { errorHandler } from "./middleware/globalErrorHandler.js"
 import extraRoute from "./routes/routes.js"
 import cors from "cors"
+import rateLimit from "express-rate-limit"
+import { baseRateLimit } from "./config/rate-limiter.config.js"
 
 const app = express()
 
-app.use((req, res, next) => {
-	console.log("proxy_server - >>> ", req.path)
-	next()
-})
+app.use(rateLimit(baseRateLimit))
 
 app.use("/extras", cors({
 	origin: process.env.FRONTEND_URL,
