@@ -17,6 +17,7 @@ import { PLANS } from "@/constants/plan.js";
 import { projectBasicFields, projectSettingsFields } from "@/constants/populates/project.populate.js";
 import { DeploymentStatus } from "@/models/Deployment.js";
 import { DEPLOYMENT_ERRORS, PROJECT_ERRORS, USER_ERRORS } from "@/constants/errors.js";
+import { reservedSubdomains } from "@/constants/subdomain.js";
 
 class ProjectService implements IProjectService {
 	private projectRepository: IProjectRepository;
@@ -125,6 +126,10 @@ class ProjectService implements IProjectService {
 			return null;
 		}
 		const project = await this.projectRepository.updateProject(id, userId, newData);
+		if (dto.hasOwnProperty("isDisabled") && project) {
+			await this.cacheInvalidator.publishInvalidation("project", project.subdomain);
+		}
+
 		return project;
 	}
 
@@ -160,6 +165,9 @@ class ProjectService implements IProjectService {
 		const projects = await this.projectRepository.findProjectsBySubdomain(newSubdomain);
 		if (projects.length > 0) {
 			return false;
+		}
+		if (reservedSubdomains.includes(newSubdomain)) {
+			return false
 		}
 		return true;
 	}

@@ -28,7 +28,7 @@ class UserService implements IUserSerivce {
 		return await this.userRepository.createUser(userData);
 	}
 
-	private async oauthLoginStrategy(profile: Profile, provider: AuthProvidersList): Promise<IUser> {
+	private async oauthLoginStrategy(profile: Profile, provider: AuthProvidersList): Promise<{ user: IUser, newUser: boolean }> {
 		console.log(`${provider} login`);
 
 		const { emails } = profile;
@@ -48,7 +48,7 @@ class UserService implements IUserSerivce {
 			user = await this.createUser(newUser);
 			console.log("No user found, created new...");
 
-			return user;
+			return { user, newUser: true };
 		}
 
 		const hasProvider = user.authProviders.some((p) => p.provider === provider);
@@ -60,14 +60,14 @@ class UserService implements IUserSerivce {
 			});
 		}
 
-		return user as IUser;
+		return { user: user as IUser, newUser: false };
 	}
 
-	async googleLoginStrategy(profile: Profile): Promise<IUser> {
+	async googleLoginStrategy(profile: Profile): Promise<{ user: IUser, newUser: boolean }> {
 		return this.oauthLoginStrategy(profile, AuthProvidersList.GOOGLE);
 	}
 
-	async githubLoginStrategy(profile: Profile): Promise<IUser> {
+	async githubLoginStrategy(profile: Profile): Promise<{ user: IUser, newUser: boolean }> {
 		return this.oauthLoginStrategy(profile, AuthProvidersList.GITHUB);
 	}
 

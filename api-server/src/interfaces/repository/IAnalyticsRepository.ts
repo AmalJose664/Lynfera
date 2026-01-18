@@ -10,6 +10,7 @@ export interface QueryOptions {
 export interface IAnalyticsRepository {
 	insertBatch(data: BufferAnalytics[]): Promise<void>;
 	insertSingle(data: BufferAnalytics): Promise<void>;
+	clearProjectAnalytics(projectId: string): Promise<void>
 
 	getBandwidth(projectId: string, queryOptions: QueryOptions): Promise<unknown[]>;
 	getOverview(projectId: string, queryOptions: QueryOptions): Promise<unknown[]>;

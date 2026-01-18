@@ -25,10 +25,10 @@ export const oAuthLoginCallback = (req: Request, res: Response, next: NextFuncti
 		if (!req.user) {
 			return next(new AppError(USER_ERRORS.NOT_AUTHENTICATED, STATUS_CODES.UNAUTHORIZED));
 		}
-		issueAuthAccessCookies(res, req.user);
-		issueAuthRefreshCookies(res, req.user);
-
-		const frontend = ENVS.FRONTEND_URL + FRONTEND_REDIRECT_PATH;
+		issueAuthAccessCookies(res, { id: req.user.id, plan: req.user.plan });
+		issueAuthRefreshCookies(res, { id: req.user.id, plan: req.user.plan });
+		const frontend = ENVS.FRONTEND_URL + FRONTEND_REDIRECT_PATH + ((req.user as any).newUser ? "?newuser=true" : "");
+		console.log({ frontend, user: req.user })
 		res.redirect(frontend);
 	} catch (error) {
 		next(new AppError(USER_ERRORS.CALLBACK_ERROR, STATUS_CODES.INTERNAL_SERVER_ERROR, error));
@@ -38,10 +38,11 @@ export const oAuthLoginCallback = (req: Request, res: Response, next: NextFuncti
 export const googleLoginStrategy = async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
 	console.log("strategy google");
 	try {
-		const user = await userService.googleLoginStrategy(profile);
+		const { user, newUser } = await userService.googleLoginStrategy(profile);
 		const doneUser = {
 			id: user._id,
 			plan: user.plan,
+			newUser
 		};
 		done(null, doneUser);
 	} catch (error) {
@@ -52,10 +53,11 @@ export const googleLoginStrategy = async (accessToken: string, refreshToken: str
 export const githubLoginStrategy = async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
 	try {
 		console.log("strategy github");
-		const user = await userService.githubLoginStrategy(profile);
+		const { user, newUser } = await userService.githubLoginStrategy(profile);
 		const doneUser = {
 			id: user._id,
 			plan: user.plan,
+			newUser
 		};
 		done(null, doneUser);
 	} catch (error) {

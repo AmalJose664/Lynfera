@@ -9,6 +9,7 @@ export interface IAnalyticsService {
 	addEventBatch(event: BufferAnalytics[], bandwidthByProjectBatch: BandWidthWithProjectType): Promise<void>;
 	exitService(): Promise<void>;
 
+	clearAnalytics(projectId: string): Promise<void>
 	getBandwidthData(
 		projectId: string,
 		range: string | undefined,

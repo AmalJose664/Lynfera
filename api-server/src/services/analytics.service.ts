@@ -24,7 +24,7 @@ class AnalyticsService implements IAnalyticsService {
 
 	private startFlushTimer(): void {
 		this.flushTimer = setInterval(() => {
-			console.log("---");
+			process.stdout.write(" - ");
 			if (this.analyticsBuffer.length > 0) {
 				this.saveBatch().catch(console.error);
 			}
@@ -84,7 +84,9 @@ class AnalyticsService implements IAnalyticsService {
 			await this.saveBatch();
 		}
 	}
-
+	async clearAnalytics(projectId: string): Promise<void> {
+		return this.analyticsRepo.clearProjectAnalytics(projectId)
+	}
 	async getBandwidthData(
 		projectId: string,
 		range: string | undefined,

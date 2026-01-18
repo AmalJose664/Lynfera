@@ -4,7 +4,11 @@ import { validateObjectId } from "@/middlewares/validateObjectId.js";
 import { Router } from "express";
 
 const analyticsRouter = Router();
-
+analyticsRouter.post("/:projectId/clear-data",
+	authenticateToken,
+	validateObjectId("projectId"),
+	analyticsController.clearAnalytics.bind(analyticsController),
+)
 analyticsRouter.get(
 	"/:projectId/bandwidth",
 	authenticateToken,

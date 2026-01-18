@@ -1,12 +1,12 @@
 import { LoginUserDTO, SignUpUserDTO } from "@/dtos/auth.dto.js";
-import { IUser } from "@/models/User.js";
+import { AuthProvidersList, IUser } from "@/models/User.js";
 import { Profile } from "passport";
 
 export interface IUserSerivce {
 	createUser(userData: Partial<IUser>): Promise<IUser>;
 
-	googleLoginStrategy(Profile: Profile): Promise<IUser>;
-	githubLoginStrategy(profile: Profile): Promise<IUser>;
+	googleLoginStrategy(Profile: Profile): Promise<{ user: IUser, newUser: boolean }>;
+	githubLoginStrategy(profile: Profile): Promise<{ user: IUser, newUser: boolean }>;
 	updateUser?(userId: string, updateData: Partial<IUser>): Promise<IUser | null>;
 	updateUserProfile?(userId: string): Promise<IUser | null>;
 

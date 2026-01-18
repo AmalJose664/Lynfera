@@ -128,7 +128,9 @@ class ProjectController implements IProjectController {
 		try {
 			const userId = req.user?.id as string;
 			const dto = req.validatedBody as UpdateSubdomainDTO;
-			const updatedProject = await this.projectService.changeProjectSubdomain(userId, dto.projectId, dto.newSubdomain);
+			const updatedProject = await this.projectService.changeProjectSubdomain(userId, dto.projectId,
+				dto.newSubdomain.toLowerCase()
+			);
 			if (!updatedProject) {
 				res.status(STATUS_CODES.NOT_FOUND).json({ project: null });
 				return;
@@ -142,7 +144,7 @@ class ProjectController implements IProjectController {
 	async checkSubdomainAvailable(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const dto = req.validatedQuery as checkSubdomainDTO;
-			const result = await this.projectService.checkSubdomainAvaiable(dto.value);
+			const result = await this.projectService.checkSubdomainAvaiable(dto.value.toLowerCase());
 			res.json({ available: result });
 		} catch (error) {
 			next(error);
