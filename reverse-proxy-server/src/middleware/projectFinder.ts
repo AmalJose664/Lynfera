@@ -28,8 +28,8 @@ export type RequestWithProject = Request & {
 
 export async function findProjectDplIds(req: Request, res: Response, next: NextFunction) {
 
-	console.log(req.subdomains, " < < < < <")
-	console.log(req.hostname, " > > > > > >")
+	// console.log(req.subdomains, " < < < < <")
+	// console.log(req.hostname, " > > > > > >")
 
 
 
