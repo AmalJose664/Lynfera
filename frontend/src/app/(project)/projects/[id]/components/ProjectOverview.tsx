@@ -52,7 +52,7 @@ const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeplo
 								</div>
 							</div>
 							<div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-								<TechStack link={projectLink} stack={project.techStack.toLowerCase()} status={project.status} />
+								<TechStack name={project.name} link={projectLink} stack={project.techStack.toLowerCase()} status={project.status} />
 								<div className="space-y-4">
 									<div>
 										<span className="text-xs uppercase tracking-wider text-gray-500 font-semibold">Status</span>

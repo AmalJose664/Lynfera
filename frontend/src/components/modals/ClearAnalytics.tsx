@@ -12,57 +12,62 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRef, useState } from "react"
-import { useDeleteProjectMutation } from "@/store/services/projectsApi"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import Copybtn from "../Copybtn"
+import { useClearAnalyticsMutation } from "@/store/services/analyticsApi"
 
-
-export function DeleteProjectDialog({ projectName, projectId }: { projectName: string, projectId: string }) {
+export function ClearAnalyticsDialog({ projectName, projectId }: { projectName: string, projectId: string }) {
 	const [userConfirmText, setUserConfirmText] = useState("")
-	const [deleteProject, data] = useDeleteProjectMutation()
+	const [open, setOpen] = useState(false)
+	const [clearAnalytics, data] = useClearAnalyticsMutation()
 	const ref = useRef<HTMLButtonElement>(null)
 	const router = useRouter()
-	const confirmText = "delete " + projectName
+	const confirmText = "delete analytics " + projectName
 	const handleDelete = async () => {
 		if (userConfirmText === confirmText) {
 			try {
-				const result = await deleteProject(projectId).unwrap()
+				const result = await clearAnalytics({ projectId }).unwrap()
 				console.log("Deleted:", result)
-				toast.success(`Project ${projectName} has been deleted.`)
-				router.push("/projects")
+				toast.success(`Project ${projectName} analytics has been deleted.`)
+				router.push("/projects/" + projectId)
 			} catch (err) {
 				console.error("Delete failed:", err)
-				toast.error("Failed to delete project")
+				toast.error("Failed to delete analytics")
 				ref.current?.click()
+			} finally {
+				setUserConfirmText("")
+				setOpen(false)
 			}
 
 		} else {
-			alert("Project name does not match.")
+			toast.error("Project name does not match")
 		}
 	}
 
 	return (
-		<Dialog >
+		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
 				<Button className="text-red-500 border border-red-400 text-sm px-3 py-1 rounded-md bg-background hover:bg-red-50 dark:hover:bg-[#1a1a1a]" size="sm">
-					Delete Project
+					Clear Data
 				</Button>
 			</DialogTrigger>
 
 			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
-					<DialogTitle>Delete Project</DialogTitle>
+					<DialogTitle>Clear All Analytics Data</DialogTitle>
 					<DialogDescription>
 						<span className="text-red-400/90">
-							This action cannot be undone.
+							This action will permanently delete all analytics data for this project.
+							You will lose access to all analytics collected up to this point.
 						</span>
 						<br />
-						To confirm, type delete 'project name' below:
+						To confirm, type delete analytics 'project name' below:
 						<br />
 					</DialogDescription>
 					<div className="flex items-center gap-3 text-sm">
-						{confirmText}
+						{confirmText} <Copybtn value={confirmText} />
 					</div>
 				</DialogHeader>
 

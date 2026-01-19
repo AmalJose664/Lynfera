@@ -104,11 +104,22 @@ export default function SignupPage() {
 					</AnimatePresence>
 				</div>
 				<div className="mt-12 flex items-center justify-between flex-col text-some-less">
-					Already have an account?
-					<Link href={"/login"} className='m-auto mt-2 text-blue-400 hover:underline'>
-						Log in
-					</Link>
+					<div className='flex items-center'>
+						<p className="text-some-less text-xs">
+							By signing up, you agree to our{" "}
+							<Link className='underline' href={"/legal/terms-of-use"}>Terms and conditions</Link>
+							{" "}and{" "}
+							<Link className='underline' href={"/legal/privacy"}>Privacy Policy</Link>
+						</p>
+					</div>
+					<div className='flex items-center flex-col mt-4'>
+						<p className='text-some-less text-sm'>Already have an account?</p>
+						<Link href={"/login"} className='m-auto mt-2 text-blue-400 hover:underline'>
+							Log in
+						</Link>
+					</div>
 				</div>
+
 			</div>
 		</div>
 	</>
@@ -217,7 +228,6 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 								{isSubmitting ? "Loading..." : "Sign Up"}</span>
 						</button>
 					</div>
-
 				</form>
 			</div>
 		</motion.div>

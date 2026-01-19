@@ -2,13 +2,15 @@
 import { LoadingSpinner } from "@/components/LoadingSpinner"
 import RightFadeComponent from "@/components/RightFadeComponent"
 import axiosInstance from "@/lib/axios"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 
 
 const Page = () => {
 	const router = useRouter()
+	const params = useSearchParams()
 	const [code, setCode] = useState<string | null>("STANDBY")
+	const isNewUser = params.get("newuser") === "true";
 	useEffect(() => {
 		const verifyLogin = async () => {
 			try {
@@ -55,7 +57,7 @@ const Page = () => {
 					<RightFadeComponent>
 						<h1 >Loading your account...</h1>
 						<p className="text-base/7 text-less max-w-prose ">
-							Just a moment while we set things up for you.
+							{isNewUser ? "Just a moment while we set things up for you." : "Logging into your account."}
 						</p>
 					</RightFadeComponent>
 				</>

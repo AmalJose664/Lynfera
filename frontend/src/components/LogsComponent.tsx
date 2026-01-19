@@ -24,6 +24,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { FiArrowLeft, FiArrowRight } from 'react-icons/fi';
 import { AiOutlineNumber } from 'react-icons/ai';
 import { IconType } from "react-icons";
+import { TbArrowsMaximize } from 'react-icons/tb';
 
 interface LogsComponentProps {
 	deploymentId: string,
@@ -60,16 +61,16 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 			new Date(log.timestamp).toLocaleString().includes(searchTerm);
 		return matchesFilter && matchesSearch;
 	});
-
+	const [isMaximized, setIsMaximized] = useState(false);
 
 	const downloadLogs = () => {
 		if (currentUsingLogs.length === 0) {
 			toast.info("No logs found to download")
 			return
 		}
-		const logText = (currentUsingLogs).map(log =>
-			`[${log.timestamp}] [${log.level.toUpperCase()}] ${log.message}`
-		).join('\n');
+		const logText = (currentUsingLogs)
+			.map(log => `[${log.timestamp}] [${log.level.toUpperCase()}] ${log.message.replace(/\x1B\[[0-9;]*m/g, '')}`)
+			.join('\n');
 
 		const blob = new Blob([logText], { type: 'text/plain' });
 		const url = URL.createObjectURL(blob);
@@ -123,9 +124,14 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 	};
 
 	return (
-		<div className="dark:bg-neutral-950 bg-neutral-200 text-zinc-100 p-1 rounded-md">
-			<div className="max-w-full mx-auto relative overflow-y-hidden">
-				<SingleLogView selectedLog={selectedLog} setSelectedLog={setSelectedLog} log={filteredLogs[selectedLog || 0]} total={filteredLogs.length} />
+		<div className={isMaximized
+			? "fixed inset-0 z-50 bg-neutral-950 p-4 flex flex-col"
+			: "dark:bg-neutral-950 bg-neutral-200 text-zinc-100 p-1 rounded-md"
+		}>
+			<div className={isMaximized
+				? "flex flex-col"
+				: "max-w-full mx-auto relative overflow-y-hidden"}>
+				<SingleLogView selectedLog={selectedLog} setSelectedLog={setSelectedLog} isMaximized={isMaximized} log={filteredLogs[selectedLog || 0]} total={filteredLogs.length} />
 				<div className="dark:bg-neutral-950 bg-white border ">
 					<div className="border-b  px-3 py-2">
 						<div className="flex items-center justify-between mb-2">
@@ -134,6 +140,13 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 								<span className="text-sm font-medium text-gray-400">Logs</span>
 							</div>
 							<div className="flex gap-1">
+								<button
+									onClick={() => setIsMaximized(!isMaximized)}
+									className="px-2 py-1 text-xs dark:bg-zinc-900 !duration-200 border rounded-xs  dark:hover:bg-gray-800 hover:bg-gray-200 text-less  flex items-center gap-1"
+									title="Maximize Logs"
+								>
+									<TbArrowsMaximize className={cn("w-3 h-3", isMaximized && "text-blue-500")} />
+								</button>
 								<button
 									onClick={refetch}
 									className="px-2 py-1 text-xs dark:bg-zinc-900 !duration-200 border rounded-xs  dark:hover:bg-gray-800 hover:bg-gray-200 text-less  flex items-center gap-1"
@@ -195,14 +208,14 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 											onChange={(e) => setAutoScroll(e.target.checked)}
 											className="w-3 h-3"
 										/>
-										<span>auto</span>
+										<span>Auto-scroll</span>
 									</label>
 								</div>
 							</div>
 						</div>
 					</div>
 
-					<div className="dark:bg-neutral-950 bg-white logs-container-build " style={{ height: '420px' }}>
+					<div className={`dark:bg-neutral-950 bg-white logs-container-build flex-1 min-h-0 ${!isMaximized ? "h-[420px]" : "h-[100vh]"}`}>
 						{filteredLogs.length === 0 ? (
 							<div className="flex items-center justify-center h-full text-gray-700">
 								<div className="text-center text-xs">
@@ -230,7 +243,7 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 					<div className="border-t  px-3 py-1 dark:bg-neutral-950 bg-white">
 						<div className="flex justify-between text-xs text-gray-700">
 							<span>{filteredLogs.length} / {currentUsingLogs.length}</span>
-							<span>virtualized</span>
+							<span>{deploymentId}</span>
 						</div>
 					</div>
 				</div>
@@ -240,7 +253,12 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 }
 
 
-const SingleLogView = ({ selectedLog, setSelectedLog, log, total }: { selectedLog: number | null, setSelectedLog: Dispatch<SetStateAction<number | null>>, log: Log, total: number }) => {
+const SingleLogView = ({ selectedLog, setSelectedLog, isMaximized, log, total }: {
+	selectedLog: number | null,
+	setSelectedLog: Dispatch<SetStateAction<number | null>>,
+	isMaximized: boolean,
+	log: Log, total: number
+}) => {
 
 	// ai generated  log ui box
 	if (!log) {
@@ -257,7 +275,7 @@ const SingleLogView = ({ selectedLog, setSelectedLog, log, total }: { selectedLo
 		<AnimatePresence>
 			{selectedLog !== null && (
 				(
-					<div className="absolute inset-0 z-50 flex flex-col justify-end">
+					<div className="absolute inset-0 z-60 flex flex-col justify-end">
 						<motion.div
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
@@ -271,7 +289,7 @@ const SingleLogView = ({ selectedLog, setSelectedLog, log, total }: { selectedLo
 							animate={{ y: 0 }}
 							exit={{ y: "100%" }}
 							transition={{ type: "spring", damping: 25, stiffness: 300 }}
-							className="relative z-10 w-full h-[75%] flex flex-col bg-white dark:bg-background border-t dark:border-zinc-800 border-zinc-200 shadow-2xl rounded-t-xl"
+							className={cn("relative z-10 w-full flex flex-col bg-white dark:bg-background border-t dark:border-zinc-800 border-zinc-200 shadow-2xl rounded-t-xl", isMaximized ? "h-[55%]" : "h-[75%]")}
 						>
 							<div className="flex items-center justify-between px-5 py-3 border-b dark:border-zinc-800 border-zinc-200 shrink-0">
 								<div className="flex items-center gap-2">

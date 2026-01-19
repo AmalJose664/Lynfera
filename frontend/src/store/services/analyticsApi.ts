@@ -9,6 +9,10 @@ export const analyticsApi = createApi({
 
 	tagTypes: ['Analytics'],
 	endpoints: (builder) => ({
+		clearAnalytics: builder.mutation<void, { projectId: string }>({
+			query: ({ projectId }) => ({ url: `/analytics/${projectId}/clear-data`, method: "POST", }),
+			invalidatesTags: ['Analytics']
+		}),
 		getBandWidth: builder.query<bandWidthType[], AnalyticsParamsTypes>({
 			query: ({ projectId, range, interval }) => ({ url: `/analytics/${projectId}/bandwidth?range=${range}&interval=${interval}`, method: 'get' }),
 			transformResponse: (data: any) => {
@@ -52,4 +56,7 @@ export const analyticsApi = createApi({
 	})
 })
 
-export const { useGetBandWidthQuery, useGetOverviewQuery, useGetTopPagesQuery, useGetOsStatsQuery } = analyticsApi
+export const { useGetBandWidthQuery,
+	useGetOverviewQuery,
+	useGetTopPagesQuery, useClearAnalyticsMutation,
+	useGetOsStatsQuery } = analyticsApi

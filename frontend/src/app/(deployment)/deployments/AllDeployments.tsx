@@ -46,6 +46,7 @@ const AllDeployments = () => {
 			const searchLower = search.toLowerCase()
 			const matchesSearch = !search ||
 				d._id.toLowerCase().includes(searchLower) ||
+				d.publicId.toLowerCase().includes(searchLower) ||
 				d.commit.id?.toLowerCase().includes(searchLower) ||
 				d.commit.msg?.toLowerCase().includes(searchLower) ||
 				(d.project as Project).name.toLowerCase().includes(searchLower)

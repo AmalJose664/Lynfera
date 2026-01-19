@@ -23,13 +23,14 @@ import { ChangeProjectSubdomainDialog } from "@/components/modals/ChangeSubdomai
 import RightFadeComponent from "@/components/RightFadeComponent";
 import { LoadingSpinner2 } from "@/components/LoadingSpinner";
 import Copybtn from "@/components/Copybtn";
+import { ClearAnalyticsDialog } from "@/components/modals/ClearAnalytics";
 
 
 
 
-const DetailRow = ({ label = "", value = "", isLink = false }: { label?: string, value?: string, isLink?: boolean }) => (
+const DetailRow = ({ label = "", value = "", isLink = false, children }: { label?: string, value?: string, isLink?: boolean, children?: React.ReactNode }) => (
 	<div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0 px-4 py-3 
-	transition-colors duration-75 border-b dark:border-b-background hover:bg-secondary">
+	transition-colors duration-75 border-b dark:border-b-background hover:bg-secondary rounded-md">
 		<div className="sm:w-40 shrink-0">
 			<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
 				{label}
@@ -45,11 +46,12 @@ const DetailRow = ({ label = "", value = "", isLink = false }: { label?: string,
 				>
 					{value}
 				</a>
-			) : (
-				<span className="text-sm text-gray-900 dark:text-gray-100 break-all">
+			) :
+				children ? children : (<span className="text-sm text-gray-900 dark:text-gray-100 break-all">
 					{value}
-				</span>
-			)}
+				</span>)}
+
+
 		</div>
 	</div>
 );
@@ -276,7 +278,21 @@ const Configurations = ({ project, form, isUpdateMode, setIsUpdateMode }: { proj
 											<DetailRow label="Base Directory" value={rootDir} />
 											<DetailRow label="Build command" value={buildCommand} />
 											<DetailRow label="Install command" value={installCommand} />
-											<DetailRow label="Outputs Directory" value={outputDirectory} />
+											{rootDir === "/" ? (<DetailRow label="Outputs Directory" value={outputDirectory} />) : (
+												<DetailRow label="Outputs Directory" >
+													<div className="flex gap-5 items-center">
+														<span className="text-sm text-primary">
+															{outputDirectory}
+														</span>
+														<span className="text-sm text-primary">
+															&#8594;
+														</span>
+														<span className="text-sm text-primary">
+															{rootDir + "/" + outputDirectory}
+														</span>
+													</div>
+												</DetailRow>
+											)}
 											<DetailRow label="Current Status" value={project.status} />
 										</div>
 									</div>
@@ -579,7 +595,6 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 									<input {...(register("rewriteNonFilePaths"))} type="checkbox" className="" />
 								</label>
 							</div>
-
 						</div>
 					</div>
 					<div
@@ -588,6 +603,17 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 					>
 						<h2 className="text-xl mb-3 font-semibold text-red-500">Danger</h2>
 						<div className="border rounded-md p-4 space-y-4">
+							<div className="flex items-center justify-between" id="disable">
+								<div>
+									<p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+										Clear Analytics
+									</p>
+									<p className="text-xs text-gray-500">
+										Delete all analytics till now for your app.
+									</p>
+								</div>
+								<ClearAnalyticsDialog projectId={project._id} projectName={project.name} />
+							</div>
 							<div className="flex items-center justify-between" id="disable">
 								<div>
 									<p className="text-sm font-medium text-gray-900 dark:text-gray-100">

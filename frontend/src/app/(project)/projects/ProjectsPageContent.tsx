@@ -12,7 +12,7 @@ import ProjectEmptyState from './ProjectEmptyState';
 import { Project, ProjectStatus } from '@/types/Project';
 import { useRouter } from "next/navigation"
 import { cn } from '@/lib/utils';
-import { getStatusBg, isStatusFailure } from '@/lib/moreUtils/combined';
+import { getElapsedTimeClean, getStatusBg, isStatusFailure } from '@/lib/moreUtils/combined';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import OptionsComponent from "@/components/OptionsComponent";
@@ -208,8 +208,9 @@ export default function ProjectContent() {
 												<span>{project.branch}</span>
 											</div>
 											<div className="flex items-center gap-1.5">
-												<CiClock1 size={14} />
-												<span>{new Date(project.lastDeployedAt || "").toDateString()}</span>
+												<CiClock1 size={13} />
+												<span className="text-xs">{new Date(project.lastDeployedAt || project.createdAt).toDateString().split(" ").slice(1, 3).join(" ")} - </span>
+												<span className="text-xs">{getElapsedTimeClean(project.lastDeployedAt || project.createdAt)} ago</span>
 											</div>
 										</div>
 

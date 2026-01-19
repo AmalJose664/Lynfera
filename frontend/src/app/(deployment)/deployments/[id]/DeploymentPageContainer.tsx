@@ -79,7 +79,6 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 
 	return (
 		<div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] text-neutral-900 dark:text-neutral-100">
-			{/* Sticky Header */}
 			<div className="sticky top-0 z-20 border-b bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md border-neutral-200 dark:border-neutral-800">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
 					<BackButton />
@@ -318,7 +317,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 											initial={{ height: 0, opacity: 0 }}
 											animate={{ height: "auto", opacity: 1 }}
 											exit={{ height: 0, opacity: 0 }}
-											className="overflow-hidden border-t border-neutral-200 dark:border-neutral-800"
+											className="overflow-hidden border-t border-neutral-200 relative dark:border-neutral-800"
 										>
 											<div className="p-1">
 												<Logs

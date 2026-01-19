@@ -119,11 +119,16 @@ export default function LoginPage() {
 						}
 					</AnimatePresence >
 				</div >
-				<div className="mt-12 flex items-center justify-between flex-col text-some-less">
-					No account yet?
-					<Link href={"/signup"} className='m-auto mt-2 text-blue-400 hover:underline'>
-						Sign up
-					</Link>
+				<div className="mt-12 flex items-center justify-between flex-col">
+					<div className='flex items-center'>
+						<p className="text-some-less text-xs">By signing in, you agree to our <Link href={"/legal/terms-of-use"}>Terms and conditions</Link> and <Link href={"/legal/privacy"}>Privacy Policy</Link></p>
+					</div>
+					<div className='flex items-center flex-col mt-4'>
+						<p className='text-some-less text-sm'>No account yet?</p>
+						<Link href={"/signup"} className='m-auto mt-2 text-blue-400 hover:underline'>
+							Sign up
+						</Link>
+					</div>
 				</div>
 			</div >
 		</div ></>
