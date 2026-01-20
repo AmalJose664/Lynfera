@@ -1,5 +1,7 @@
 import { CreateProjectDTO, QueryProjectDTO } from "@/dtos/project.dto.js";
+import { IProjectBandwiths } from "@/models/ProjectBandwidths.js";
 import { IProject } from "@/models/Projects.js";
+import { ProjectUsageResults } from "../repository/IDeploymentRepository.js";
 
 export type options = {
 	updateStatusOnlyIfNoCurrentDeployment?: boolean;
@@ -29,6 +31,8 @@ export interface IProjectService {
 		lastDeployed: Date | null;
 		bandwidth: number;
 	}>;
+
+	findTotalUsage(userId: string,): Promise<ProjectUsageResults[]>
 
 	__getProjectById(id: string): Promise<IProject | null>;
 	__updateProjectById(projectId: string, updateData: Partial<IProject>, options?: options): Promise<IProject | null>;

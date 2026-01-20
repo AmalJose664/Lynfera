@@ -3,7 +3,7 @@ import { generateSlug } from "random-word-slugs";
 
 import { IProjectService, options } from "@/interfaces/service/IProjectService.js";
 import { IProjectRepository } from "@/interfaces/repository/IProjectRepository.js";
-import { IDeploymentRepository } from "@/interfaces/repository/IDeploymentRepository.js";
+import { IDeploymentRepository, ProjectUsageResults } from "@/interfaces/repository/IDeploymentRepository.js";
 import { IUserRepository } from "@/interfaces/repository/IUserRepository.js";
 import { ILogsService } from "@/interfaces/service/ILogsService.js";
 import { IProjectBandwidthRepository } from "@/interfaces/repository/IProjectBandwidthRepository.js";
@@ -18,6 +18,7 @@ import { projectBasicFields, projectSettingsFields } from "@/constants/populates
 import { DeploymentStatus } from "@/models/Deployment.js";
 import { DEPLOYMENT_ERRORS, PROJECT_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 import { reservedSubdomains } from "@/constants/subdomain.js";
+import { IProjectBandwiths } from "@/models/ProjectBandwidths.js";
 
 class ProjectService implements IProjectService {
 	private projectRepository: IProjectRepository;
@@ -261,6 +262,14 @@ class ProjectService implements IProjectService {
 			lastDeployed: deployments[0]?.createdAt || null,
 			bandwidth: projectBandwidth,
 		};
+	}
+
+
+
+
+	async findTotalUsage(userId: string,): Promise<ProjectUsageResults[]> {
+		const projectsWithResults = await this.deploymentRepository.getTotalBuildTime(userId)
+		return projectsWithResults
 	}
 
 	async __getProjectById(id: string): Promise<IProject | null> {

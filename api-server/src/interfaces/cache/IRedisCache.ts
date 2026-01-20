@@ -9,6 +9,10 @@ export interface IRedisCache {
 	getSetLength(key: string): Promise<number>;
 	disconnect(): Promise<void>;
 	publishInvalidation(type: string, slug: string): Promise<number>;
+
+	incrementKey(key: string): Promise<number>
+	decrementKey(key: string): Promise<number>
+	setKeyExpiry(key: string, time: number): Promise<number>
 }
 
 export interface ICacheAnalytics {

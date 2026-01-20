@@ -23,7 +23,9 @@ import { config, ecsClient, s3Client } from "@/config/cloud.config.js";
 import { ENVS } from "@/config/env.config.js";
 import { S3_OUTPUTS_DIR } from "@/constants/paths.js";
 import { STATUS_CODES } from "@/utils/statusCodes.js";
-import { DEPLOYMENT_ERRORS, PROJECT_ERRORS } from "@/constants/errors.js";
+import { DEPLOYMENT_ERRORS, PROJECT_ERRORS, USER_ERRORS } from "@/constants/errors.js";
+import { PLANS } from "@/constants/plan.js";
+import { IUser } from "@/models/User.js";
 
 class DeploymentService implements IDeploymentService {
 	private deploymentRepository: IDeploymentRepository;
@@ -33,6 +35,9 @@ class DeploymentService implements IDeploymentService {
 	private DEPLOYMENTS_SET_KEY = "deployments:running";
 	private redisCache: IRedisCache;
 	private logsService: ILogsService;
+
+	private USER_CONCURRENCY_KEY_PREFIX = "build:cncrncy"
+	private USER_CONCURRENCY_TTL_SECONDS = 60 * 10
 
 	constructor(
 		deploymentRepo: IDeploymentRepository,
@@ -49,6 +54,9 @@ class DeploymentService implements IDeploymentService {
 	}
 	async newDeployment(deploymentData: Partial<IDeployment>, userId: string, projectId: string): Promise<IDeployment | null> {
 		const canDeploy = await this.userService.userCanDeploy(userId);
+		if (!canDeploy.user) {
+			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
+		}
 		if (!canDeploy.allowed) {
 			throw new AppError(DEPLOYMENT_ERRORS.DAILY_DEPLOYMENT_LIMIT, STATUS_CODES.TOO_MANY_REQUESTS);
 		}
@@ -74,7 +82,7 @@ class DeploymentService implements IDeploymentService {
 		deploymentData.identifierSlug = generateSlug(3);
 		deploymentData.project = new Types.ObjectId(correspondindProject._id);
 		deploymentData.user = correspondindProject.user;
-		await this.incrementRunningDeplymnts(correspondindProject._id);
+		await this.incrementRunningDeplymnts(correspondindProject._id, canDeploy.user._id, canDeploy.user.plan);
 
 		try {
 			const deployment = await this.deploymentRepository.createDeployment(deploymentData);
@@ -85,11 +93,11 @@ class DeploymentService implements IDeploymentService {
 			]);
 
 			if (deployment?._id) {
-				await this.deployLocal(deployment._id, projectId);
+				await this.deployLocal(deployment._id, projectId, canDeploy.user._id);
 			}
 			return deployment;
 		} catch (error) {
-			await this.decrementRunningDeplymnts(projectId);
+			await this.decrementRunningDeplymnts(projectId, canDeploy.user._id);
 			throw error;
 		}
 	}
@@ -163,32 +171,32 @@ class DeploymentService implements IDeploymentService {
 		return deleteResult;
 	}
 
-	async deployLocal(deploymentId: string, projectId: string): Promise<void> {
+	async deployLocal(deploymentId: string, projectId: string, userId: string): Promise<void> {
 		try {
 			const envs = getNessesaryEnvs();
-			// const command = spawn("node", ["script.js"], {
-			// 	cwd: "../build-server/",
-			// 	env: {
-			// 		...process.env,
-			// 		DEPLOYMENT_ID: deploymentId,
-			// 		PROJECT_ID: projectId,
-			// 	},
+			const command = spawn("node", ["script.js"], {
+				cwd: "../build-server/",
+				env: {
+					...process.env,
+					DEPLOYMENT_ID: deploymentId,
+					PROJECT_ID: projectId,
+				},
 
-			// })
-			// command.stdout?.on("data", (data) => {
-			// 	console.log(`[stdout]: -----data-----from----deployLocal`);
-			// });
-			// command.stderr?.on("data", (data) => {
-			// 	console.error(`[stderr]: ${data.toString().trim()}`);
-			// });
-			// command.on("exit", (code) => {
-			// 	console.log(`Process exited with code ${code}`);
-			// });
+			})
+			command.stdout?.on("data", (data) => {
+				console.log(`[stdout]: -----data-----from----deployLocal`);
+			});
+			command.stderr?.on("data", (data) => {
+				console.error(`[stderr]: ${data.toString().trim()}`);
+			});
+			command.on("exit", (code) => {
+				console.log(`Process exited with code ${code}`);
+			});
 
-			// command.on("error", (err) => {
-			// 	console.error("Failed to start process:", err);
-			// });
-			// return
+			command.on("error", (err) => {
+				console.error("Failed to start process:", err);
+			});
+			return
 			const result = await dispatchBuild(deploymentId, projectId);
 			console.log(result, " - - - ");
 		} catch (error: any) {
@@ -197,7 +205,7 @@ class DeploymentService implements IDeploymentService {
 				status: DeploymentStatus.FAILED,
 				error_message: DEPLOYMENT_ERRORS.DEPLOY_FAILED,
 			});
-			await this.decrementRunningDeplymnts(projectId);
+			await this.decrementRunningDeplymnts(projectId, userId);
 			throw error;
 		}
 	}
@@ -262,16 +270,37 @@ class DeploymentService implements IDeploymentService {
 		await s3Client.send(deleteCommand);
 	}
 
-	async incrementRunningDeplymnts(projectId: string) {
+	async incrementRunningDeplymnts(projectId: string, userId: string, userPlan: string): Promise<void> {
 		await this.redisCache.setAdd(this.DEPLOYMENTS_SET_KEY, projectId);
 		const currentRunningDpymnts = await this.redisCache.getSetLength(this.DEPLOYMENTS_SET_KEY);
 		if (currentRunningDpymnts > this.MAX_CONCURRENT_RUNNABLE_DPYMNTS) {
 			await this.redisCache.setRemove(this.DEPLOYMENTS_SET_KEY, projectId);
 			throw new AppError(DEPLOYMENT_ERRORS.BUSY_RUNNERS, STATUS_CODES.SERVICE_UNAVAILABLE);
 		}
+		const key = `${this.USER_CONCURRENCY_KEY_PREFIX}:${userId}`
+		const current = await this.redisCache.incrementKey(key)
+
+		if (current === 1) {
+			await this.redisCache.setKeyExpiry(key, this.USER_CONCURRENCY_TTL_SECONDS);
+		}
+		if (Number(current) > PLANS[userPlan as IUser['plan']].concurrentBuilds) {
+			await this.redisCache.decrementKey(key)
+			throw new AppError(DEPLOYMENT_ERRORS.CONCURRENT_LIMIT, STATUS_CODES.SERVICE_UNAVAILABLE);
+		}
 	}
-	async decrementRunningDeplymnts(projectId: string) {
-		await this.redisCache.setRemove(this.DEPLOYMENTS_SET_KEY, projectId);
+	async decrementRunningDeplymnts(projectId: string, userId?: string): Promise<void> {
+		let project = null
+		if (!userId) {
+			project = await this.projectRepository.__findProject(projectId)
+		}
+		const fetchedUserId = project?.user.toString()
+		await Promise.all([
+			this.redisCache.setRemove(this.DEPLOYMENTS_SET_KEY, projectId),
+			...(userId
+				? [this.redisCache.decrementKey(`${this.USER_CONCURRENCY_KEY_PREFIX}:${userId}`)]
+				: [this.redisCache.decrementKey(`${this.USER_CONCURRENCY_KEY_PREFIX}:${fetchedUserId}`)]
+			)
+		])
 	}
 
 	async __getDeploymentById(id: string): Promise<IDeployment | null> {

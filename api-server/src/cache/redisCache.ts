@@ -40,6 +40,17 @@ class RedisService implements IRedisCache {
 		return await this.client.scard(key);
 	}
 
+	async incrementKey(key: string): Promise<number> {
+		return this.client.incr(key)
+	}
+	async decrementKey(key: string): Promise<number> {
+		return this.client.decr(key)
+	}
+	async setKeyExpiry(key: string, time: number): Promise<number> {
+		return this.client.expire(key, time);
+	}
+
+
 	async publishInvalidation(type: string, slug: string): Promise<number> {
 		return this.client.publish("cache:invalidate", JSON.stringify({ type, slug }));
 	}

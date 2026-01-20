@@ -39,62 +39,77 @@ class DeploymentEventHandler {
 
 		switch (data.updateType) {
 			case UpdateTypes.START: {
-				await deploymentService.__updateDeployment(projectId, deploymentId, {
-					status: updates.status,
-					commit_hash: updates.commit_hash,
-				});
-				await projectService.__updateProjectById(projectId, {
-					status: updates.status as unknown as ProjectStatus,
-				});
-				break;
-			}
-			case UpdateTypes.END: {
-				await deploymentService.decrementRunningDeplymnts(projectId);
-				await deploymentService.__updateDeployment(projectId, deploymentId, {
-					status: updates.status,
-					complete_at: new Date(updates.complete_at || ""),
-					...(updates.commit_hash && { commit_hash: updates.commit_hash }),
-					timings: {
-						install_ms: updates.install_ms || 0,
-						build_ms: updates.build_ms || 0,
-						upload_ms: updates.upload_ms || 0,
-						duration_ms: updates.duration_ms || 0,
-					},
-
-					file_structure: {
-						files: updates.file_structure?.files || [],
-						totalSize: updates.file_structure?.totalSize || 0,
-					},
-				});
-				await projectService.__updateProjectById(projectId, {
-					status: updates.status as unknown as ProjectStatus,
-					techStack: updates.techStack,
-					tempDeployment: null,
-					...(updates.status === "READY" && { currentDeployment: deploymentId }),
-				});
-				break;
-			}
-			case UpdateTypes.ERROR: {
-				await deploymentService.decrementRunningDeplymnts(projectId);
-				await deploymentService.__updateDeployment(projectId, deploymentId, {
-					status: updates.status,
-					error_message: updates.error_message,
-				});
-				await projectService.__updateProjectById(
-					projectId,
-					{
-						status: updates.status as unknown as ProjectStatus,
-						tempDeployment: null,
-					},
-					{ updateStatusOnlyIfNoCurrentDeployment: true },
-				);
-				break;
-			}
-			case UpdateTypes.CUSTOM: {
 				await Promise.all([
 					deploymentService.__updateDeployment(projectId, deploymentId, {
 						status: updates.status,
-						...updates,
+						commit_hash: updates.commit_hash,
+					}),
+					projectService.__updateProjectById(projectId, {
+						status: updates.status as unknown as ProjectStatus,
+					})
+				])
+				break;
+			}
+			case UpdateTypes.END: {
+				await Promise.all([
+					deploymentService.decrementRunningDeplymnts(projectId, updates.user || ""),
+					deploymentService.__updateDeployment(projectId, deploymentId, {
+						status: updates.status,
+						complete_at: new Date(updates.complete_at || ""),
+						...(updates.commit_hash && { commit_hash: updates.commit_hash }),
+						timings: {
+							install_ms: updates.install_ms || 0,
+							build_ms: updates.build_ms || 0,
+							upload_ms: updates.upload_ms || 0,
+							duration_ms: updates.duration_ms || 0,
+						},
+
+						file_structure: {
+							files: updates.file_structure?.files || [],
+							totalSize: updates.file_structure?.totalSize || 0,
+						},
+					}),
+					projectService.__updateProjectById(projectId, {
+						status: updates.status as unknown as ProjectStatus,
+						techStack: updates.techStack,
+						tempDeployment: null,
+						...(updates.status === "READY" && { currentDeployment: deploymentId }),
+					})
+				])
+				break;
+			}
+			case UpdateTypes.ERROR: {
+				await Promise.all([
+					deploymentService.decrementRunningDeplymnts(projectId, updates.user || ''),
+					deploymentService.__updateDeployment(projectId, deploymentId, {
+						status: updates.status,
+						error_message: updates.error_message,
+					}),
+					projectService.__updateProjectById(
+						projectId,
+						{
+							status: updates.status as unknown as ProjectStatus,
+							tempDeployment: null,
+						},
+						{ updateStatusOnlyIfNoCurrentDeployment: true },
+					)
+				])
+				break;
+			}
+			case UpdateTypes.CUSTOM: {
+				updates
+				await Promise.all([
+					deploymentService.__updateDeployment(projectId, deploymentId, {
+						status: updates.status,
+						commit_hash: updates.commit_hash,
+						error_message: updates.error_message,
+						timings: {
+							install_ms: updates.install_ms || 0,
+							build_ms: updates.build_ms || 0,
+							upload_ms: updates.upload_ms || 0,
+							duration_ms: updates.duration_ms || 0,
+						},
+						file_structure: updates.file_structure,
 						complete_at: new Date(updates.complete_at || ""),
 					}),
 					projectService.__updateProjectById(projectId, {

@@ -33,7 +33,7 @@ export const DEPLOYMENT_ERRORS = {
 	DELETE_FAILED: "Failed to delete deployment",
 	DEPLOY_FAILED: "Deployment process failed",
 	NO_ACTIVE_DEPLOYMENT: "No active deployment found",
-	CONCURRENT_LIMIT: "Maximum concurrent deployments reached",
+	CONCURRENT_LIMIT: "Maximum concurrent deployments for user reached",
 	DAILY_DEPLOYMENT_LIMIT: "Daily deployment limit exceeded",
 	BUSY_RUNNERS: "Busy Runners. Please try again later",
 	ALREADY_ACTIVE: "Deployment already active",

@@ -1,3 +1,5 @@
+import { ProjectUsageResults } from "@/interfaces/repository/IDeploymentRepository.js";
+import { IProjectBandwiths } from "@/models/ProjectBandwidths.js";
 import { IProject } from "@/models/Projects.js";
 import { Types } from "mongoose";
 
@@ -59,11 +61,11 @@ export class ProjectMapper {
 				subdomain: project.subdomain,
 				user: this.isPopulatedObject(project.user, ["profileImage", "email", "name"])
 					? {
-							_id: project.user._id,
-							name: project.user.name,
-							email: project.user.email,
-							profileImage: project.user.profileImage,
-						}
+						_id: project.user._id,
+						name: project.user.name,
+						email: project.user.email,
+						profileImage: project.user.profileImage,
+					}
 					: project.user.toString(),
 				deployments: project.deployments?.map((d) => d.toString()),
 				lastDeployedAt: project.lastDeployedAt,
@@ -82,11 +84,11 @@ export class ProjectMapper {
 				subdomain: project.subdomain,
 				user: this.isPopulatedObject(project.user, ["profileImage", "email", "name"])
 					? {
-							_id: project.user._id,
-							name: project.user.name,
-							email: project.user.email,
-							profileImage: project.user.profileImage,
-						}
+						_id: project.user._id,
+						name: project.user.name,
+						email: project.user.email,
+						profileImage: project.user.profileImage,
+					}
 					: project.user.toString(),
 				buildCommand: project.buildCommand,
 				env: project.env.map((e) => ({ name: e.name, value: e.value })),
@@ -131,11 +133,11 @@ export class ProjectMapper {
 				rewriteNonFilePaths: project.rewriteNonFilePaths,
 				user: this.isPopulatedObject(project.user, ["profileImage", "email", "name"])
 					? {
-							_id: project.user._id,
-							name: project.user.name,
-							email: project.user.email,
-							profileImage: project.user.profileImage,
-						}
+						_id: project.user._id,
+						name: project.user.name,
+						email: project.user.email,
+						profileImage: project.user.profileImage,
+					}
 					: project.user.toString(),
 				deployments: project.deployments?.map((d) => d.toString()),
 				lastDeployedAt: project.lastDeployedAt,
@@ -165,6 +167,29 @@ export class ProjectMapper {
 				totalPages: Math.ceil(total / limit),
 			},
 		};
+	}
+
+	static toUsageMapper(projectData: ProjectUsageResults[]): {
+		data: {
+			projectId: string, deploys: number, projectName: string,
+			total_build: number, bandwidthMontly: number, bandwidthTotal: number,
+			month: string
+		}[]
+	} {
+		return {
+			data: projectData.map((p) => {
+				if (p.isDeleted) return null
+				return {
+					bandwidthMontly: Number(p.bandwidthMontly),
+					bandwidthTotal: Number(p.bandwidthTotal),
+					total_build: Number(p.total_build),
+					projectId: p.projectId.toString(),
+					projectName: p.projectName,
+					deploys: Number(p.deploys),
+					month: p.month
+				}
+			}).filter((p) => !!p)
+		}
 	}
 	static isPopulatedObject(object: any, fields: string[]): boolean {
 		return object && fields.every((f) => f in object);

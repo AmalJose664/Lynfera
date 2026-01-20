@@ -33,6 +33,7 @@ export const DeploymentUpdatesEventSchema = z.object({
 		updateType: z.enum(Object.values(UpdateTypes)),
 		updates: z.object({
 			status: z.enum(Object.values(DeploymentStatus)).optional(),
+			user: z.string().optional(),
 			techStack: z.string().optional(),
 			commit_hash: z.string().optional(),
 			error_message: z.string().optional(),

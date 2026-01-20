@@ -32,7 +32,10 @@ export interface IDeploymentService {
 	__updateDeployment(projectId: string, deploymentId: string, updateData: Partial<IDeployment>): Promise<IDeployment | null>;
 
 	deployCloud(project: IProject, deployment: IDeployment): Promise<void>;
-	deployLocal(deploymentId: string, projectId: string): Promise<void>;
+	deployLocal(deploymentId: string, projectId: string, userId: string): Promise<void>;
 	deleteLocal(deploymentId: string, projectId: string): Promise<void>;
 	deleteCloud(deploymentId: string, projectId: string): Promise<void>;
+
+	incrementRunningDeplymnts(projectId: string, userId: string, userPlan: string): Promise<void>
+	decrementRunningDeplymnts(projectId: string, userId?: string): Promise<void>
 }

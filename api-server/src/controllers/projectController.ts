@@ -191,6 +191,16 @@ class ProjectController implements IProjectController {
 			next(err);
 		}
 	}
+	async totalUsage(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const userId = req.user?.id as string;
+			const results = await this.projectService.findTotalUsage(userId)
+			const data = ProjectMapper.toUsageMapper(results)
+			res.status(STATUS_CODES.OK).json(data);
+		} catch (error) {
+			next(error);
+		}
+	}
 	async __getProjects(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const projectId = req.params.id;
