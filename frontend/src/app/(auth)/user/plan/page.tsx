@@ -1,12 +1,11 @@
 "use client"
 import { useGetUserDetailedQuery } from "@/store/services/authApi"
-import { IPlanIcons, IPlans, PlanIcons, PLANS } from '@/config/plan';
+import { getPlanFeatures, IPlans, PLANS } from '@/config/plan';
 import ErrorComponent from '@/components/ErrorComponent';
 import BackButton from "@/components/BackButton";
 import { cn } from "@/lib/utils";
 import { IoCubeSharp } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
-import { FiCheck } from "react-icons/fi";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -156,7 +155,7 @@ const page = () => {
 								</div>
 								<div className="border-t my-6"></div>
 								<div className="flex-1 space-y-3 mb-6">
-									{PlanIcons[plan as keyof IPlanIcons].features.map((f, index) => {
+									{getPlanFeatures(currentPlan).map((f, index) => {
 										const Icon = f.Icon;
 										return (
 											<div

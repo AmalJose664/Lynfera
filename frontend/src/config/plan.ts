@@ -8,87 +8,78 @@ import {
 } from "react-icons/fi";
 import { IconType } from "react-icons";
 import { IoIosCube, IoMdCloudDone } from "react-icons/io";
-
-export interface IPlans {
-	FREE: {
-		name: string;
-		slug: string;
-		pricePerMonth: number;
-		maxProjects: number;
-		maxDailyDeployments: number;
-		totalBandwidthGB: number
-		features: string[];
-	};
-	PRO: {
-		name: string;
-		slug: string;
-		pricePerMonth: number;
-		maxProjects: number;
-		maxDailyDeployments: number;
-		totalBandwidthGB: number
-		features: string[];
-	};
+import { GiProcessor } from "react-icons/gi";
+type EachPlanFields = {
+	name: string;
+	slug: string;
+	pricePerMonth: number;
+	maxProjects: number;
+	concurrentBuilds: number;
+	maxDailyDeployments: number;
+	totalBandwidthGB: number;
+	features?: string[];
 }
+export interface IPlans {
+	FREE: EachPlanFields;
+	PRO: EachPlanFields
+}
+[
+	"Basic hosting",
+	"Up to 8 projects",
+	"Max 8 deployments daily",
+	"Max 1 concurrent build process",
+	"100GB Total Monthly Bandwidth",
+	"No custom sub domains"
+];
+[
+	"Priority builds",
+	"Custom sub domains",
+	"Up to 20 projects",
+	"Max 40 deployments daily",
+	"Max 3 concurrent build process",
+	"1TB Total Monthly Bandwidth",
+	"More resources"
+]
 export const PLANS: IPlans = {
 	FREE: {
 		name: "FREE",
 		slug: "Starter",
 		pricePerMonth: 0,
-		maxProjects: 8,
+		maxProjects: 10,
+		concurrentBuilds: 1,
 		maxDailyDeployments: 8,
 		totalBandwidthGB: 100,
-		features: [
-			"Basic hosting",
-			"Up to 8 projects",
-			"Max 8 deployments daily",
-			"100GB Total Bandwidth",
-			"No custom sub domains"
-		],
+		features: [] // call as function
 	},
 	PRO: {
 		name: "PRO",
 		slug: "Pro",
 		pricePerMonth: 5,
-		maxProjects: 20,
+		maxProjects: 30,
+		concurrentBuilds: 3,
 		maxDailyDeployments: 40,
 		totalBandwidthGB: 1000,
-		features: [
-			"Priority builds",
-			"Custom sub domains",
-			"Up to 20 projects",
-			"Max 40 deployments daily",
-			"1TB Total Bandwidth",
-			"More resources"
-		],
+		features: [] // call as function
 	},
 } as const;
-export interface IPlanIcons {
-	FREE: {
-		features: { text: string, Icon: IconType }[];
-	};
-	PRO: {
-		features: { text: string, Icon: IconType }[];
-	};
-}
-export const PlanIcons: IPlanIcons = {
 
-	FREE: {
-		features: [
-			{ text: "Basic hosting", Icon: FiServer },
-			{ text: "Up to 8 projects", Icon: IoIosCube },
-			{ text: "Max 8 deployments daily", Icon: IoMdCloudDone },
-			{ text: "100GB Total Bandwidth", Icon: FiHardDrive },
-			{ text: "No custom sub domains", Icon: FiSlash },
-		],
-	},
-	PRO: {
-		features: [
-			{ text: "Priority builds", Icon: FiStar },
-			{ text: "Custom sub domains", Icon: FiLink },
-			{ text: "Up to 20 projects", Icon: IoIosCube },
-			{ text: "Max 40 deployments daily", Icon: IoMdCloudDone },
-			{ text: "1TB Total Bandwidth", Icon: FiHardDrive },
-			{ text: "More resources", Icon: FiPackage },
-		],
-	},
+
+export function getPlanFeatures(plan: EachPlanFields): { text: string, Icon: IconType }[] {
+	return [
+		{ text: `Up to ${plan.maxProjects} projects`, Icon: IoIosCube },
+		{ text: `Max ${plan.maxDailyDeployments} deployments daily`, Icon: IoMdCloudDone },
+		{ text: `Max ${plan.concurrentBuilds} concurrent build process`, Icon: GiProcessor },
+		{ text: `${plan.totalBandwidthGB}GB Total Monthly Bandwidth`, Icon: FiHardDrive },
+		...(plan.pricePerMonth > 0
+			? [
+				{ text: "Custom sub domains", Icon: FiLink },
+				{ text: "Priority builds", Icon: FiStar },
+				{ text: "More resources", Icon: FiPackage },
+			]
+			: [
+				{ text: "No custom sub domains", Icon: FiSlash },
+				{ text: "Basic hosting", Icon: FiServer },
+			]
+		)
+	]
 }

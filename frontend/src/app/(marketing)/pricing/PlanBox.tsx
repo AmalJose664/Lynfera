@@ -1,6 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import { IPlanIcons, IPlans, PlanIcons, PLANS } from "@/config/plan"
+import { getPlanFeatures, IPlans, PLANS } from "@/config/plan"
 import { cn } from "@/lib/utils"
 import { IoCubeSharp } from "react-icons/io5"
 import { useGetUserDetailedQuery } from "@/store/services/authApi"
@@ -101,7 +101,7 @@ const PlanBox = () => {
 							</div>
 							<div className="border-t my-6"></div>
 							<div className="flex-1 space-y-3 mb-6">
-								{PlanIcons[plan as keyof IPlanIcons].features.map((f, index) => {
+								{getPlanFeatures(currentPlan).map((f, index) => {
 									const Icon = f.Icon;
 									return (
 										<div
