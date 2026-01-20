@@ -61,3 +61,9 @@ export type ProjectSimpleStatsType = {
 	lastDeployed: Date | null,
 	bandwidth: number,
 }
+export type ProjectUsageResults = {
+	projectId: string, deploys: number, projectName: string,
+	total_build: number, isDeleted: boolean,
+	bandwidthMontly: number, bandwidthTotal: number,
+	month: string
+}

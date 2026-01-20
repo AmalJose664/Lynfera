@@ -11,6 +11,7 @@ export const navbarLinks = [
 	{ name: "Deployments", url: "/deployments", isOtherLink: false, Icon: IoMdCloudDone },
 	{ name: "Pricing", url: "/pricing", isOtherLink: true, Icon: '' },
 	{ name: "Product", url: "/product", isOtherLink: true, Icon: '' },
+	{ name: "Resources", url: "/resources", isOtherLink: false, Icon: '' },
 	{ name: "Docs", url: "/docs", isOtherLink: false, Icon: '' },
 
 ]

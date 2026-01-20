@@ -1,6 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { axiosBaseQuery } from "../axiosBaseQuery";
-import { Project, ProjectSimpleStatsType } from '@/types/Project';
+import { Project, ProjectSimpleStatsType, ProjectUsageResults } from '@/types/Project';
 import { ProjectFormType } from '@/lib/schema/project';
 interface GetProjectsParams {
 	limit?: number;
@@ -124,6 +124,13 @@ export const projectApis = createApi({
 			transformResponse: (data: any) => {
 				return data.stats as ProjectSimpleStatsType
 			},
+		}),
+		getProjectsUsages: builder.query<ProjectUsageResults[], void>({
+			query: () => ({ url: "/projects/total-usage", method: "GET" }),
+			keepUnusedDataFor: 20 * 1000,
+			transformResponse: (data: any) => {
+				return data.data as ProjectUsageResults[]
+			},
 		})
 	})
 })
@@ -139,6 +146,7 @@ export const {
 	useGetProjectSettingsQuery,
 	useChangeProjectSubdomainMutation,
 	useChangeProjectDeploymentMutation,
-	useGetProjectsSimpleStatsQuery
+	useGetProjectsSimpleStatsQuery,
+	useGetProjectsUsagesQuery
 } = projectApis;
 
