@@ -14,8 +14,8 @@ import FormData from "form-data";
 import axios from 'axios';
 import pLimit from "p-limit"
 
-let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "---"   // Received from env by apiserver or use backup for local testing
-let PROJECT_ID = process.env.PROJECT_ID || "---"   // Received from env by apiserver or use backup for local testing
+let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "696fb444114a4d87e4ddf8e7"   // Received from env by apiserver or use backup for local testing
+let PROJECT_ID = process.env.PROJECT_ID || "69246647869c614a349015fc"   // Received from env by apiserver or use backup for local testing
 const brandName = "Lynfera"
 const kafka = new Kafka({
 	clientId: `docker-build-server-${PROJECT_ID}-${DEPLOYMENT_ID}`,
@@ -80,8 +80,8 @@ const settings = {
 	customBuildPath: !true,
 	sendKafkaMessage: true,
 	deleteSourcesAfter: !true,
-	sendLocalDeploy: !true,
-	localDeploy: !true,
+	sendLocalDeploy: !true,       // for sending uploads to non s3
+	localDeploy: !true,           // for non s3 uploads
 	runCommands: !true,            // for testing only 
 	cloneRepo: !true            // for testing only 
 }
@@ -223,6 +223,7 @@ const publishUpdates = async (updateData = {}) => {
 				updateType: updateData.type,
 				updates: {
 					...(updateData.status && { status: updateData.status }),
+					...(updateData.user && { user: updateData.user }),
 					...(updateData.complete_at && { complete_at: updateData.complete_at }),
 					...(updateData.duration_ms && { duration_ms: updateData.duration_ms }),
 					...(updateData.techStack && { techStack: updateData.techStack }),
@@ -240,6 +241,7 @@ const publishUpdates = async (updateData = {}) => {
 				{ key: "log", value: value }
 			]
 		})
+		console.log("Sendted", updateData.type)
 	} catch (error) {
 		console.log("error on sending update", updateData.type, error)
 	}
@@ -704,6 +706,9 @@ async function validateAnduploadFiles(sourceDir) {
 
 // --------------------------------------------------------MAIN_TASK--------------------------------------------------
 
+let projectData = null
+let projectUser = ""
+
 async function init() {
 
 	if (settings.sendKafkaMessage) {
@@ -727,7 +732,6 @@ async function init() {
 		commit_hash: gitCommitData,
 		status: deploymentStatus.BUILDING
 	})
-
 	try {
 		//logs
 		console.log("Executing script.js")
@@ -744,7 +748,9 @@ async function init() {
 		//-----------------------------------------CLONING_FETCHING-----------------------------------------------------------------------------------------------------
 
 
-		const [projectData, deploymentData] = await fetchProjectData(DEPLOYMENT_ID)
+		const [project, deploymentData] = await fetchProjectData(DEPLOYMENT_ID)
+		projectData = project
+		projectUser = project.user
 		DEPLOYMENT_ID = deploymentData._id
 		PROJECT_ID = projectData._id
 
@@ -766,7 +772,6 @@ async function init() {
 		await cloneGitRepoAndValidate(taskDir, runDir, projectData)
 		gitCommitData = await getGitCommitData(taskDir).catch((e) => console.log("Error getting commit", e)) || gitCommitData
 
-
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
 			level: logValues.INFO,
@@ -774,14 +779,14 @@ async function init() {
 		})
 
 		const framweworkIdentified = await validatePackageJsonAndGetFramework(runDir, projectData.rootDir)
-		const buildOptions = getDynamicBuildRoot(framweworkIdentified.tool)
+		const buildOptions = getDynamicBuildRoot(framweworkIdentified.tool);
 
 		["Detected 1 framework", "Framework " + framweworkIdentified.framework + " identified",
-		repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m INSTALL " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 10)].map((v) => publishLogs({
-			DEPLOYMENT_ID, PROJECT_ID,
-			level: logValues.DECOR,
-			message: v, stream: "system"
-		}))
+			repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m INSTALL " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 10)].map((v) => publishLogs({
+				DEPLOYMENT_ID, PROJECT_ID,
+				level: logValues.DECOR,
+				message: v, stream: "system"
+			}))
 		printInfoLogs();
 
 
@@ -957,6 +962,7 @@ async function init() {
 			DEPLOYMENT_ID, PROJECT_ID,
 			type: "END",
 			status: deploymentStatus.READY,
+			user: projectData.user,
 			techStack: framweworkIdentified.framework,
 			install_ms: Number((installEndTimer - installTimer).toFixed(2)),
 			build_ms: Number((buildEndTimer - buildTimer).toFixed(2)),
@@ -969,7 +975,7 @@ async function init() {
 
 		console.log("Time taken ", durationMs.toFixed(2), "logs number ", logsNumber)
 	} catch (err) {
-		//logs	
+		//logs
 		if (err?.isContainerError || err instanceof ContainerError) {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
@@ -986,7 +992,8 @@ async function init() {
 			}));
 			await publishUpdates({
 				DEPLOYMENT_ID, PROJECT_ID,
-				type: logValues.ERROR,
+				type: "ERROR",
+				user: projectUser || "",
 				status: err.cancelled ? deploymentStatus.CANCELED : deploymentStatus.FAILED,
 				error_message: err.message + " || " + err.cause
 			})
@@ -999,16 +1006,17 @@ async function init() {
 			})
 			await publishUpdates({
 				DEPLOYMENT_ID, PROJECT_ID,
-				type: logValues.ERROR,
+				type: "ERROR",
 				status: deploymentStatus.FAILED,
+				user: projectUser || "",
 				error_message: "Internal server error"
 			})
 		}
-		console.log(err)
+
 	} finally {
 		await sendLogsAsBatch()
 		await producer.disconnect()
-		// publisher.quit()
+		await new Promise((res) => setTimeout(res, 5000))
 		process.exit(0)
 
 	}
