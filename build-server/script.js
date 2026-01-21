@@ -14,7 +14,7 @@ import FormData from "form-data";
 import axios from 'axios';
 import pLimit from "p-limit"
 
-let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "696fb444114a4d87e4ddf8e7"   // Received from env by apiserver or use backup for local testing
+let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "6970717ccf90b8cb0c786275"   // Received from env by apiserver or use backup for local testing
 let PROJECT_ID = process.env.PROJECT_ID || "69246647869c614a349015fc"   // Received from env by apiserver or use backup for local testing
 const brandName = "Lynfera"
 const kafka = new Kafka({
@@ -73,7 +73,8 @@ const logValues = {
 	INFO: "INFO",
 	SUCCESS: "SUCCESS",
 	ERROR: "ERROR",
-	DECOR: "DECOR"
+	DECOR: "DECOR",
+	WARN: "WARN"
 }
 
 const settings = {
@@ -82,8 +83,8 @@ const settings = {
 	deleteSourcesAfter: !true,
 	sendLocalDeploy: !true,       // for sending uploads to non s3
 	localDeploy: !true,           // for non s3 uploads
-	runCommands: !true,            // for testing only 
-	cloneRepo: !true            // for testing only 
+	runCommands: true,            // for testing only 
+	cloneRepo: true            // for testing only 
 }
 
 console.log(DEPLOYMENT_ID, PROJECT_ID, "<<<<<")
@@ -307,7 +308,7 @@ async function fetchProjectData(deploymentId = "") {
 		if (!projectData.project.installCommand) {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
-				level: "WARN",
+				level: logValues.WARN,
 				message: "install command not found; running with default command", stream: "data error"
 			})
 			//logs
@@ -316,7 +317,7 @@ async function fetchProjectData(deploymentId = "") {
 		if (!projectData.project.buildCommand) {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
-				level: "WARN",
+				level: logValues.WARN,
 				message: "build command not found; running with default command", stream: "data error"
 			})
 			//logs
@@ -445,9 +446,64 @@ async function validatePackageJsonAndGetFramework(dir, rootDir) {
 
 		const match = trimmed.match(/(\.\/[^\s]+\.sh|\w+\.sh|\w+\.bat|\w+\.ps1)/);
 		if (match) {
-
 			throw new ContainerError(`Suspicious script detected: ${name}: ${trimmed}`, "file validation", "Invalid Package.json file", true);
 		}
+	}
+	const havePostinstall = scripts.hasOwnProperty("postinstall")
+	const havePreinstall = scripts.hasOwnProperty("preinstall")
+	const havePrepare = scripts.hasOwnProperty("prepare")
+
+	if (havePostinstall || havePreinstall || havePrepare) {
+		// report
+		console.log("Detected ");
+		[
+			{ msg: repeat(" ", 10), state: logValues.DECOR },
+			{
+				msg: `⚠️ \x1b[38;5;214m  Warning: lifecycle install scripts detected in package.json \x1b[0m`,
+				state: logValues.WARN
+			},
+		].map(({ msg, state }) => publishLogs({
+			DEPLOYMENT_ID, PROJECT_ID,
+			level: state,
+			message: msg, stream: "file validation"
+		}));
+
+		if (havePostinstall) {
+			publishLogs({
+				DEPLOYMENT_ID, PROJECT_ID,
+				level: logValues.WARN,
+				message: `⚠️ \x1b[38;5;214m  Warning: "postinstall" script detected
+The postinstall script runs automatically during npm install and may affect build behavior.
+If your build fails, ensure this script is required for your project. \x1b[0m`, stream: "file validation"
+			});
+		}
+		if (havePreinstall) {
+			publishLogs({
+				DEPLOYMENT_ID, PROJECT_ID,
+				level: logValues.WARN,
+				message: `⚠️ \x1b[38;5;214m  Warning: "preinstall" script detected Preinstall scripts run before dependencies are installed and can modify the environment. Review this script carefully. \x1b[0m`, stream: "file validation"
+			});
+		}
+
+		if (havePrepare) {
+			publishLogs({
+				DEPLOYMENT_ID, PROJECT_ID,
+				level: logValues.WARN,
+				message: `⚠️ \x1b[38;5;214m Warning: "prepare" script detected Prepare scripts may run during install and publish steps. This is common but can cause unexpected behavior in CI. \x1b[0m`, stream: "file validation"
+			});
+		};
+
+		[
+			{
+				msg: ` Tip: Most frontend projects do not require install-time scripts.
+			If this script is only used locally, consider removing it for CI compatibility.`, state: logValues.INFO
+			},
+			{ msg: repeat(" ", 10), state: logValues.DECOR },
+		].map(({ msg, state }) => publishLogs({
+			DEPLOYMENT_ID, PROJECT_ID,
+			level: state,
+			message: msg, stream: "file validation"
+		}));
 	}
 	console.log("All cleared..")
 
@@ -480,7 +536,7 @@ let currentProcess = null
  * @param {{name: string, value: string}[]} [env=[]] - Additional environment variables to include as array of object with name and value as strings.
  * @returns {Promise<void>} Resolves when the command finishes, rejects on error.
  */
-async function runCommand(command, args, cwd, env = []) {
+async function runCommand(command, args, cwd, env = [], timeout = 15) {
 	if (!settings.runCommands) {
 		console.log("Skipping run command")
 		return
@@ -494,7 +550,7 @@ async function runCommand(command, args, cwd, env = []) {
 				...envVars,
 			},
 			shell: process.platform === "win32",
-			timeout: 15 * 60 * 1000,
+			timeout: (Number(timeout) || 15) * 60 * 1000,
 			all: false,
 		});
 		currentProcess = subprocess;
@@ -639,13 +695,13 @@ async function validateAnduploadFiles(sourceDir) {
 					console.warn(`Skipping suspicious file path: ${relPath}`);
 					publishLogs({
 						DEPLOYMENT_ID, PROJECT_ID,
-						level: "WARN",
+						level: logValues.WARN,
 						message: `\x1b[38;5;9m Suspicious file path detected ${relPath} \x1b[0m`,
 						stream: "system"
 					});
 					publishLogs({
 						DEPLOYMENT_ID, PROJECT_ID,
-						level: "WARN",
+						level: logValues.WARN,
 						message: `\x1b[38;5;9m Skipping suspicious file path: ${relPath} \x1b[0m`,
 						stream: "system"
 					});
@@ -754,7 +810,7 @@ async function init() {
 		DEPLOYMENT_ID = deploymentData._id
 		PROJECT_ID = projectData._id
 
-		const installCommand = projectData.installCommand || "install"
+		const installCommand = "install";
 		const buildCommand = projectData.buildCommand || "build"
 		const outputFilesDir = projectData.outputDirectory || "dist"
 
@@ -814,7 +870,7 @@ async function init() {
 					level: logValues.INFO,
 					message: `\x1b[38;5;123m Installing with command $ npm ${installCommand} ${extraFlags.join(" ")}\x1b[0m`, stream: "system"
 				})
-				await runCommand("npm", [...installCommand.split(" "), ...extraFlags], runDir, projectData.env ?? [])
+				await runCommand("npm", [...installCommand.split(" "), ...extraFlags], runDir, projectData.env ?? [], 10)
 				break
 			} catch (error) {
 				installTries++;
@@ -823,7 +879,7 @@ async function init() {
 				`---------------Try No. ${installTries}-------------`
 				].map((v) => publishLogs({
 					DEPLOYMENT_ID, PROJECT_ID,
-					level: "WARN",
+					level: logValues.WARN,
 					message: v, stream: "system"
 				}))
 				if (installTries >= 3) throw error;
@@ -833,7 +889,8 @@ async function init() {
 
 		const installEndTimer = performance.now()
 
-		console.log('Dependencies installed successfully in ', (installEndTimer - installTimer).toFixed(2), " ms");
+		console.log('Dependencies installed successfully in ',
+			((installEndTimer - installTimer) / 1000).toFixed(2), " seconds");
 
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
@@ -843,7 +900,7 @@ async function init() {
 
 		[
 			"\x1b[38;5;123m Install Success\x1b[0m",
-			`Dependencies installed successfully  in ${(installEndTimer - installTimer).toFixed(2)} ms`
+			`Dependencies installed successfully  in ${((installEndTimer - installTimer) / 1000).toFixed(2)} seconds`
 		].map((v) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
 			level: logValues.SUCCESS,
@@ -882,11 +939,14 @@ async function init() {
 		)
 
 		const buildEndTimer = performance.now();
-		console.log("Build complete ", (buildEndTimer - buildTimer).toFixed(2), " ms");
+		console.log("Build complete ", ((buildEndTimer - buildTimer) / 1000).toFixed(2), " seconds");
 		[
 			{ msg: repeat(" ", 25), state: logValues.INFO },
 			{ msg: "\x1b[38;5;123m Build Success\x1b[0m", state: logValues.SUCCESS },
-			{ msg: `Build complete in ${(buildEndTimer - buildTimer).toFixed(2)} ms`, state: logValues.SUCCESS },
+			{
+				msg: `Build complete in ${((buildEndTimer - buildTimer) / 1000).toFixed(2)} seconds`,
+				state: logValues.SUCCESS
+			},
 			{ msg: repeat(" ", 25), state: logValues.INFO },
 			{ msg: "Validating build files", state: logValues.INFO }
 		].map(({ msg, state }) => publishLogs({
@@ -932,7 +992,7 @@ async function init() {
 		const uploadEndTimer = performance.now()
 
 		const timerEnd = performance.now();
-		const durationMs = timerEnd - timerStart;
+		const durationMs = timerEnd - timerStart
 
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
@@ -950,7 +1010,7 @@ async function init() {
 
 
 
-		["Deployment Done ...🎉", "Task done in " + durationMs.toFixed(2) + " ms🎉",
+		["Deployment Done ...🎉", "Task done in " + (durationMs / 1000).toFixed(2) + " seconds🎉",
 			`Site live at \x1B[1;36mhttps://${projectData.subdomain}.....\x1B[0m 🎉🎉🎉`
 		].map((v) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
@@ -1012,7 +1072,8 @@ async function init() {
 				error_message: "Internal server error"
 			})
 		}
-
+		console.log("Some error happened")
+		console.log("Exiting in 5 seconds")
 	} finally {
 		await sendLogsAsBatch()
 		await producer.disconnect()
