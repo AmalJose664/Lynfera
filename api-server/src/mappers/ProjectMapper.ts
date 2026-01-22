@@ -1,7 +1,5 @@
-import { ProjectUsageResults } from "@/interfaces/repository/IDeploymentRepository.js";
-import { IProjectBandwiths } from "@/models/ProjectBandwidths.js";
+import { DailyDeployments, ProjectUsageResults } from "@/interfaces/repository/IDeploymentRepository.js";
 import { IProject } from "@/models/Projects.js";
-import { Types } from "mongoose";
 
 interface ProjectResponseDTO {
 	project: {
@@ -169,15 +167,35 @@ export class ProjectMapper {
 		};
 	}
 
-	static toUsageMapper(projectData: ProjectUsageResults[]): {
-		data: {
+	static toUsageMapper(projectData: ProjectUsageResults[], deploys: DailyDeployments[], months: number): {
+		projects: {
 			projectId: string, deploys: number, projectName: string,
 			total_build: number, bandwidthMontly: number, bandwidthTotal: number,
 			month: string
+		}[],
+		deploys: {
+			_id: string,
+			count: number
 		}[]
 	} {
+
+
+		const dataMap = new Map<string, number>(deploys.map((d) => [d._id, d.count]));
+		const result: { _id: string, count: number }[] = [];
+		const days = months * 31;
+		for (let i = days; i >= 0; i--) {
+			const date = new Date();
+			date.setDate(date.getDate() - i);
+			const dateStr = date.toISOString().split("T")[0];
+
+			result.push({
+				_id: dateStr,
+				count: dataMap.get(dateStr) || 0
+			})
+
+		}
 		return {
-			data: projectData.map((p) => {
+			projects: projectData.map((p) => {
 				if (p.isDeleted) return null
 				return {
 					bandwidthMontly: Number(p.bandwidthMontly),
@@ -188,7 +206,8 @@ export class ProjectMapper {
 					deploys: Number(p.deploys),
 					month: p.month
 				}
-			}).filter((p) => !!p)
+			}).filter((p) => !!p),
+			deploys: result
 		}
 	}
 	static isPopulatedObject(object: any, fields: string[]): boolean {

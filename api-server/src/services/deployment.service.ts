@@ -83,7 +83,8 @@ class DeploymentService implements IDeploymentService {
 		deploymentData.project = new Types.ObjectId(correspondindProject._id);
 		deploymentData.user = correspondindProject.user;
 		await this.incrementRunningDeplymnts(correspondindProject._id, canDeploy.user._id, canDeploy.user.plan);
-
+		await new Promise((res) => setTimeout(res, 4000))
+		throw new AppError(DEPLOYMENT_ERRORS.DAILY_DEPLOYMENT_LIMIT, STATUS_CODES.TOO_MANY_REQUESTS);
 		try {
 			const deployment = await this.deploymentRepository.createDeployment(deploymentData);
 
@@ -173,30 +174,30 @@ class DeploymentService implements IDeploymentService {
 
 	async deployLocal(deploymentId: string, projectId: string, userId: string): Promise<void> {
 		try {
-			const envs = getNessesaryEnvs();
-			const command = spawn("node", ["script.js"], {
-				cwd: "../build-server/",
-				env: {
-					...process.env,
-					DEPLOYMENT_ID: deploymentId,
-					PROJECT_ID: projectId,
-				},
+			// const envs = getNessesaryEnvs();
+			// const command = spawn("node", ["script.js"], {
+			// 	cwd: "../build-server/",
+			// 	env: {
+			// 		...process.env,
+			// 		DEPLOYMENT_ID: deploymentId,
+			// 		PROJECT_ID: projectId,
+			// 	},
 
-			})
-			command.stdout?.on("data", (data) => {
-				console.log(`[stdout]: -----data-----from----deployLocal`);
-			});
-			command.stderr?.on("data", (data) => {
-				console.error(`[stderr]: ${data.toString().trim()}`);
-			});
-			command.on("exit", (code) => {
-				console.log(`Process exited with code ${code}`);
-			});
+			// })
+			// command.stdout?.on("data", (data) => {
+			// 	console.log(`[stdout]: -----data-----from----deployLocal`);
+			// });
+			// command.stderr?.on("data", (data) => {
+			// 	console.error(`[stderr]: ${data.toString().trim()}`);
+			// });
+			// command.on("exit", (code) => {
+			// 	console.log(`Process exited with code ${code}`);
+			// });
 
-			command.on("error", (err) => {
-				console.error("Failed to start process:", err);
-			});
-			return
+			// command.on("error", (err) => {
+			// 	console.error("Failed to start process:", err);
+			// });
+			// return
 			const result = await dispatchBuild(deploymentId, projectId);
 			console.log(result, " - - - ");
 		} catch (error: any) {

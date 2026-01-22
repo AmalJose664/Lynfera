@@ -31,7 +31,7 @@ async function createIndexes() {
 		//-------------------------------------------------------------------------------------------------------------------------------------
 		console.log("Creating Deployment indexes...");
 
-		await Deployment.collection.createIndex({ project: 1, createdAt: -1 }, { name: "project_deployments_by_date" });
+		await Deployment.collection.createIndex({ user: 1, project: 1, createdAt: -1 }, { name: "project_deployments_by_date" });
 		await Deployment.collection.createIndex({ user: 1, createdAt: -1 }, { name: "user_deployments_by_date" });
 		console.log("✓ Deployment indexes created");
 		//-------------------------------------------------------------------------------------------------------------------------------------

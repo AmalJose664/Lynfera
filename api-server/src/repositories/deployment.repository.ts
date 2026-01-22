@@ -2,7 +2,7 @@ import { FilterQuery, Types } from "mongoose";
 
 import { BaseRepository } from "./base/base.repository.js";
 import { Deployment, IDeployment } from "@/models/Deployment.js";
-import { DeploymentDbOptions, IDeploymentRepository, ProjectUsageResults } from "@/interfaces/repository/IDeploymentRepository.js";
+import { DailyDeployments, DeploymentDbOptions, IDeploymentRepository, ProjectUsageResults } from "@/interfaces/repository/IDeploymentRepository.js";
 import { DEPLOYMENT_POPULATE_MAP } from "@/constants/populates/deployment.populate.js";
 import { QueryDeploymentDTO } from "@/dtos/deployment.dto.js";
 
@@ -148,6 +148,25 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 					_id: 0
 				}
 			}
+		])
+		return result
+	}
+	async getDailyDeployments(userId: string, months: number): Promise<DailyDeployments[]> {
+		const startDate = new Date(new Date().setMonth(new Date().getMonth() - months));
+		const endDate = new Date();
+
+		const result = Deployment.aggregate([
+			{
+				$match: {
+					user: new Types.ObjectId(userId),
+					createdAt: {
+						$gte: startDate,
+						$lte: endDate
+					}
+				}
+			},
+			{ $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } },
+			{ $sort: { _id: 1 } }
 		])
 		return result
 	}
