@@ -1,3 +1,4 @@
+import LoadingSpinner, { LoadingSpinner3 } from "@/components/LoadingSpinner"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { BsFillCloudPlusFill } from "react-icons/bs"
@@ -9,13 +10,13 @@ interface NoDeploymentProps {
 	buttonAction: () => void
 	titleText: string
 	descriptionText: string
+	buttonState?: boolean;
 	buttonText: string
 	learnMoreUrl: string
 	buttonIcon: React.ReactNode
 }
 
-const NoDeployment = ({ buttonAction, buttonText, descriptionText, learnMoreUrl, titleText, buttonIcon }: NoDeploymentProps) => {
-
+const NoDeployment = ({ buttonAction, buttonState, buttonText, descriptionText, learnMoreUrl, titleText, buttonIcon }: NoDeploymentProps) => {
 	return (
 		<div className="border rounded-md  flex items-center justify-center mb-4 relative">
 			<Empty className="z-10 mt-5">
@@ -30,7 +31,16 @@ const NoDeployment = ({ buttonAction, buttonText, descriptionText, learnMoreUrl,
 				</EmptyHeader>
 				<EmptyContent>
 					<div className="flex gap-2">
-						<Button onClick={buttonAction}>{buttonText} {buttonIcon} </Button>
+						<Button disabled={buttonState} className="disabled:opacity-50!" onClick={buttonAction}>
+							{buttonState ? (
+								<LoadingSpinner3 isLoading={buttonState} />
+							) : (
+								<>
+									{buttonText}
+									{buttonIcon}
+								</>
+							)}
+						</Button>
 					</div>
 				</EmptyContent>
 				<Button

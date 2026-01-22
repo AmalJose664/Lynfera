@@ -33,7 +33,10 @@ interface ProjectContentProps {
 	setShowBuild: (state: boolean) => void;
 	tabFromUrl?: string
 	reDeploy: () => Promise<void>;
-	onCreateDeployment: () => void
+	newDeployment: {
+		onCreateDeployment: () => void;
+		createDeploymentLoading: boolean
+	}
 	refetchLogs: () => void
 }
 
@@ -47,7 +50,7 @@ export function ProjectContent({
 	showBuild,
 	setShowBuild,
 	reDeploy,
-	onCreateDeployment,
+	newDeployment,
 	refetchLogs
 }: ProjectContentProps) {
 	const [tab, setTabs] = useState(tabFromUrl || "overview")
@@ -160,7 +163,7 @@ export function ProjectContent({
 								deployment,
 								tempDeployment,
 								lastDeployment,
-								onCreateDeployment
+								newDeployment
 							}}
 							build={{ setShowBuild, showBuild }}
 							reDeploy={reDeploy}

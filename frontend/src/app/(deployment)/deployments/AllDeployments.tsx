@@ -1,12 +1,11 @@
 "use client"
 import StatusIcon from "@/components/ui/StatusIcon"
-import { getStatusBg, getStatusColor, timeToSeconds } from "@/lib/moreUtils/combined"
+import { getStatusBg, } from "@/lib/moreUtils/combined"
 import Link from "next/link"
 import { IoIosCube, IoMdCloudDone, IoMdGitBranch } from "react-icons/io"
-import { MdAccessTime } from "react-icons/md"
 import { CiSearch } from "react-icons/ci"
 import { Project, ProjectStatus } from "@/types/Project"
-import { useMemo, useState } from "react"
+import { useMemo, useState, lazy, Suspense } from "react"
 import { Input } from "@/components/ui/input"
 
 import { useGetDeploymentsQuery } from "@/store/services/deploymentApi"
@@ -15,16 +14,18 @@ import NoDeployment from "@/app/(project)/projects/[id]/components/NoDeployment"
 import { useRouter } from "next/navigation"
 import DeploymentStatusButtons from "@/components/DeploymentStatusButtons";
 import OptionsComponent from "@/components/OptionsComponent";
-import { LoadingSpinner2 } from "@/components/LoadingSpinner";
-import { IoClipboardOutline } from "react-icons/io5"
+import { LoadingSpinner2, LoadingSpinner3, } from "@/components/LoadingSpinner";
+import { IoClipboardOutline, } from "react-icons/io5"
+import { useGetUserQuery } from "@/store/services/authApi"
+
+const RandomAdBoxes = lazy(() => import("@/app/(deployment)/deployments/RandomAdBoxes"));
 
 const AllDeployments = () => {
 	const [page, setPage] = useState(1)
 	const limit = 10
 	const { data, isLoading, isError, error } = useGetDeploymentsQuery({ params: { include: "project", page, limit } })
 	const { data: deployments = [], meta } = data ?? {};
-
-	console.log(deployments)
+	const { data: user } = useGetUserQuery()
 	const [search, setSearch] = useState("")
 	const [statuses, setStatuses] = useState<Record<string, boolean>>(
 		Object.fromEntries(Object.values(ProjectStatus).map((stats) => [stats, true]))
@@ -176,7 +177,6 @@ const AllDeployments = () => {
 										},
 									]} />
 								</div>
-
 							</Link>
 						</div>
 					))}
@@ -189,6 +189,14 @@ const AllDeployments = () => {
 							</div>
 						</div>
 					)}
+
+
+					<Suspense fallback={<LoadingSpinner3 isLoading />}>
+						<RandomAdBoxes deployments={deployments} user={user} statusCounts={statusCounts} />
+
+					</Suspense>
+
+
 
 					{((deployments?.length === 0 || !deployments) && !isLoading) && (
 						<div>

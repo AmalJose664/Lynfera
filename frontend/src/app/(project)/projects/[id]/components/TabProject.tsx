@@ -19,7 +19,10 @@ interface TabProjectProps {
 		deployment?: Deployment
 		tempDeployment?: Deployment
 		lastDeployment?: Deployment
-		onCreateDeployment: () => void
+		newDeployment: {
+			onCreateDeployment: () => void;
+			createDeploymentLoading: boolean
+		}
 	}
 	build: {
 		showBuild: boolean
@@ -33,7 +36,7 @@ interface TabProjectProps {
 
 
 const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchLogs }: TabProjectProps) => {
-	const { lastDeployment, deployment, tempDeployment, onCreateDeployment } = deploymentCtx
+	const { lastDeployment, deployment, tempDeployment, newDeployment } = deploymentCtx
 	const { setShowBuild, showBuild } = build
 	const isProjectProgress = isStatusProgress(project.status)
 
@@ -43,7 +46,8 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 			<div className="dark:bg-neutral-950 border bg-neutral-50 w-full rounded-md mb-6 mt-4 p-3 md:p-4">
 				{(project.deployments && project.deployments.length === 0 && !lastDeployment) && (
 					<NoDeployment
-						buttonAction={onCreateDeployment}
+						buttonAction={newDeployment.onCreateDeployment}
+						buttonState={newDeployment.createDeploymentLoading}
 						titleText="No Deployments Yet"
 						descriptionText="You haven&apos;t created any project deployment yet. Run your project by creating your new Deployment."
 						buttonText="Create Deployment"

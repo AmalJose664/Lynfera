@@ -1,5 +1,6 @@
 "use client"
 
+import { LoadingSpinner3 } from "@/components/LoadingSpinner"
 import RightFadeComponent from "@/components/RightFadeComponent"
 import { SubtleProgressBar } from "@/components/SimpleStatsCompnts"
 import { PLANS } from "@/config/plan"
@@ -7,19 +8,24 @@ import { formatBytes, formatDuration, getPercentage } from "@/lib/moreUtils/comb
 import { useGetUserDetailedQuery } from "@/store/services/authApi"
 import { useGetProjectsQuery, useGetProjectsUsagesQuery } from "@/store/services/projectsApi"
 import { Project, ProjectUsageResults } from "@/types/Project"
-import { error } from "console"
 import Link from "next/link"
+import { lazy, Suspense } from "react"
 import { IoIosCube, IoMdCloudDone } from "react-icons/io"
 import { MdOutlineStorage } from "react-icons/md"
+const ChartDailyDeploys = lazy(() => import("@/components/analytics/DailyDeploys"));
+
 
 
 const UsagePage = () => {
 	const { data: userDetailed, error: userDataError, isError: userDataIsError } = useGetUserDetailedQuery()
 
 	const { data: projects, error: projectsError, isError: projectsIsError } = useGetProjectsQuery({});
-	const { data: usages, error: usagesError, isError: usagesIsError } = useGetProjectsUsagesQuery()
+	const { data: usagesData, error: usagesError, isError: usagesIsError } = useGetProjectsUsagesQuery()
 
-	const usagesObj = usages?.reduce((acc, u) => {
+	const projectsUsage = usagesData?.projects
+	const deploys = usagesData?.deploys
+
+	const usagesObj = projectsUsage?.reduce((acc, u) => {
 		const { projectId } = u
 		if (!acc[projectId]) {
 			acc[projectId] = u
@@ -32,8 +38,9 @@ const UsagePage = () => {
 	const menuItems = [
 		{ id: 'project', label: 'overview' },
 		{ id: 'usage-stats', label: 'Resource' },
+		{ id: 'no-of-builds', label: 'No of Builds' },
 	];
-	const totalValues = usages?.reduce((acc, u) => {
+	const totalValues = projectsUsage?.reduce((acc, u) => {
 		acc.deploys += u.deploys
 		acc.total_build += u.total_build
 		acc.bandwidthMontly += u.bandwidthMontly
@@ -47,15 +54,15 @@ const UsagePage = () => {
 	})
 	return (
 		<div className="min-h-screen bg-background  scroll-smooth">
-			<div className="max-w-7xl mx-auto px-8 py-12">
+			<div className="max-w-[1380px] mx-auto px-8 py-12">
 
 				<header className="mb-12">
 					<h1 className="text-4xl font-bold tracking-tight">Resources & usage</h1>
 					<p className="text-less mt-2">Monitor your resource consumption and limits.</p>
 				</header>
 
-				<div className="flex flex-col md:flex-row ">
-					<aside className="md:w-48 flex-shrink-0">
+				<div className="flex flex-col md:flex-row justify-between">
+					<aside className="md:w-30 flex-shrink-0">
 						<nav className="sticky top-12">
 							<ul className="space-y-2">
 								{menuItems.map((item) => (
@@ -269,6 +276,14 @@ const UsagePage = () => {
 									</p>
 								) : ""}
 							</div>
+						</section>
+						<section id="no-of-builds" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+							<div className="pt-8 px-4 mb-6">
+								<h2 className="text-2xl font-semibold tracking-tight text-primary ">Builds by Day</h2>
+							</div>
+							<Suspense fallback={<LoadingSpinner3 isLoading />}>
+								<ChartDailyDeploys deploys={deploys || []} />
+							</Suspense>
 						</section>
 					</main>
 				</div>

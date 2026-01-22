@@ -32,7 +32,7 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 		refetch,
 	} = useGetProjectFullQuery({ id: projectId, params: { include: "user" } })
 
-	const [createDeployment, { }] = useCreateDeploymentMutation()
+	const [createDeployment, { isLoading: createDeploymentLoading }] = useCreateDeploymentMutation()
 	const [showBuild, setShowBuild] = useState(false)
 	const handleCreateDeployment = async () => {
 		try {
@@ -45,7 +45,7 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 		} catch (error: any) {
 			setSseActive(false)
 			if (error.status === 503 || error.data.status === 503) {
-				toast.error("Error on deployment. Our Build runners are busy. Please try again some time later.")
+				toast.error(error.data.message + "; Please try again later")
 				return false
 			}
 			toast.error("Error in creating new Deployment; \n" + error.data.message)
@@ -154,7 +154,10 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 			reDeploy={reDeploy}
 			showBuild={showBuild}
 			setShowBuild={setShowBuild}
-			onCreateDeployment={handleCreateDeployment}
+			newDeployment={{
+				onCreateDeployment: handleCreateDeployment,
+				createDeploymentLoading: createDeploymentLoading
+			}}
 			refetchLogs={refetchLogs}
 		/>
 	)

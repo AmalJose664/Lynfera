@@ -125,11 +125,14 @@ export const projectApis = createApi({
 				return data.stats as ProjectSimpleStatsType
 			},
 		}),
-		getProjectsUsages: builder.query<ProjectUsageResults[], void>({
+		getProjectsUsages: builder.query<{ projects: ProjectUsageResults[], deploys: { _id: string, count: number }[] }, void>({
 			query: () => ({ url: "/projects/total-usage", method: "GET" }),
 			keepUnusedDataFor: 20 * 1000,
 			transformResponse: (data: any) => {
-				return data.data as ProjectUsageResults[]
+				return data as {
+					projects: ProjectUsageResults[],
+					deploys: { _id: string, count: number }[]
+				}
 			},
 		})
 	})

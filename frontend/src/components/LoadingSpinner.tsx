@@ -45,4 +45,16 @@ export const LoadingSpinner2 = ({ isLoading, loadingText }: { isLoading: boolean
 
 	)
 }
+export const LoadingSpinner3 = ({ isLoading, loadingText }: { isLoading: boolean, loadingText?: string }) => {
+	return (
+		<div>{isLoading && (
+			<div
+				className="flex gap-6 items-center justify-center">
+				<p className="text-gray-500 ">{loadingText || "Loading..."}</p>
+				<AiOutlineLoading3Quarters className="animate-spin " />
+			</div>
+		)}</div>
+
+	)
+}
 export default LoadingSpinner
