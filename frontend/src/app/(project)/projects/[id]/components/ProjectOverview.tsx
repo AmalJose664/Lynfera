@@ -12,13 +12,14 @@ import { User } from "@/types/User";
 import { Project, ProjectStatus } from "@/types/Project";
 import Link from "next/link";
 import TechStack from "@/components/project/TechStack";
-import { getGithubBranchUrl, getGithubCommitUrl, getStatusColor, isStatusFailure, isStatusProgress, parseGitHubRepo, timeToSeconds } from "@/lib/moreUtils/combined";
+import { generateRepoUrls, getGithubBranchUrl, getGithubCommitUrl, getStatusColor, isStatusFailure, isStatusProgress, parseGitHubRepo, timeToSeconds } from "@/lib/moreUtils/combined";
 import StatusIcon, { AnimationBuild } from "@/components/ui/StatusIcon";
-import { toast } from "sonner"
+
 import { Deployment } from "@/types/Deployment";
 import { Button } from "@/components/ui/button";
 import RightFadeComponent from "@/components/RightFadeComponent";
 import { TbHexagonNumber1Filled } from "react-icons/tb";
+import { LinkComponent } from "@/components/docs/HelperComponents";
 
 interface ProjectOverviewProps {
 	project: Project,
@@ -174,11 +175,12 @@ const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeplo
 									</div>
 									<div className="flex items-center gap-2">
 										<span className="text-xs  text-less">
-											<Link target="_blank" href={getGithubCommitUrl(project.repoURL, deployment?.commit.id || "")} className='flex gap-2 items-center font-medium hover:underline'>
+											<LinkComponent newPage
+												href={generateRepoUrls(project.repoURL, { commitSha: deployment?.commit.id }).commit || project.repoURL} className='flex gap-2 items-center font-medium hover:underline text-sky-200!'>
 												{deployment?.commit.id.slice(0, 10) || "" + "..."}
 												<p className="text-xl">/</p>
 												{deployment?.commit.msg}
-											</Link>
+											</LinkComponent>
 										</span>
 									</div>
 								</div>
@@ -187,7 +189,9 @@ const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeplo
 										<IoMdGitBranch size={14} />
 										<span className="text-xs text-gray-500">Branch</span>
 									</div>
-									<span className="text-sm  text-less"><Link target="_blank" href={getGithubBranchUrl(project.repoURL, project.branch)} className='text-sm hover:underline font-medium '>{project.branch}</Link>
+									<span className="text-sm  text-less"><LinkComponent newPage
+										href={generateRepoUrls(project.repoURL, { branch: project.branch }).branch || project.repoURL}
+										className='text-xs! hover:underline font-medium text-sky-200!'>{project.branch}</LinkComponent>
 									</span>
 								</div>
 							</div>

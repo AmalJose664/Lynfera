@@ -10,6 +10,7 @@ import BackButton from "@/components/BackButton";
 import {
 	formatDate,
 	formatDuration,
+	generateRepoUrls,
 	getGithubBranchUrl,
 	getGithubCommitUrl,
 	getPercentage,
@@ -30,22 +31,27 @@ import { MdKeyboardArrowRight, } from "react-icons/md";
 import { IoIosCube, IoMdGlobe } from "react-icons/io";
 import { LuExternalLink } from "react-icons/lu";
 import RightFadeComponent from "@/components/RightFadeComponent";
-import { projectApis, useGetProjectByIdQuery } from "@/store/services/projectsApi";
-import { useSelector } from "react-redux";
 import { LoadingSpinner2 } from "@/components/LoadingSpinner";
 import { RiPencilFill } from "react-icons/ri";
 import { PiIdentificationCardLight } from "react-icons/pi";
 import { Deployment } from "@/types/Deployment";
-import { cn } from "@/lib/utils";
+
 import { CiMicrochip } from "react-icons/ci";
+import OptionsComponent from "@/components/OptionsComponent";
+import { IoClipboardOutline } from "react-icons/io5";
+import { useRouter } from "next/navigation";
+import { BsArrowUpCircle } from "react-icons/bs";
+import ChangeDeploymentModal from "@/components/modals/ChangeDeployment";
+
 
 const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => {
-
+	const router = useRouter()
 	const {
 		data: deployment,
 		isLoading,
 		error,
 		isError,
+		refetch: refetchDeply
 	} = useGetDeploymentByIdQuery({
 		id: deploymentId,
 		params: { include: "project" },
@@ -62,9 +68,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 			<ErrorComponent error={error} id={deploymentId} field="Deployment" />
 		);
 	}
-	const { data: cachedProject } = useSelector(projectApis.endpoints.getProjectById.select(
-		{ id: project?._id || "", params: { include: "user" } }
-	))
+	const [selectedDeploymentId, setSelectedDeploymentId] = useState<string | null>(null)
 	if (!deployment && !isLoading) {
 		return (
 			<ErrorComponent
@@ -79,6 +83,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 
 	return (
 		<div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] text-neutral-900 dark:text-neutral-100">
+			{selectedDeploymentId && <ChangeDeploymentModal refetchDeply={refetchDeply} setSelectedDeploymentId={setSelectedDeploymentId} selectedDeploymentId={selectedDeploymentId} projectId={(deployment?.project as Project)._id} />}
 			<div className="sticky top-0 z-20 border-b bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md border-neutral-200 dark:border-neutral-800">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
 					<BackButton />
@@ -120,10 +125,9 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 									<span className="text-sm font-normal text-neutral-500">
 										{deployment.identifierSlug}
 									</span>
-									{(cachedProject
-										&& cachedProject.currentDeployment === deployment._id)
-										&& <span className="py-1 px-2 border border-blue-500 rounded-full text-xs text-blue-400">
-											current
+									{((deployment.project as Project).currentDeployment === deployment._id)
+										&& <span className="py-1 uppercase px-2 border border-blue-500 rounded-full text-[11px] text-blue-400 tracking-wider">
+											current deployment
 										</span>
 									}
 								</h1>
@@ -158,6 +162,35 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 										Visit This Deployment<LuExternalLink />
 									</Link>
 								)}
+								<OptionsComponent parentClassName="" options={[
+									{
+										title: "Promote Deployment",
+										actionFn: () => setSelectedDeploymentId(deployment._id),
+										className: "",
+										isDisabled: deployment.status != ProjectStatus.READY
+											|| deployment._id === (deployment.project as Project).currentDeployment,
+										Svg: BsArrowUpCircle
+									},
+									{
+										title: "Show Project",
+										actionFn: () => router.push("/projects/" + (deployment.project as Project)._id),
+										className: "",
+										Svg: IoIosCube
+									},
+									{
+										title: "Copy Deployment ID",
+										actionFn: () => navigator.clipboard.writeText(deployment._id),
+										className: "",
+										Svg: IoClipboardOutline
+									},
+									{
+										title: "Copy Public ID",
+										actionFn: () => navigator.clipboard.writeText(deployment.publicId),
+										className: "",
+										Svg: IoClipboardOutline
+									},
+
+								]} />
 							</div>
 						</div>
 
@@ -211,10 +244,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 												</div>
 												<div className="sm:col-span-2">
 													<Link
-														href={getGithubBranchUrl(
-															project.repoURL,
-															project.branch
-														)}
+														href={generateRepoUrls(project.repoURL, { branch: project.branch }).branch || project.repoURL}
 														target="_blank"
 														className="inline-flex items-center px-2.5 py-1 rounded-md bg-neutral-100 dark:bg-neutral-800 text-xs font-mono hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
 													>
@@ -228,18 +258,15 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 												<div className="text-sm text-neutral-500 font-medium flex items-center gap-2">
 													<FiGitCommit className="size-4" /> Commit
 												</div>
-												<div className="sm:col-span-2 flex flex-col gap-1">
+												<Link target="_blank" href={generateRepoUrls(project.repoURL, { commitSha: deployment.commit.id }).commit || project.repoURL} className="sm:col-span-2 flex flex-col gap-1 w-fit">
 													<span className="text-sm text-neutral-900 dark:text-neutral-200 truncate">
 														{deployment.commit.msg}
 													</span>
-													<Link
-														href={getGithubCommitUrl("", deployment.commit.id)}
-														target="_blank"
-														className="text-xs font-mono text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-300 w-fit"
-													>
+													<span className="text-xs">
 														{deployment.commit.id.substring(0, 7)}
-													</Link>
-												</div>
+													</span>
+
+												</Link>
 											</div>
 											<div className="grid grid-cols-1 sm:grid-cols-3 px-6 py-4 gap-4 items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
 												<div className="text-sm text-neutral-500 font-medium flex items-center gap-2">
@@ -339,7 +366,9 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 							</div>
 							<div className="flex-1 overflow-auto p-2">
 								<FilesComponent
+									projectRepo={project.repoURL}
 									projectId={project._id}
+									commit={deployment.commit}
 									deploymentId={deployment._id}
 								>
 									<h4 id="files" className="font-semibold text-primary">Build Output Files</h4>
@@ -379,7 +408,7 @@ const PerformanceMetrics = ({ performance }: { performance: Deployment['performa
 			accent: "bg-sky-500"
 		},
 		{
-			label: "Bg tasks (other)",
+			label: "Bg tasks (queueing, build start)",
 			value: totalDuration - (uploadTime + buildTime + installTime),
 			color: "from-neutral-500/10 to-neutral-800",
 			accent: "bg-neutral-400"

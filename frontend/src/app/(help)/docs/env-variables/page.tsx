@@ -1,0 +1,119 @@
+import { CodeComponent, LinkComponent } from "@/components/docs/HelperComponents"
+
+
+const page = () => {
+	return (
+		<main className="px-4 space-y-16">
+			<div className="w-full border-b pb-2">
+				<h2 className="text-4xl">Enviroment Variables</h2>
+			</div>
+			<section id="env-varibles" className="space-y-12">
+				<section id="env-intro" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+					<div className="overflow-x-auto ">
+						<div className="px-4 py-4">
+							<div>
+								<h2 className="text-xl font-semibold">Environment variables</h2>
+								<p className="text-sm mt-4 text-primary ">Environment variables are key-value pairs configured outside your source code so that each value can change depending on the Environment. </p>
+								<p className="text-sm mt-4 text-primary ">Your source code can read these values to change behavior during the <LinkComponent href="/docs/build-deploy/#build-infra" >Build Step</LinkComponent> or during Function execution.</p>
+								<p className="text-sm mt-4 text-primary ">Any change you make to environment variables are not applied to previous deployments, they only apply to new deployments.</p>
+							</div>
+						</div>
+					</div>
+				</section>
+				<section id="env-create" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+					<div className="overflow-x-auto ">
+						<div className="px-4 py-4">
+							<div>
+								<h2 className="text-xl font-semibold">Creating environment variables</h2>
+								<p className="text-sm mt-4 text-primary ">Environment variables can be declared only at the project level.</p>
+							</div>
+						</div>
+					</div>
+				</section>
+				<section id="env-declare" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+					<div className="overflow-x-auto ">
+						<div className="px-4 py-4">
+							<div>
+								<h2 className="text-xl font-semibold">Declare an Environment Variable</h2>
+								<p className="text-sm mt-4 text-primary ">To declare an Environment Variable for your deployment:</p>
+							</div>
+							<ul className="px-3 py-1 list-disc space-y-3 mt-3">
+								<li>From your <LinkComponent href="/projects">dashboard</LinkComponent>, select your project.</li>
+								<li>Select the<strong> Settings </strong> tab.</li>
+								<li>Go to the <strong>Environment Variables</strong> section of your <strong>Project Settings</strong>.</li>
+								<li>Enter the desired <strong>Name</strong> for your Environment Variable. For example, if you are using React and you create an Environment Variable named <CodeComponent>REACT_APP_API_URL</CodeComponent>, it will be available under <CodeComponent>process.env.REACT_APP_API_URL</CodeComponent> in your code.</li>
+								<li>Then, enter the <strong>Value</strong> for your Environment Variable.</li>
+								<li>Click Save and Deploy or just Save.</li>
+								<li>You can also add Environment Variable at project creation.</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+				<section id="env-prefixes" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+					<div className="overflow-x-auto ">
+						<div className="px-4 py-4">
+							<div>
+								<h2 className="text-xl font-semibold">Framework Prefixes</h2>
+								<p className="text-sm mt-4 text-primary ">Most modern frameworks only expose variables to the browser if they have a specific prefix. Ensure your keys follow your framework's rules:</p>
+							</div>
+							<ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono px-3 py-1 space-y-3 mt-3">
+								<li className="p-2 bg-secondary rounded border">Vite: <span className="text-primary">VITE_API_URL</span></li>
+								<li className="p-2 bg-secondary rounded border">React (CRA): <span className="text-primary">REACT_APP_API_URL</span></li>
+								<li className="p-2 bg-secondary rounded border">Vue CLI: <span className="text-primary">VUE_APP_API_URL</span></li>
+								<li className="p-2 bg-secondary rounded border">SvelteKit: <span className="text-primary">PUBLIC_API_URL</span></li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+
+				<section id="env-security" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+					<div className="overflow-x-auto ">
+						<div className="px-4 py-4">
+							<div>
+								<h2 className="text-xl font-semibold">Security Warning</h2>
+								<p className="text-sm mt-4 text-primary ">Never store sensitive secrets (like private Database Passwords or Secret API Keys) in Lynfera environment variables. Because these are bundled into the frontend, <strong>anyone can view them</strong> by inspecting your site's source code in the browser.</p>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section className="border px-4 py-2 rounded-md dark:bg-neutral-900 bg-white p-4">
+					<h2 className="mb-6 text-2xl font-bold tracking-tight text-primary">
+						System Environment Variables
+					</h2>
+					<p className="mb-6 text-less">
+						Lynfera automatically injects these variables into every build container. You can use them to customize your app based on the deployment environment.
+					</p>
+
+					<div className="overflow-x-auto">
+						<table className="min-w-full divide-y divide-less border rounded-lg">
+							<thead className="bg-secondary/30">
+								<tr>
+									<th className="px-6 py-3 text-left text-xs font-bold uppercase text-primary">Variable</th>
+									<th className="px-6 py-3 text-left text-xs font-bold uppercase text-primary">Value / Purpose</th>
+								</tr>
+							</thead>
+							<tbody className="divide-y divide-less text-sm">
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">CI</td>
+									<td className="px-6 py-4 text-less">Set to <code>true</code> to prevent interactive prompts during build.</td>
+								</tr>
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">LYNFERA_URL</td>
+									<td className="px-6 py-4 text-less">The public URL of your project (e.g. <code>my-app.lynfera.com</code>).</td>
+								</tr>
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">NODE_ENV</td>
+									<td className="px-6 py-4 text-less">Always set to <code>production</code>.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+			</section>
+		</main>
+	)
+
+}
+export default page

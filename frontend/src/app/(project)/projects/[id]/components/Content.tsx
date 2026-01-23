@@ -181,7 +181,7 @@ export function ProjectContent({
 						<ProjectAnalytics projectId={project._id} />
 					</TabsContent>
 					<TabsContent value="files">
-						<TabFiles projectId={project._id} deploymentId={deployment?._id} />
+						<TabFiles projectId={project._id} projectRepo={project.repoURL} deploymentId={deployment?._id} />
 					</TabsContent>
 				</main>
 				<div ref={scrollRef}></div>

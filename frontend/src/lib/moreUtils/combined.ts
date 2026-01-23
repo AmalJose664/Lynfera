@@ -1,4 +1,6 @@
+import { ParsedRepo, SourceLocation } from "@/types/Others";
 import { ProjectStatus } from "@/types/Project";
+import { parseRepoUrl } from "./form";
 
 export const timeToSeconds = (time: number | undefined) => {
 	if (!time) return time
@@ -46,22 +48,6 @@ export const getElapsedTime = (oldTime: Date | string): string => { //chat gpt c
 	return `${seconds}s `;
 };
 
-
-export const getGithubBranchUrl = (repoUrl: string, branch: string) => { //chat gpt code
-	if (repoUrl.includes(".git")) {
-		repoUrl = repoUrl.replace(/\.git$/, "");
-	}
-	return `${repoUrl.replace(/\/$/, '')}/tree/${branch}`;
-}
-
-export const getGithubCommitUrl = (repoUrl: string, commitId: string) => { //chat gpt code
-	if (repoUrl.endsWith(".git")) {
-		repoUrl = repoUrl.replace(/\.git$/, "");
-	}
-	repoUrl = repoUrl.replace(/\/$/, "");
-
-	return `${repoUrl}/commit/${commitId}`;
-};
 
 export const getStatusBg = (status: string): string[] => {
 	switch (status) {
@@ -220,3 +206,93 @@ export const avatarBgFromName = (name: string) => {
 
 	return colors[Math.abs(hash) % colors.length];
 };
+
+
+export const getGithubBranchUrl = (repoUrl: string, branch: string) => { //chat gpt code
+	if (repoUrl.includes(".git")) {
+		repoUrl = repoUrl.replace(/\.git$/, "");
+	}
+	return `${repoUrl.replace(/\/$/, '')}/tree/${branch}`;
+}
+
+export const getGithubCommitUrl = (repoUrl: string, commitId: string) => { //chat gpt code
+	if (repoUrl.endsWith(".git")) {
+		repoUrl = repoUrl.replace(/\.git$/, "");
+	}
+	repoUrl = repoUrl.replace(/\/$/, "");
+
+	return `${repoUrl}/commit/${commitId}`;
+};
+
+
+export const generateRepoUrls = (
+	url: string,
+	options: {
+		branch?: string
+		commitSha?: string
+		source?: SourceLocation,
+		tree?: boolean
+	}
+): { branch?: string, commit?: string, source?: string, tree?: string } => {
+	const parsed = parseRepoUrl(url)!
+	console.log(parsed, "  [[ [[ [")
+	const { provider, owner, repo } = parsed
+	const { branch, commitSha, source, tree } = options
+
+	const base = {
+		github: `https://github.com/${owner}/${repo}`,
+		gitlab: `https://gitlab.com/${owner}/${repo}`,
+		bitbucket: `https://bitbucket.org/${owner}/${repo}`,
+	}[provider]
+
+	const urls: Record<string, string> = {}
+	if (tree) {
+		urls.tree =
+			provider === "gitlab"
+				? `${base}/-/tree/${commitSha}`
+				: provider === "bitbucket"
+					? `${base}/src/${commitSha}`
+					: `${base}/tree/${commitSha}`
+	}
+	if (branch) {
+		urls.branch =
+			provider === "gitlab"
+				? `${base}/-/tree/${branch}`
+				: provider === "bitbucket"
+					? `${base}/src/${branch}`
+					: `${base}/tree/${branch}`
+	}
+
+	if (commitSha) {
+		urls.commit =
+			provider === "gitlab"
+				? `${base}/-/commit/${commitSha}`
+				: provider === "bitbucket"
+					? `${base}/commits/${commitSha}`
+					: `${base}/commit/${commitSha}`
+	}
+
+	if (commitSha && source) {
+		const { path, startLine, endLine } = source
+
+		let lineAnchor = ""
+		if (startLine) {
+			if (provider === "bitbucket") {
+				lineAnchor = `#lines-${startLine}${endLine ? `:${endLine}` : ""}`
+			} else if (provider === "gitlab") {
+				lineAnchor = `#L${startLine}${endLine ? `-${endLine}` : ""}`
+			} else {
+				lineAnchor = `#L${startLine}${endLine ? `-L${endLine}` : ""}`
+			}
+		}
+
+		urls.source =
+			provider === "gitlab"
+				? `${base}/-/blob/${commitSha}/${path}${lineAnchor}`
+				: provider === "bitbucket"
+					? `${base}/src/${commitSha}/${path}${lineAnchor}`
+					: `${base}/blob/${commitSha}/${path}${lineAnchor}`
+	}
+	console.log(urls)
+	return urls
+}

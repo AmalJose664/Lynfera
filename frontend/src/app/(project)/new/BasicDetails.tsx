@@ -57,7 +57,7 @@ export function BaseSettings({ form, branches }: {
 				</p>
 			</div>
 
-			<div className="mb-3 px-3 py-2">
+			<div className="mb-3 px-3 py-2 relative">
 				<label className="flex items-center gap-2  mb-1 font-medium text-sm" htmlFor="">
 					<IoIosGitBranch />{" "}<span className="text-primary">Branch</span>
 				</label>
@@ -70,7 +70,7 @@ export function BaseSettings({ form, branches }: {
 							<SelectTrigger className="w-full text-primary dark:placeholder:text-[#474747] placeholder:text-[#bdbdbd]">
 								<SelectValue placeholder="main" />
 							</SelectTrigger>
-							<SelectContent>
+							<SelectContent className="h-96">
 								{branches
 									? branches.map((branch, index) => (
 										<SelectItem key={index} value={branch}>

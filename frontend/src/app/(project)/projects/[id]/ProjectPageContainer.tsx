@@ -35,8 +35,10 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 	const [createDeployment, { isLoading: createDeploymentLoading }] = useCreateDeploymentMutation()
 	const [showBuild, setShowBuild] = useState(false)
 	const handleCreateDeployment = async () => {
+		const t = toast.info("New Deployment Requested")
 		try {
 			await createDeployment(projectId).unwrap()
+			toast.dismiss(t)
 			toast.success("New Deployment Started")
 			setShowBuild(true)
 			setSseActive(true)
@@ -48,6 +50,7 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 				toast.error(error.data.message + "; Please try again later")
 				return false
 			}
+			toast.dismiss(t)
 			toast.error("Error in creating new Deployment; \n" + error.data.message)
 			return false
 		}

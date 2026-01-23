@@ -1,4 +1,4 @@
-import { formatBytes } from "@/lib/moreUtils/combined"
+import { formatBytes, generateRepoUrls } from "@/lib/moreUtils/combined"
 import { useGetDeploymentFilesQuery } from "@/store/services/deploymentApi"
 
 import { FaFolder, FaRegFileAlt, FaDownload } from "react-icons/fa";
@@ -11,10 +11,14 @@ import axios from "axios";
 import { toast } from "sonner";
 import { TabFilesError, TabFilesLoading, TabFilesNoDeployment } from "@/components/project/TabFilesComponents";
 import { cn } from "@/lib/utils";
+import { LinkComponent } from "./docs/HelperComponents";
+import { Deployment } from "@/types/Deployment";
 
 interface FilesProps {
-	projectId: string
+	projectId: string,
+	projectRepo: string,
 	deploymentId?: string
+	commit?: Deployment['commit'],
 	children: React.ReactNode
 }
 type InputFile = {
@@ -40,7 +44,7 @@ type FileTreeNodeProps = {
 
 
 
-const FilesComponent = ({ projectId, deploymentId, children }: FilesProps) => {
+const FilesComponent = ({ projectId, projectRepo, deploymentId, children, commit }: FilesProps) => {
 	const { data: filesData, isLoading, error, isError } = useGetDeploymentFilesQuery({ id: deploymentId || "", params: {} }, {
 		skip: !deploymentId
 	})
@@ -85,6 +89,14 @@ const FilesComponent = ({ projectId, deploymentId, children }: FilesProps) => {
 
 	return (
 		<div className="">
+			<div className="px-6 flex items-center gap-4 py-4 border rounded-md p-4 mb-4 pb-4 bg-neutral-50/50 dark:bg-neutral-900/50">
+				<h4 className="font-semibold text-primary">
+					Source Files
+				</h4>
+				<LinkComponent newPage href={commit ? generateRepoUrls(projectRepo, { commitSha: commit.id, tree: true }).tree || projectRepo : projectRepo}>
+					view
+				</LinkComponent>
+			</div>
 			<div className="flex items-center justify-between mb-4 pb-4 border rounded-md p-4">
 				<div>
 					{children}

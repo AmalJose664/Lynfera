@@ -6,10 +6,10 @@ interface NewDeploymentConfirmBoxProps {
 	selectedDeploymentId: string | null,
 	projectId: string,
 	setSelectedDeploymentId: (val: string | null) => void
-	// handleClick: () => void
+	refetchDeply?: () => void
 }
 
-const ChangeDeploymentModal = ({ selectedDeploymentId, setSelectedDeploymentId, projectId }: NewDeploymentConfirmBoxProps) => {
+const ChangeDeploymentModal = ({ selectedDeploymentId, setSelectedDeploymentId, projectId, refetchDeply }: NewDeploymentConfirmBoxProps) => {
 	const [update,] = useChangeProjectDeploymentMutation()
 	const handleClick = async () => {
 		if (!selectedDeploymentId) return;
@@ -17,7 +17,7 @@ const ChangeDeploymentModal = ({ selectedDeploymentId, setSelectedDeploymentId, 
 			update({ newDeployment: selectedDeploymentId, projectId }).unwrap(),
 			{
 				loading: "Updating deployment...",
-				success: "Deployment updated!",
+				success: () => { refetchDeply && refetchDeply(); return "Deployment updated!" },
 				error: (err) => "Error updating: " + err?.data?.message || "Unknown error",
 			}
 		);
