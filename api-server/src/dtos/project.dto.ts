@@ -24,7 +24,8 @@ export const CreateProjectSchema = z.object({
 		.refine((name) => !name.startsWith("-") && !name.endsWith("-"), "Project name cannot start or end with hyphen"),
 	repoURL: z
 		.string()
-		.regex(/^(?:https?:\/\/(?:www\.)?github\.com\/)?[\w-]+\/[\w.-]+\/?$/, "Invalid repository format (expected: owner/repo or full GitHub URL)"),
+		.regex(/^(?:https?:\/\/)?(?:www\.)?(github\.com|gitlab\.com|bitbucket\.org)\/[\w.-]+\/[\w.-]+\/?$/,
+			"Invalid repository URL (GitHub, GitLab, Bitbucket supported)"),
 	branch: z.string().min(1, "Branch cannot be empty").default("main").optional(),
 	buildCommand: z
 		.string()

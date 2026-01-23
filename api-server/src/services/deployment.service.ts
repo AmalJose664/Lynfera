@@ -82,9 +82,9 @@ class DeploymentService implements IDeploymentService {
 		deploymentData.identifierSlug = generateSlug(3);
 		deploymentData.project = new Types.ObjectId(correspondindProject._id);
 		deploymentData.user = correspondindProject.user;
-		await this.incrementRunningDeplymnts(correspondindProject._id, canDeploy.user._id, canDeploy.user.plan);
 		await new Promise((res) => setTimeout(res, 4000))
 		throw new AppError(DEPLOYMENT_ERRORS.DAILY_DEPLOYMENT_LIMIT, STATUS_CODES.TOO_MANY_REQUESTS);
+		await this.incrementRunningDeplymnts(correspondindProject._id, canDeploy.user._id, canDeploy.user.plan);
 		try {
 			const deployment = await this.deploymentRepository.createDeployment(deploymentData);
 

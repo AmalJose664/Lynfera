@@ -5,7 +5,7 @@ export const DEPLOYMENT_POPULATE_MAP = {
 	},
 	project: {
 		path: "project",
-		select: "name branch subdomain repoURL",
+		select: "name branch subdomain repoURL currentDeployment",
 	},
 } as const;
 
