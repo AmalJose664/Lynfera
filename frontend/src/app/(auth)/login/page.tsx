@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import axiosInstance from "@/lib/axios";
 import OtpModal from "@/components/modals/OtpModal";
+import { showToast } from "@/components/Toasts";
+import { LinkComponent } from "@/components/docs/HelperComponents";
 
 
 export default function LoginPage() {
@@ -119,9 +121,9 @@ export default function LoginPage() {
 						}
 					</AnimatePresence >
 				</div >
-				<div className="mt-12 flex items-center justify-between flex-col">
+				<div className="mt-12 flex items-center justify-between flex-col text-center">
 					<div className='flex items-center'>
-						<p className="text-some-less text-xs">By signing in, you agree to our <Link href={"/legal/terms-of-use"}>Terms and conditions</Link> and <Link href={"/legal/privacy"}>Privacy Policy</Link></p>
+						<p className="text-some-less text-xs">By signing in, you agree to our <br /> <LinkComponent href={"/legal/terms-of-use"}>Terms and conditions</LinkComponent> and <LinkComponent href={"/legal/privacy"}>Privacy Policy</LinkComponent></p>
 					</div>
 					<div className='flex items-center flex-col mt-4'>
 						<p className='text-some-less text-sm'>No account yet?</p>
@@ -154,9 +156,9 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 	const onSubmit = async (data: LoginUserType) => {
 		try {
 			const result = await axiosInstance.post("/auth/login", data) as unknown as any
-			console.log(result)
 			setError(null)
 			if (result.data.loginSuccess) {
+				localStorage.setItem("provider_last_used", "EMAIL")
 				router.push("/auth/success")
 				console.clear()
 			}
@@ -171,9 +173,9 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 				return
 			}
 			if (error.status === 400) {
-				return toast.error('Login Failed Invalid input')
+				return showToast.error('Login Failed', ' Invalid input')
 			}
-			toast.error('Login Failed; Error on login')
+			showToast.error('Login Failed', 'Error on login')
 		}
 	}
 	return (

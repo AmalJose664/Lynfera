@@ -12,14 +12,14 @@ import { CiSettings } from "react-icons/ci";
 
 import { useCreateProjectMutation } from "@/store/services/projectsApi";
 import { useRouter } from "next/navigation";
-import { FaArrowLeft } from "react-icons/fa6";
 import { BaseSettings } from "./BasicDetails";
 import { AdvancedSettings } from "./AdvancedDetails";
 import { ConfigPreview } from "./ConfigPreview";
 import { getBranches, repoCheck } from "@/lib/moreUtils/form";
 import { IoIosCube } from "react-icons/io";
-import { toast } from "sonner";
 import BackButton from "@/components/BackButton";
+import { showToast } from "@/components/Toasts";
+import { LinkComponent } from "@/components/docs/HelperComponents";
 
 
 function ProjectForm() {
@@ -78,9 +78,9 @@ function ProjectForm() {
 			}
 			console.log("Error!", error)
 			if (error.status === 400) {
-				return toast.error("Error on creating project, " + error.data.message || error.message)
+				return showToast.error("Error on creating project, ", error.data.message || error.message)
 			}
-			toast.error("Error on creating project")
+			showToast.error("Error", "Error on creating project")
 		}
 
 	}
@@ -131,6 +131,10 @@ function ProjectForm() {
 							>
 								{(isSubmitting || isLoading) ? "Loading..." : "Deploy"}
 							</button>
+						</div>
+						<div>
+							<LinkComponent
+								href="/docs/getting-started#start-project" className="text-xs text-blue-300/80!">Learn more</LinkComponent>
 						</div>
 					</motion.form>
 

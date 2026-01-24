@@ -18,13 +18,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { clearLogs } from '@/store/slices/logSlice';
 import { formatLogTime, getLevelColor } from '@/lib/moreUtils/combined';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'motion/react';
 import { FiArrowLeft, FiArrowRight } from 'react-icons/fi';
 import { AiOutlineNumber } from 'react-icons/ai';
 import { IconType } from "react-icons";
 import { TbArrowsMaximize } from 'react-icons/tb';
+import { showToast } from './Toasts';
 
 interface LogsComponentProps {
 	deploymentId: string,
@@ -65,7 +65,7 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 
 	const downloadLogs = () => {
 		if (currentUsingLogs.length === 0) {
-			toast.info("No logs found to download")
+			showToast.info("No logs", "No logs found to download")
 			return
 		}
 		const logText = (currentUsingLogs)

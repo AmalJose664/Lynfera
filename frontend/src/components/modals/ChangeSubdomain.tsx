@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input"
 import { useEffect, useRef, useState } from "react"
 import { useChangeProjectSubdomainMutation } from "@/store/services/projectsApi"
 import { useRouter } from "next/navigation"
-import { toast } from "sonner"
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useDebounce } from "@/hooks/useDebounce"
 import axiosInstance from "@/lib/axios"
@@ -22,6 +21,7 @@ import { cn } from "@/lib/utils"
 import { IoClose } from "react-icons/io5"
 import { IoMdCheckmark } from "react-icons/io"
 import Copybtn from "../Copybtn"
+import { showToast } from "../Toasts"
 
 export function ChangeProjectSubdomainDialog({ projectName, projectId, currentSubdomain }: { projectName: string, projectId: string, currentSubdomain: string }) {
 	const [userConfirmText, setUserConfirmText] = useState("")
@@ -54,23 +54,22 @@ export function ChangeProjectSubdomainDialog({ projectName, projectId, currentSu
 	const handleUpdate = async () => {
 		if (subdomain === currentSubdomain) return
 		if (!available) {
-			return toast.error("Slug not available")
+			return showToast.error("Subdomain", "Slug not available")
 		}
 		if (userConfirmText === confirmText) {
 			try {
 				const result = await changeProject({ projectId, newSubdomain: debouncedValue }).unwrap()
-				console.log("Update:", result)
-				toast.success(`Project ${projectName} has been updated.`)
+				showToast.success(`Project ${projectName} has been updated.`)
 				router.push("/projects/" + projectId)
 			} catch (err: any) {
 				if (err.status !== 400) console.error("Update failed:", err)
-				toast.error("Failed to Update project; " + err.data.message)
+				showToast.error("Update Failed ", err.data.message)
 			} finally {
 				ref.current?.click()
 			}
 
 		} else {
-			toast.error("Project name does not match.")
+			showToast.error("Project name does not match.")
 		}
 	}
 	const toggleLoading = debouncedValue !== subdomain

@@ -1,6 +1,17 @@
 import { CodeComponent, LinkComponent } from "@/components/docs/HelperComponents"
 import { SITE_NAME } from "@/config/constants"
 
+
+
+export const metadata = {
+	title: "Build & Deploy | " + SITE_NAME,
+	description:
+		"Instructions and best practices for building and deploying static applications efficiently.",
+};
+
+
+
+
 const page = () => {
 	return (
 		<main className="  px-4 space-y-16">
@@ -13,7 +24,7 @@ const page = () => {
 					<p className="mt-4">{SITE_NAME} automatically performs a build every time you start a deployment in the UI</p>
 				</div>
 
-				<section id="build-infra" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background 
+				<section id="build-infra" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 
 				bg-white ">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
@@ -27,7 +38,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="build-trigger" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="build-trigger" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<h2 className="text-xl font-semibold">How builds are triggered</h2>
@@ -39,7 +50,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="build-customize" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="build-customize" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<h2 className="text-xl font-semibold">Build customization</h2>
@@ -53,7 +64,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="build-env-vars" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="build-env-vars" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<h2 className="text-xl font-semibold">Environment variables</h2>
@@ -62,7 +73,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="build-deployment" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="build-deployment" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -70,18 +81,41 @@ const page = () => {
 								<p className="text-sm mt-4 text-primary ">Once the build completes successfully:</p>
 							</div>
 							<ul className="px-3 py-1 list-disc space-y-3 mt-3">
-								<li>{SITE_NAME} uploads your build artifacts (static files, Vercel Functions, and other assets) to the public cloud (s3).</li>
+								<li>{SITE_NAME} uploads your build artifacts (static files, {SITE_NAME} Functions, and other assets) to the public cloud (s3).</li>
 								<li>A unique deployment URL is generated (apart from the project link) (Both URLs can be used to access the deployment).</li>
 								<li>Logs and build details are available in each <strong>project</strong> section of the dashboard.</li>
 							</ul>
 							<div>
-								<p className="text-sm mt-4 text-primary ">If the build fails or times out, Vercel provides diagnostic logs in the dashboard to help you troubleshoot. For common solutions, see our build <LinkComponent href="/docs/troubleshoot/">troubleshooting docs</LinkComponent>.</p>
+								<p className="text-sm mt-4 text-primary ">If the build fails or times out, {SITE_NAME} provides diagnostic logs in the dashboard to help you troubleshoot. For common solutions, see our build <LinkComponent href="/docs/troubleshoot/">troubleshooting docs</LinkComponent>.</p>
 
 							</div>
 						</div>
 					</div>
 				</section>
-				<section id="build-limits" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="build-duration" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 
+				bg-white ">
+					<div className="overflow-x-auto ">
+						<div className="px-4 py-4">
+							<div>
+								<h2 className="text-xl font-semibold">Build duration</h2>
+								<p className="text-sm text-primary mt-4">The total build duration is shown on the {SITE_NAME} <LinkComponent href="/deployments">deployment</LinkComponent> Dashboard and includes all three steps: checking, installing, building, checking, and uploading assets.</p>
+								<p className="text-sm text-primary mt-4">A Build can last for a maximum of 30 minutes. If the build exceeds this time, the deployment will be canceled and the error will be shown on the Deployment's page saying this message <CodeComponent>Failed to start build runner / Build timeout exceeded</CodeComponent>.</p>
+							</div>
+
+							<div>
+								<p className="text-less text-sm mt-2">
+									{SITE_NAME} enforces strict limits on build execution to ensure platform stability:
+								</p>
+								<ul className="list-disc pl-5 text-sm mt-3 space-y-1">
+									<li><strong>Install Command:</strong> Max 10 minutes.</li>
+									<li><strong>Build Command:</strong> Max 15 minutes.</li>
+									<li><strong>Total Session:</strong> Max 30 minutes.</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</section>
+				<section id="build-limits" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -92,7 +126,7 @@ const page = () => {
 								<li><strong>Build timeout:</strong> The maximum build time is 30 minutes. If your build exceeds this limit, it will be terminated, and the deployment fails.</li>
 								<li><strong>Concurrency:</strong> Max concurrent builds for each user is decided by their plan (free - 1, pro - 3).</li>
 								<li><strong>Container resources:</strong> We fairly give both sets of users (free, pro) container with a limit of 2 vCPUs and 2 GB RAM for now but these values may change in the future.</li>
-								<li><strong>Build image:</strong> Builds in {SITE_NAME} get a base image of Node:22-slim. You can view the generated image <LinkComponent href="https://hub.docker.com/r/amal664/lynfera-builds" newPage>here</LinkComponent></li>
+								<li><strong>Build image:</strong> Builds in {SITE_NAME} get a base image of Node:22-bookworm. You can view the generated image <LinkComponent href="https://hub.docker.com/r/amal664/lynfera-builds" newPage>here</LinkComponent></li>
 							</ul>
 						</div>
 					</div>
@@ -110,7 +144,7 @@ const page = () => {
 					<h2>Deployments</h2>
 					<p className="mt-4">A deployment on {SITE_NAME} is the result of a successful build of your project. Each time you deploy, {SITE_NAME} generates a unique URL to the live environment. The current project is also updated based on the deployment status.</p>
 				</div>
-				<section id="deploy-dashboard" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="deploy-dashboard" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -122,7 +156,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="deploy-manage" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="deploy-manage" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -137,7 +171,7 @@ const page = () => {
 					</div>
 				</section>
 
-				<section id="deploy-env" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="deploy-env" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -151,7 +185,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="deploy-delete" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="deploy-delete" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -165,7 +199,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="deploy-redeploy" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="deploy-redeploy" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -176,7 +210,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="deploy-promote" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="deploy-promote" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -202,7 +236,7 @@ const page = () => {
 				</section>
 
 
-				<section id="deploy-more" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="deploy-more" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>

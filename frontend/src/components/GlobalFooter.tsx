@@ -1,10 +1,9 @@
 import Link from "next/link";
 import TitleWithLogo from "./TitleWithLogo";
 import ThemeSwitcher from '@/components/ThemeIcon';
-import {
-	Github,
-} from 'lucide-react';
+
 import { Button } from "./ui/button";
+import { LuGithub } from "react-icons/lu";
 
 export const Footer = () => {
 	return (
@@ -48,7 +47,7 @@ export const Footer = () => {
 					<div className="flex gap-6">
 						<Button title="View Our Repo" variant={"ghost"}
 							className="text-gray-500 hover:text-primary border border-transparent hover:border-neutral-500">
-							<Github className=" cursor-pointer" size={20} />
+							<LuGithub className=" cursor-pointer" size={20} />
 						</Button>
 						<ThemeSwitcher className="rounded-full" />
 					</div>

@@ -28,7 +28,9 @@ const ProjectEmptyState = () => {
 				<EmptyContent>
 					<div className="flex gap-2">
 						<Link href={'/new'} className=""><Button>Create Project</Button></Link>
-						<Button variant="outline">Import Project</Button>
+						<Link href={'/new'} className="">
+							<Button variant="outline">Import Project</Button>
+						</Link>
 					</div>
 				</EmptyContent>
 				<Button
@@ -37,9 +39,9 @@ const ProjectEmptyState = () => {
 					className="text-muted-foreground"
 					size="sm"
 				>
-					<a href="#">
+					<Link href="/docs/getting-started#gs-projects-deployment">
 						Learn More <HiMiniArrowUpRight />
-					</a>
+					</Link>
 				</Button>
 			</Empty>
 			<div className="absolute -top-8">

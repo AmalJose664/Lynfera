@@ -1,6 +1,13 @@
 import { LinkComponent } from "@/components/docs/HelperComponents";
 import { SITE_NAME } from "@/config/constants";
 
+export const metadata = {
+	title: "Getting Started | " + SITE_NAME,
+	description:
+		"Learn how to set up, configure, and deploy your first static application step by step.",
+};
+
+
 const Page = () => {
 	return (
 		<NewPage />
@@ -13,7 +20,7 @@ const NewPage = () => {
 			<div className="w-full border-b pb-2">
 				<h2 className="text-4xl">Getting Started</h2>
 			</div>
-			<section id="getting-started" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+			<section id="starting-intro" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 
 				<div className="pt-8 px-4 mb-6">
 					<h2 className="text-2xl font-semibold">Introduction</h2>
@@ -21,8 +28,8 @@ const NewPage = () => {
 						Welcome to {SITE_NAME}. We’ve designed the onboarding process to be as lean as possible—no complex permissions or app installations required. We clone, we build, and we deploy.</p>
 				</div>
 			</section>
-			<section id="getting-started" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
-				<div className="overflow-x-auto dark:bg-background bg-white">
+			<section id="getting-started" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
+				<div className="overflow-x-auto dark:bg-[#101010]/60 bg-white">
 					<div className="px-4 py-4">
 						<h2 className="text-xl font-semibold">Before you begin</h2>
 						<p className="text-sm text-less mt-1">To get started, create an account with {SITE_NAME}.</p>
@@ -35,8 +42,8 @@ const NewPage = () => {
 				</div>
 			</section>
 
-			<section id="gs-projects-deployment" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
-				<div className="overflow-x-auto dark:bg-background bg-white">
+			<section id="gs-projects-deployment" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
+				<div className="overflow-x-auto dark:bg-[#101010]/60 bg-white">
 					<div className="px-4 py-4">
 						<h2 className="text-xl font-semibold">Understanding Projects & Deployments</h2>
 						<p className="text-sm text-less mt-1">To get started with {SITE_NAME}, it's helpful to understand projects and deployments:</p>
@@ -47,9 +54,9 @@ const NewPage = () => {
 					</div>
 				</div>
 			</section>
-			<section id="getting-started" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+			<section id="start-project" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 
-				<div className="overflow-x-auto dark:bg-background bg-white">
+				<div className="overflow-x-auto dark:bg-[#101010]/60 bg-white">
 					<div className="px-4 py-4">
 						<h2 className="text-xl font-semibold">Starting a project</h2>
 						<p className="text-base mt-3 text-primary tracking-wide leading-relaxed">
@@ -68,7 +75,7 @@ const NewPage = () => {
 								Fill out the project details: **Project Name**, **Public Git URL**, and **Branch**.
 							</li>
 							<li className="">
-								(Optional) Open **Advanced Settings** to configure monorepo root directories, custom build/install commands, or environment variables.
+								(Optional) Open **Advanced Settings** to configure monorepo root directories, custom build/install commands, or environment variables. <LinkComponent href="/docs/build-deploy#build-customize">More info</LinkComponent>
 							</li>
 							<li className="">
 								Click **Deploy** to start your first build.

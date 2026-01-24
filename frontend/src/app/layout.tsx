@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 import ReduxProvider from "@/store/ReduxProvider";
-import ThemeProviderComponent from "@/components/ThemeProvider";
+import ThemeProviderComponent from "@/app/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner"
+import { PostHogProvider } from "./providers/PostHogProvider";
 
 
 const roboto = Roboto({
@@ -29,14 +30,15 @@ export default function RootLayout({
 		<html lang="en" suppressHydrationWarning>
 			<body
 				className={`${roboto.className}  antialiased`} style={{ colorScheme: "dark" }}
-			>
-				<ReduxProvider>
-					<ThemeProviderComponent>
-						{children}
-						<Toaster position="top-right"
-							richColors closeButton />
-					</ThemeProviderComponent>
-				</ReduxProvider>
+			><PostHogProvider>
+					<ReduxProvider>
+						<ThemeProviderComponent>
+							{children}
+							<Toaster position="top-right" visibleToasts={5}
+								richColors closeButton />
+						</ThemeProviderComponent>
+					</ReduxProvider>
+				</PostHogProvider>
 			</body>
 		</html>
 	);

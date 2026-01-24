@@ -22,6 +22,8 @@ import axiosInstance from "@/lib/axios";
 import { MdOutlineEmail } from 'react-icons/md';
 import { GithubLoginButton } from '../components/GithubLogin';
 import OtpModal from '@/components/modals/OtpModal';
+import { showToast } from '@/components/Toasts';
+import { LinkComponent } from '@/components/docs/HelperComponents';
 
 
 export default function SignupPage() {
@@ -104,12 +106,12 @@ export default function SignupPage() {
 					</AnimatePresence>
 				</div>
 				<div className="mt-12 flex items-center justify-between flex-col text-some-less">
-					<div className='flex items-center'>
+					<div className='flex items-center text-center'>
 						<p className="text-some-less text-xs">
-							By signing up, you agree to our{" "}
-							<Link className='underline' href={"/legal/terms-of-use"}>Terms and conditions</Link>
+							By signing up, you agree to our <br />
+							<LinkComponent className='underline' href={"/legal/terms-of-use"}>Terms and conditions</LinkComponent>
 							{" "}and{" "}
-							<Link className='underline' href={"/legal/privacy"}>Privacy Policy</Link>
+							<LinkComponent className='underline' href={"/legal/privacy"}>Privacy Policy</LinkComponent>
 						</p>
 					</div>
 					<div className='flex items-center flex-col mt-4'>
@@ -145,7 +147,6 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 	const onSubmit = async (data: SignUpUserType) => {
 		try {
 			const response = await axiosInstance.post("/auth/signup", data)
-			console.log(response)
 			if (response.status === 201) {
 				setShowOtpForm(true)
 				showOtpModalButn.current = true
@@ -156,9 +157,9 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 			console.log("Error!", error)
 			setError(error.response.data.message)
 			if (error.status === 409) {
-				return toast.error(error.response.data.message)
+				return showToast.error('Signup failed;', error.response.data.message)
 			}
-			toast.error('Signup failed; ' + error.response.data.message)
+			showToast.error('Signup failed', error.response.data.message)
 		}
 	}
 	return (

@@ -1,6 +1,6 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useUpdateProjectMutation } from "@/store/services/projectsApi"
-import { toast } from "sonner"
+import { showToast } from "../Toasts"
 
 
 const DisableProject = ({ projectId, isDisabled }: { projectId: string, isDisabled: boolean }) => {
@@ -8,9 +8,9 @@ const DisableProject = ({ projectId, isDisabled }: { projectId: string, isDisabl
 	const changeProjectStatus = async (condition: boolean) => {
 		try {
 			updateProject({ _id: projectId, isDisabled: condition }).unwrap()
-			toast.success(`${condition ? "Disabled" : "Enabled"} project`)
+			showToast.success(`${condition ? "Disabled" : "Enabled"} project`)
 		} catch (error) {
-			toast.error("error on  project action")
+			showToast.error("error on  project action")
 			console.log(error)
 		}
 	}

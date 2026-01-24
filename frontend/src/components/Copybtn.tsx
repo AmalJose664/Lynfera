@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react"
 import { IoIosCheckmark } from "react-icons/io"
 import { IoClipboardOutline } from "react-icons/io5"
-import { toast } from "sonner"
+import { showToast } from "./Toasts"
 
 const Copybtn = ({ value }: { value: string }) => {
 	const [copy, setCopy] = useState(false)
@@ -17,7 +17,7 @@ const Copybtn = ({ value }: { value: string }) => {
 	return (
 		<button type="button" onClick={() => {
 			navigator.clipboard.writeText(value)
-			toast.info("Value copied")
+			showToast.info("Value copied")
 			setCopy(true)
 			if (copyTimerRef.current) {
 				clearTimeout(copyTimerRef.current)

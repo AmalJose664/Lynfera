@@ -1,3 +1,4 @@
+import { showToast } from "@/components/Toasts";
 import { isStatusFailure, isStatusProgress } from "@/lib/moreUtils/combined";
 import { deployemntApis } from "@/store/services/deploymentApi";
 import { projectApis } from "@/store/services/projectsApi";
@@ -8,7 +9,7 @@ import { Log } from "@/types/Log";
 import { Project, ProjectStatus } from "@/types/Project";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { IoIosArrowRoundForward } from "react-icons/io";
+import { IoIosArrowRoundForward, IoIosCloud } from "react-icons/io";
 import { MdOutlineError } from "react-icons/md";
 import { toast } from "sonner";
 
@@ -21,16 +22,26 @@ export function useDeploymentSSE(project: Project | undefined, refetch: () => vo
 	const logBatchRef = useRef<Log[]>([]);
 	const batchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	// console.log(!sseActive, !deployment?._id, eventSourceRef.current, !isStatusProgress(deployment?.status))
+
 	useEffect(() => {
-		if (!sseActive) { return console.log("sse", sseActive) }
-		if (!deployment?._id || !deployment.status) { return console.log("depl") }
-		if (eventSourceRef.current) { return console.log("eventsource") }
+		if (!sseActive) {
+			return
+			// console.log("sse", sseActive) 
+		}
+		if (!deployment?._id || !deployment.status) {
+			return
+			console.log("depl")
+		}
+		if (eventSourceRef.current) {
+			return
+			console.log("eventsource")
+		}
 		if (!isStatusProgress(deployment.status)) {
-			{ return console.log("status") }
+			return
+			console.log("status")
 		}
 
-		console.log("Starting SSE for deployment:", deployment._id)
+
 		const eventSource = new EventSource(
 			`${process.env.NEXT_PUBLIC_API_SERVER_ENDPOINT}/deployments/${deployment._id}/logs/stream`,
 			{ withCredentials: true }
@@ -96,16 +107,15 @@ export function useDeploymentSSE(project: Project | undefined, refetch: () => vo
 						)
 					)
 					if (update.status === ProjectStatus.READY || isStatusFailure(update.status)) {
-						console.log("STatus failed or ready ", update.status)
 						refreshTimerRef.current = setTimeout(() => {
-							console.log("refeching...........", "-----------------------------------------------------------------------------------------------------------------------------------------REFETCH INITIATED --------------------------------------------------------------------------------------------------------------------------")
 							update.status === ProjectStatus.READY
-								? toast.success("New Deployment resulted in Success 🎉🎉")
+								? showToast.success("Deployment", "New Deployment resulted in Success 🎉🎉", <IoIosCloud className="size-5" />)
 								: toast.custom((t) => (
-									<div className="border-red-400 bg-background border px-4 py-3 rounded-md shadow flex justify-between items-center gap-12 w-80">
+									<div className="dark:border-red-500/50 border-red-500 dark:bg-background bg-red-50/60 border px-4 py-3 rounded-md shadow flex justify-between items-center gap-12 w-80">
 										<div>
 											<div className="flex items-center gap-4">
 												<h4 className="font-semibold text-primary">Deployment Failed</h4>
+												<IoIosCloud className="size-5 text-red-400" />
 												<MdOutlineError className="size-5 text-red-500" />
 											</div>
 											<div className="">
@@ -125,7 +135,7 @@ export function useDeploymentSSE(project: Project | undefined, refetch: () => vo
 											onClick={() => {
 												toast.dismiss(t);
 												if (project && project.deployments && project.deployments?.length >= 2) {
-													toast.info("Current deployment unchanged, no update was applied")
+													showToast.info("Unchanged", "Deployment unchanged. No Project updates applied.")
 												}
 											}}
 											className="text-gray-400 hover:text-gray-600 transition"
@@ -138,7 +148,7 @@ export function useDeploymentSSE(project: Project | undefined, refetch: () => vo
 									richColors: true,
 									onAutoClose(t) {
 										if (project && project.deployments && project.deployments?.length >= 2) {
-											toast.info("Current deployment unchanged, no update was applied")
+											showToast.info("Unchanged", "Deployment unchanged. No update applied.")
 										}
 									},
 								});
@@ -146,7 +156,7 @@ export function useDeploymentSSE(project: Project | undefined, refetch: () => vo
 							eventSource.close()
 							setSseActive(false)
 						}, 1300)
-						console.log("end here .... ... .")
+
 					}
 				}
 			} catch (err) {
@@ -155,9 +165,7 @@ export function useDeploymentSSE(project: Project | undefined, refetch: () => vo
 		}
 
 		eventSource.onerror = (error) => {
-			console.log(eventSource.readyState)
 			if (eventSource.readyState === EventSource.CLOSED) {
-				console.log('SSE connection closed by server');
 				eventSource.close();
 				eventSourceRef.current = null
 				return;
@@ -173,17 +181,14 @@ export function useDeploymentSSE(project: Project | undefined, refetch: () => vo
 
 		eventSource.addEventListener("done", () => {
 			eventSource.close();
-			console.log('SSE connection closed by server');
 			eventSourceRef.current = null
 		})
 		eventSource.addEventListener("close", () => {
 			eventSource.close();
-			console.log('SSE connection closed by server');
 			eventSourceRef.current = null
 		})
 		return () => {
 			eventSource.close(); eventSourceRef.current = null
-			console.log("closed sse.............")
 			if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current)
 		}
 	}, [deployment?._id, sseActive])

@@ -13,10 +13,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { toast } from "sonner"
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import Copybtn from "../Copybtn"
 import { useClearAnalyticsMutation } from "@/store/services/analyticsApi"
+import { showToast } from "../Toasts"
 
 export function ClearAnalyticsDialog({ projectName, projectId }: { projectName: string, projectId: string }) {
 	const [userConfirmText, setUserConfirmText] = useState("")
@@ -29,12 +29,11 @@ export function ClearAnalyticsDialog({ projectName, projectId }: { projectName: 
 		if (userConfirmText === confirmText) {
 			try {
 				const result = await clearAnalytics({ projectId }).unwrap()
-				console.log("Deleted:", result)
-				toast.success(`Project ${projectName} analytics has been deleted.`)
+				showToast.success(`Project ${projectName} analytics has been deleted.`)
 				router.push("/projects/" + projectId)
 			} catch (err) {
 				console.error("Delete failed:", err)
-				toast.error("Failed to delete analytics")
+				showToast.error("Failed to delete analytics")
 				ref.current?.click()
 			} finally {
 				setUserConfirmText("")
@@ -42,7 +41,7 @@ export function ClearAnalyticsDialog({ projectName, projectId }: { projectName: 
 			}
 
 		} else {
-			toast.error("Project name does not match")
+			showToast.error("Project name does not match")
 		}
 	}
 

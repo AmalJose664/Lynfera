@@ -11,6 +11,7 @@ import { BsInfoCircle } from "react-icons/bs";
 import RightFadeComponent from "@/components/RightFadeComponent";
 import { CgClose } from "react-icons/cg";
 import { useGetUserQuery } from "@/store/services/authApi";
+import { LinkComponent } from "@/components/docs/HelperComponents";
 
 const BandwidthChart = lazy(() => import("@/components/analytics/Bandwidth"));
 const OverviewChart = lazy(() => import("@/components/analytics/Overview"));
@@ -33,6 +34,7 @@ const ProjectAnalytics = ({ projectId }: { projectId: string }) => {
 								<p className="text-sm">
 									These results may not represent actual users. They are an approximation of the <code className="border border-blue-400/50 dark:border-blue-800/50 px-2 py-1 rounded-md mx-2">number of requests</code> received by the server.
 								</p>
+								<LinkComponent href="/docs/observability#analytics-data" className="text-sm">Learn more</LinkComponent>
 							</div>
 							<div className="flex items-center gap-3">
 								<BsInfoCircle className="size-4 text-blue-400" />

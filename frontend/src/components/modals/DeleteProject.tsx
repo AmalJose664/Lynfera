@@ -14,8 +14,8 @@ import { Input } from "@/components/ui/input"
 import { useRef, useState } from "react"
 import { useDeleteProjectMutation } from "@/store/services/projectsApi"
 import { useRouter } from "next/navigation"
-import { toast } from "sonner"
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { showToast } from "../Toasts"
 
 
 export function DeleteProjectDialog({ projectName, projectId }: { projectName: string, projectId: string }) {
@@ -28,17 +28,16 @@ export function DeleteProjectDialog({ projectName, projectId }: { projectName: s
 		if (userConfirmText === confirmText) {
 			try {
 				const result = await deleteProject(projectId).unwrap()
-				console.log("Deleted:", result)
-				toast.success(`Project ${projectName} has been deleted.`)
+				showToast.success(`Project ${projectName} has been deleted.`)
 				router.push("/projects")
 			} catch (err) {
 				console.error("Delete failed:", err)
-				toast.error("Failed to delete project")
+				showToast.error("Failed", "Failed to delete project")
 				ref.current?.click()
 			}
 
 		} else {
-			alert("Project name does not match.")
+			showToast.warning("Project name does not match.")
 		}
 	}
 

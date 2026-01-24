@@ -15,6 +15,8 @@ import { useAppDispatch } from "@/store/store"
 import { toast } from "sonner"
 import { LoadingSpinner2 } from "@/components/LoadingSpinner"
 import { isStatusProgress } from "@/lib/moreUtils/combined"
+import { showToast } from "@/components/Toasts"
+import { IoIosCloud, IoIosCube } from "react-icons/io"
 
 interface ProjectPageContainerProps {
 	projectId: string
@@ -35,11 +37,11 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 	const [createDeployment, { isLoading: createDeploymentLoading }] = useCreateDeploymentMutation()
 	const [showBuild, setShowBuild] = useState(false)
 	const handleCreateDeployment = async () => {
-		const t = toast.info("New Deployment Requested")
+		const t = showToast.message("Deployment", "New Deployment Requested", <IoIosCloud className="w-4 h-4" />)
 		try {
 			await createDeployment(projectId).unwrap()
 			toast.dismiss(t)
-			toast.success("New Deployment Started")
+			showToast.success("Deployment", "New Deployment Started")
 			setShowBuild(true)
 			setSseActive(true)
 			await refetch()
@@ -47,11 +49,11 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 		} catch (error: any) {
 			setSseActive(false)
 			if (error.status === 503 || error.data.status === 503) {
-				toast.error(error.data.message + "; Please try again later")
+				showToast.error("Deployment", error.data.message + "; Please try again later", <IoIosCloud className="w-4 h-4" />)
 				return false
 			}
 			toast.dismiss(t)
-			toast.error("Error in creating new Deployment; \n" + error.data.message)
+			showToast.error("Deployment ", "Error in creating new Deployment; \n" + error.data.message, <IoIosCloud className="w-4 h-4" />)
 			return false
 		}
 	}
@@ -107,8 +109,8 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 
 	const reDeploy = async () => {
 		if (!project || (!deployment && !lastDeployment)) return
-		if (isStatusProgress(project.status) || isStatusProgress(deployment?.status)) {
-			toast.error(`Cannot deploy when the project is in ${ProjectStatus.QUEUED}/${ProjectStatus.BUILDING} state`)
+		if (isStatusProgress(project.status) || isStatusProgress(deployment?.status) || (project.tempDeployment && tempDeployment)) {
+			showToast.error("Project error", `Cannot deploy when the project is in ${ProjectStatus.QUEUED}/${ProjectStatus.BUILDING} state`, <IoIosCube className="size-5" />)
 			return
 		}
 		const goodResponse = await handleCreateDeployment()

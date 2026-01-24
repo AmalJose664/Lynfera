@@ -8,11 +8,13 @@ import { CiFolderOn } from "react-icons/ci";
 import { memo, useCallback, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button";
 import axios from "axios";
-import { toast } from "sonner";
+
 import { TabFilesError, TabFilesLoading, TabFilesNoDeployment } from "@/components/project/TabFilesComponents";
 import { cn } from "@/lib/utils";
 import { LinkComponent } from "./docs/HelperComponents";
 import { Deployment } from "@/types/Deployment";
+import { showToast } from "./Toasts";
+import { AiFillFileExclamation } from "react-icons/ai";
 
 interface FilesProps {
 	projectId: string,
@@ -57,7 +59,6 @@ const FilesComponent = ({ projectId, projectRepo, deploymentId, children, commit
 			try {
 				const protocol = window.location.protocol
 				const url = `${protocol}//${process.env.NEXT_PUBLIC_PROXY_SERVER}/extras/download-file/${projectId}/${deploymentId}?filePath=${encodeURIComponent(path)}`
-				console.log(url)
 				const result = await axios({ url, method: "GET", responseType: 'blob' })
 				const fileUrl = window.URL.createObjectURL(result.data);
 				const a = document.createElement('a');
@@ -69,7 +70,7 @@ const FilesComponent = ({ projectId, projectRepo, deploymentId, children, commit
 				window.URL.revokeObjectURL(fileUrl);
 
 			} catch (error) {
-				toast.error("Error on downloading file, file=" + path)
+				showToast.error("File Download", "Error on downloading file, file=" + path, <AiFillFileExclamation className="size-4 text-red-400" />)
 				console.warn("error on downloading file  ", error, path)
 			}
 		}, [projectId, deploymentId]

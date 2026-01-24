@@ -14,8 +14,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import axiosInstance from "@/lib/axios"
-import { toast } from "sonner"
+
 import { useRouter } from "next/navigation"
+import { showToast } from "../Toasts"
 const OtpModal = ({ userEmail, setShowOtpForm, showOtpForm }: { userEmail: string, showOtpForm: boolean, setShowOtpForm: Dispatch<SetStateAction<boolean>> }) => {
 	const [otp, setOtp] = useState<string>("");
 	const resentSeconds = 50
@@ -35,15 +36,15 @@ const OtpModal = ({ userEmail, setShowOtpForm, showOtpForm }: { userEmail: strin
 			try {
 				const response = await axiosInstance.post("/auth/resend-otp")
 				if (response.status === 200) {
-					toast.success("OTP resent")
+					showToast.success("OTP resent")
 				}
 			} catch (error: any) {
 				console.log("Error on resent OTP ", error)
 				if (error.response.data.message && error.status !== 500) {
-					toast.error(error.response.data.message)
+					showToast.error(error.response.data.message)
 					return
 				}
-				toast.error("Error on sending OTP")
+				showToast.error("Error on sending OTP")
 			} finally {
 				setResendCountdown(resentSeconds);
 			}
@@ -55,7 +56,7 @@ const OtpModal = ({ userEmail, setShowOtpForm, showOtpForm }: { userEmail: strin
 	const handleVerify = async () => {
 		try {
 			if (!userEmail) {
-				toast.error("Email not found")
+				showToast.error("Email not found")
 			}
 			const response = await axiosInstance.post("/auth/verify-otp", {
 				otp: Number(otp),
@@ -67,7 +68,7 @@ const OtpModal = ({ userEmail, setShowOtpForm, showOtpForm }: { userEmail: strin
 				console.clear()
 			}
 		} catch (error: any) {
-			toast.error(error.response.data.message)
+			showToast.error("Error ", error.response.data.message)
 		}
 	};
 	return (

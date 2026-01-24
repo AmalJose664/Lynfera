@@ -1,16 +1,15 @@
 import { LuEye } from "react-icons/lu";
-import { IoClipboardOutline } from "react-icons/io5";
 import { IoIosClose } from "react-icons/io";
 import { FaPlus } from "react-icons/fa";
 
 import { Input } from "@/components/ui/input"
-import { Project, ProjectFormInput } from "@/types/Project"
+import { Project } from "@/types/Project"
 import { User } from "@/types/User"
 import React, { JSX, memo, useEffect, useMemo, useState } from "react"
 
 import DisableProject from "@/components/modals/DisableProject";
 import { DeleteProjectDialog } from "@/components/modals/DeleteProject";
-import { toast } from "sonner"
+
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "motion/react"
 import { ProjectUpdateFormSchema, ProjectUpdateFormType } from "@/lib/schema/project";
@@ -24,6 +23,7 @@ import RightFadeComponent from "@/components/RightFadeComponent";
 import { LoadingSpinner2 } from "@/components/LoadingSpinner";
 import Copybtn from "@/components/Copybtn";
 import { ClearAnalyticsDialog } from "@/components/modals/ClearAnalytics";
+import { showToast } from "@/components/Toasts";
 
 
 
@@ -64,7 +64,7 @@ const Details = ({ project, form, branches, isUpdateMode, setIsUpdateMode }: { p
 	})
 	const { register } = form
 
-	// console.log("Details  child re render")
+
 	const changeMode = (condition: boolean) => {
 		setIsUpdateMode(condition)
 	}
@@ -77,7 +77,7 @@ const Details = ({ project, form, branches, isUpdateMode, setIsUpdateMode }: { p
 		await form.trigger("name")
 		await form.trigger("branch")
 		if (!!(errors.name || errors.branch)) {
-			toast.warning("Errors in fields")
+			showToast.warning("Project Settings", "Errors in fields")
 			return
 		}
 		changeMode(false)
@@ -188,7 +188,6 @@ const Configurations = ({ project, form, isUpdateMode, setIsUpdateMode }: { proj
 		name: ['rootDir', 'buildCommand', 'installCommand', 'outputDirectory']
 	})
 	const { register, } = form
-	// console.log("configureation  child re render")
 	const changeMode = (condition: boolean) => {
 		setIsUpdateMode(condition)
 	}
@@ -206,7 +205,7 @@ const Configurations = ({ project, form, isUpdateMode, setIsUpdateMode }: { proj
 		await form.trigger("rootDir")
 		await form.trigger("installCommand")
 		if (!!(errors.buildCommand || errors.installCommand || errors.rootDir || errors.outputDirectory)) {
-			toast.warning("Errors in fields")
+			showToast.warning("Project Settings", "Errors in fields")
 			return
 		}
 		changeMode(false)
@@ -324,7 +323,6 @@ const EnvVariables = ({ project, form, isUpdateMode, setIsUpdateMode }: { projec
 		name: ['env']
 	})
 	const { register, control } = form
-	// console.log("Env  child re render")
 
 	const { fields, append, remove } = useFieldArray({
 		name: "env",
@@ -340,7 +338,7 @@ const EnvVariables = ({ project, form, isUpdateMode, setIsUpdateMode }: { projec
 	const saveFn = async () => {
 		await form.trigger("env")
 		if (!!(errors.env)) {
-			toast.warning("Errors in fields")
+			showToast.warning("Project Settings", "Errors in fields")
 			return
 		}
 		changeMode(false)
@@ -472,7 +470,6 @@ const SaveBar = memo(({ control, handleSubmit, saveAndDeploy }: { control: any, 
 
 const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reDeploy: () => Promise<void>, setTabs: (state: string) => void }) => {
 
-	// console.log("Parent re render")
 	const [branches, setBranches] = useState<string[] | null>(null)
 	const [isUpdateModeDetails, setIsUpdateModeDetails] = useState<boolean>(false)
 	const [isUpdateModeConf, setIsUpdateModeConf] = useState<boolean>(false)
@@ -531,10 +528,10 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 			setIsUpdateModeConf(false)
 			setIsUpdateModeEnv(false)
 			await updateProject({ _id: project._id, ...changed }).unwrap()
-			toast.success("Settings saved!")
+			showToast.success("Project Settings", "Settings saved!")
 			form.reset(data)
 		} catch (error: any) {
-			toast.error("Failed to save ", error.data.message || error.message)
+			showToast.error("Failed to save ", error.data.message || error.message)
 			console.log(error)
 		}
 	}

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 
-const protectedRoutes = ["/projects", "/login/success", "/deployments", "/user", "/new", "/user/plan", "/payment-success"]
+const protectedRoutes = ["/projects", "/login/success", "/deployments", "/resources", "/user", "/new", "/user/plan", "/payment-success"]
 const exemptAfterAuthRoutes = ["/login", "/signup"]
 
 export async function proxy(req: NextRequest) {
@@ -91,6 +91,7 @@ export const config = {
 		"/user/:path*",
 		"/login",
 		"/signup",
+		"/resources",
 		"/login/success",
 		"/payment-success"
 	]

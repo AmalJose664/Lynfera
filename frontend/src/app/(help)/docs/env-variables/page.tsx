@@ -1,4 +1,12 @@
 import { CodeComponent, LinkComponent } from "@/components/docs/HelperComponents"
+import { SITE_NAME } from "@/config/constants"
+
+export const metadata = {
+	title: "Environment Variables | " + SITE_NAME,
+	description:
+		"How to define, manage, and use environment variables during build and deployment.",
+};
+
 
 
 const page = () => {
@@ -8,7 +16,7 @@ const page = () => {
 				<h2 className="text-4xl">Enviroment Variables</h2>
 			</div>
 			<section id="env-varibles" className="space-y-12">
-				<section id="env-intro" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="env-intro" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -20,7 +28,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="env-create" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="env-create" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -30,7 +38,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="env-declare" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="env-declare" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -49,7 +57,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="env-prefixes" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="env-prefixes" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -67,7 +75,7 @@ const page = () => {
 				</section>
 
 
-				<section id="env-security" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
+				<section id="env-security" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
 							<div>
@@ -97,15 +105,46 @@ const page = () => {
 							<tbody className="divide-y divide-less text-sm">
 								<tr>
 									<td className="px-6 py-4 font-mono text-primary">CI</td>
-									<td className="px-6 py-4 text-less">Set to <code>true</code> to prevent interactive prompts during build.</td>
-								</tr>
-								<tr>
-									<td className="px-6 py-4 font-mono text-primary">LYNFERA_URL</td>
-									<td className="px-6 py-4 text-less">The public URL of your project (e.g. <code>my-app.lynfera.com</code>).</td>
+									<td className="px-6 py-4 text-less">Set to <CodeComponent>true</CodeComponent> to prevent interactive prompts during build.</td>
 								</tr>
 								<tr>
 									<td className="px-6 py-4 font-mono text-primary">NODE_ENV</td>
-									<td className="px-6 py-4 text-less">Always set to <code>production</code>.</td>
+									<td className="px-6 py-4 text-less">Always set to <CodeComponent>production</CodeComponent>.</td>
+								</tr>
+
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">{SITE_NAME.toUpperCase() + "_BUILD_ID"}</td>
+									<td className="px-6 py-4 text-less">Build / Deployment Id.</td>
+								</tr>
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">{SITE_NAME.toUpperCase() + "_GIT_COMMIT_SHA"}</td>
+									<td className="px-6 py-4 text-less">Git commit hash value.</td>
+								</tr>
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">{SITE_NAME.toUpperCase() + "_GIT_BRANCH"}</td>
+									<td className="px-6 py-4 text-less">Git branch from which code deployed.</td>
+								</tr>
+
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">{SITE_NAME.toUpperCase() + "_PUBLIC_ID"}</td>
+									<td className="px-6 py-4 text-less">Public Id of each Deployment.</td>
+								</tr>
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">{SITE_NAME.toUpperCase() + "_PROJECT_ID"}</td>
+									<td className="px-6 py-4 text-less">Project Id.</td>
+								</tr>
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">{SITE_NAME.toUpperCase() + "_PROJECT_URL"}</td>
+									<td className="px-6 py-4 text-less">Project accesible url. Requires new deployment when subdomain changes</td>
+								</tr>
+
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">{SITE_NAME.toUpperCase() + "_DEPLOYMENT_URL"}</td>
+									<td className="px-6 py-4 text-less">Project and specific deployment access url. Can change when subdomain changes</td>
+								</tr>
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">NODE_VERSION</td>
+									<td className="px-6 py-4 text-less">Default Value 22</td>
 								</tr>
 							</tbody>
 						</table>
@@ -117,3 +156,4 @@ const page = () => {
 
 }
 export default page
+

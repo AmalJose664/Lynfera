@@ -1,4 +1,13 @@
 import { LinkComponent } from "@/components/docs/HelperComponents";
+import { SITE_NAME } from "@/config/constants";
+
+export const metadata = {
+	title: "Supported Frameworks | " + SITE_NAME,
+	description:
+		"Overview of supported frameworks, runtimes, and limitations for static application deployments.",
+};
+
+
 const page = () => {
 
 	return (
@@ -7,7 +16,7 @@ const page = () => {
 				<h2 className="text-4xl">Support and Limits</h2>
 			</div>
 			<article className="mx-auto max-w-7xl px-6 rounded-md">
-				<header className="mb-16 border-b pb-10 scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white  p-4">
+				<header className="mb-16 border-b pb-10 scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white  p-4">
 					<h1 className="mb-6 text-xl font-bold leading-tight tracking-tight text-primary sm:text-xl">
 						Supported Frameworks & Specs
 					</h1>
@@ -18,7 +27,7 @@ const page = () => {
 				</header>
 
 				<div className="space-y-16">
-					<section className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white  px-4 py-2  p-4">
+					<section className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white  px-4 py-2  p-4">
 						<h2 className="mb-6 text-2xl font-bold tracking-tight text-primary">
 							Supported Environments
 						</h2>
@@ -45,7 +54,7 @@ const page = () => {
 						</p>
 					</section>
 
-					<section className="border px-4 py-2 rounded-md dark:bg-background bg-white p-4 ">
+					<section className="border px-4 py-2 rounded-md dark:bg-[#101010]/60 bg-white p-4 ">
 						<h2 className="mb-6 text-2xl font-bold tracking-tight text-primary">
 							3. Platform Limitations
 						</h2>

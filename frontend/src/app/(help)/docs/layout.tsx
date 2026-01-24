@@ -1,3 +1,4 @@
+import EachLink from "@/components/docs/EachLink";
 import StartsAsk from "@/components/docs/StarAsk";
 import { SITE_NAME } from "@/config/constants";
 import Link from "next/link";
@@ -7,6 +8,7 @@ const menuItems = [
 	{ url: 'support-and-limits', label: 'Supported Frameworks' },
 	{ url: 'build-deploy', label: 'Build & Deploy' },
 	{ url: 'env-variables', label: 'Environment Variables' },
+	{ url: 'observability', label: 'Logs and Analytics' },
 	{ url: 'troubleshoot', label: 'Common Errors / Logs' },
 ];
 export default function layout({
@@ -26,14 +28,7 @@ export default function layout({
 						<nav className="sticky top-12">
 							<ul className="space-y-2">
 								{menuItems.map((item) => (
-									<li key={item.url} className="border border-transparent dark:hover:border-neutral-700 hover:border-neutral-300 mr-4 rounded-md">
-										<Link
-											href={`/docs/${item.url}`}
-											className="block px-4 py-2 text-sm font-medium text-some-less hover:text-primary hover:no-underline rounded-lg transition-colors"
-										>
-											{item.label}
-										</Link>
-									</li>
+									<EachLink key={item.url} item={item} />
 								))}
 							</ul>
 						</nav>

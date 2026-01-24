@@ -21,6 +21,7 @@ import { GrStatusDisabled } from "react-icons/gr"
 import NewDeploymentConfirmBox from "@/components/modals/NewDeploymentConfirmBox"
 import { useRouter, useSearchParams } from "next/navigation"
 import { LiaRedoAltSolid } from "react-icons/lia"
+import { isStatusProgress } from "@/lib/moreUtils/combined"
 
 
 interface ProjectContentProps {
@@ -79,13 +80,19 @@ export function ProjectContent({
 		const params = new URLSearchParams(searchParams.toString())
 		params.set("tab", value)
 		setTabs(value)
-		router.push(`?${params.toString()}`, { scroll: false })
+		// router.push(`?${params.toString()}`, { scroll: false })
+		window.history.replaceState(
+			null,
+			"",
+			`?${params.toString()}`
+		)
 	}
 	const optionsArray = [
 		{
 			title: "Create New Deployment",
 			actionFn: () => setShowConfirm(true),
 			className: "",
+			isDisabled: isStatusProgress(project.status) || !!project.tempDeployment,
 			Svg: IoCloudUpload
 		},
 		{

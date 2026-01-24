@@ -17,7 +17,7 @@ const ChangeDeploymentModal = ({ selectedDeploymentId, setSelectedDeploymentId, 
 			update({ newDeployment: selectedDeploymentId, projectId }).unwrap(),
 			{
 				loading: "Updating deployment...",
-				success: () => { refetchDeply && refetchDeply(); return "Deployment updated!" },
+				success: () => { refetchDeply && refetchDeply(); return ("Deployment updated!") },
 				error: (err) => "Error updating: " + err?.data?.message || "Unknown error",
 			}
 		);

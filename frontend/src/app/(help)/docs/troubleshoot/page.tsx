@@ -1,6 +1,14 @@
 import { CodeComponent, LinkComponent } from "@/components/docs/HelperComponents"
 import { SITE_NAME } from "@/config/constants"
 
+
+export const metadata = {
+	title: "Troubleshooting | " + SITE_NAME,
+	description:
+		"Common deployment errors, build failures, and logs with explanations and fixes.",
+};
+
+
 const page = () => {
 	return (
 		<main className="px-4 space-y-16">
@@ -14,10 +22,10 @@ const page = () => {
 				<div>
 					<h2 className="text-2xl">Troubleshooting Build Errors</h2>
 					<p className="text-base mt-4 leading-8 text-less">
-						You can troubleshoot build errors that occur during the Build step of your deployment to Vercel. This guide will help you understand how to investigate build failures and long build times.
+						You can troubleshoot build errors that occur during the Build step of your deployment to {SITE_NAME}. This guide will help you understand how to investigate build failures and long build times.
 					</p>
 				</div>
-				<section id="troubleshoot-build-views" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background 
+				<section id="troubleshoot-build-views" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 
 				bg-white ">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
@@ -29,7 +37,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="troubleshoot-build-failures" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background 
+				<section id="troubleshoot-build-failures" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 
 				bg-white ">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
@@ -49,7 +57,7 @@ const page = () => {
 						</div>
 					</div>
 				</section>
-				<section id="troubleshoot-build-notstart" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background 
+				<section id="troubleshoot-build-notstart" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 
 				bg-white ">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
@@ -59,92 +67,19 @@ const page = () => {
 								<li>It can be error on our own side.</li>
 								<li>Build process failed to start itself.</li>
 								<li>Network problems.</li>
-								<li>Or when using invalid Build Steps.</li>
+								<li>when using invalid Build Steps.</li>
+								<li>Logs got removed <LinkComponent href="/docs/observability#logs-retention">Learn more</LinkComponent></li>
 							</ul>
 						</div>
 					</div>
 				</section>
-				<section id="troubleshoot-build-duration" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background 
-				bg-white ">
-					<div className="overflow-x-auto ">
-						<div className="px-4 py-4">
-							<div>
-								<h2 className="text-xl font-semibold">Build duration</h2>
-								<p className="text-sm text-primary mt-4">The total build duration is shown on the {SITE_NAME} <LinkComponent href="/deployments">deployment</LinkComponent> Dashboard and includes all three steps: checking, installing, building, checking, and uploading assets.</p>
-								<p className="text-sm text-primary mt-4">A Build can last for a maximum of 30 minutes. If the build exceeds this time, the deployment will be canceled and the error will be shown on the Deployment's page saying this message <CodeComponent>Failed to start build runner / Build timeout exceeded</CodeComponent>.</p>
-							</div>
 
-							<div>
-								<p className="text-less text-sm mt-2">
-									{SITE_NAME} enforces strict limits on build execution to ensure platform stability:
-								</p>
-								<ul className="list-disc pl-5 text-sm mt-3 space-y-1">
-									<li><strong>Install Command:</strong> Max 10 minutes.</li>
-									<li><strong>Build Command:</strong> Max 15 minutes.</li>
-									<li><strong>Total Session:</strong> Max 30 minutes.</li>
-								</ul>
-							</div>
-						</div>
-					</div>
-				</section>
-				<div>
-					<h2 className="text-2xl">Troubleshooting Errors with Logs</h2>
-				</div>
-				<section id="troubleshoot-logs" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background 
+				<section id="troubleshoot-logs" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 
 				bg-white ">
 					<div className="overflow-x-auto ">
 						<div className="px-4 py-4">
-							<p className="text-base mt-4 leading-8 text-primary">
-								When you deploy your website to {SITE_NAME}, the platform generates build logs that show the deployment progress. The build logs contain information about:
-							</p>
-							<div>
-								<ul className="px-3 py-1 list-disc space-y-3 mt-3">
-									<li>The version of the build tools</li>
-									<li>Warnings or errors encountered during the build process</li>
-									<li>Details about the files and dependencies that were installed, compiled, or built during the deployment</li>
-								</ul>
-							</div>
-						</div>
-					</div>
-				</section>
-
-				<section id="troubleshoot-logs-working" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background 
-				bg-white ">
-					<div className="overflow-x-auto ">
-						<div className="px-4 py-4">
-							<div>
-								<h2 className="text-xl font-semibold">Build Logs working</h2>
-								<p className="text-base mt-4 leading-8 text-primary">
-									Build logs are generated at build time for all <LinkComponent href="/docs/getting-started#gs-projects-deployment">Deployments</LinkComponent>. The logs are similar to your framework's Build Command output, with a few minor additions from the Vercel build system. Once a build is complete, no new logs will be recorded.
-								</p>
-								<p className="text-base mt-4 leading-8 text-primary">
-									In addition to the list of build actions, you can also find errors or warnings. These are highlighted with different colors, such as yellow for warnings and red for errors. This color coding makes it flexible to investigate why your build failed and which part of your website is affected.
-								</p>
-								<p className="text-base mt-4 leading-8 text-primary">
-									Each type are:
-								</p>
-							</div>
-							<div>
-								<ul className="px-3 py-1 list-disc space-y-3 mt-3">
-									<li><CodeComponent>INFO</CodeComponent> - General logs</li>
-									<li><CodeComponent>WARN</CodeComponent> - Warnings</li>
-									<li><CodeComponent>ERROR</CodeComponent> - Errors. Mostly this shows why your build fails</li>
-									<li><CodeComponent>DECOR</CodeComponent> - Decorations. These are just branding decorations. It also shows build specifications</li>
-								</ul>
-							</div>
-						</div>
-					</div>
-				</section>
-				<section id="troubleshoot-logs-save" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background 
-				bg-white ">
-					<div className="overflow-x-auto ">
-						<div className="px-4 py-4">
-							<div>
-								<h2 className="text-xl font-semibold">Saving logs</h2>
-								<p className="text-base mt-4 leading-8 text-primary">
-									You can download the logs as a txt file.
-								</p>
-							</div>
+							<h2 className="text-lg">Troubleshooting Errors with Logs</h2>
+							<LinkComponent href="/docs/observability/#logs-working">View Logs details</LinkComponent>
 						</div>
 					</div>
 				</section>
@@ -152,7 +87,7 @@ const page = () => {
 			<div>
 				<h2 className="text-4xl">Other Troubleshoots</h2>
 			</div>
-			<section id="troubleshoot-others-no-output" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background 
+			<section id="troubleshoot-others-no-output" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 
 				bg-white ">
 				<div className="px-4 py-4">
 					<h3 className="text-lg font-semibold text-primary">Output Directory Mismatch</h3>
@@ -167,7 +102,7 @@ const page = () => {
 					</div>
 				</div>
 			</section>
-			<section id="troubleshoot-others-routing" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background 
+			<section id="troubleshoot-others-routing" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 
 				bg-white ">
 				<div className="px-4 py-4">
 					<h2 className="mb-4 text-2xl font-bold tracking-tight text-primary">Routing & 404 Errors</h2>

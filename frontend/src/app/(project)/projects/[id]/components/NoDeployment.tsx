@@ -1,6 +1,7 @@
 import LoadingSpinner, { LoadingSpinner3 } from "@/components/LoadingSpinner"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import Link from "next/link"
 import { BsFillCloudPlusFill } from "react-icons/bs"
 import { HiMiniArrowUpRight } from "react-icons/hi2"
 import { IoMdCloudDone } from "react-icons/io"
@@ -49,9 +50,9 @@ const NoDeployment = ({ buttonAction, buttonState, buttonText, descriptionText, 
 					className="text-muted-foreground"
 					size="sm"
 				>
-					<a href={learnMoreUrl}>
+					<Link href={"/docs/build-deploy#Deploys"}>
 						Learn More <HiMiniArrowUpRight />
-					</a>
+					</Link>
 				</Button>
 			</Empty>
 			<div className="absolute">

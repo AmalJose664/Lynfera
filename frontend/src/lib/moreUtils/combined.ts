@@ -235,7 +235,6 @@ export const generateRepoUrls = (
 	}
 ): { branch?: string, commit?: string, source?: string, tree?: string } => {
 	const parsed = parseRepoUrl(url)!
-	console.log(parsed, "  [[ [[ [")
 	const { provider, owner, repo } = parsed
 	const { branch, commitSha, source, tree } = options
 
@@ -293,6 +292,5 @@ export const generateRepoUrls = (
 					? `${base}/src/${commitSha}/${path}${lineAnchor}`
 					: `${base}/blob/${commitSha}/${path}${lineAnchor}`
 	}
-	console.log(urls)
 	return urls
 }

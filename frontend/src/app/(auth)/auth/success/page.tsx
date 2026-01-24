@@ -18,14 +18,12 @@ const Page = () => {
 				if (codeFromStorage) {
 					router.push("/projects")
 					setCode(codeFromStorage)
-					console.log("retunred")
+
 					return
 				} else {
 					setCode(null)
 				}
-				console.log("calling")
 				await axiosInstance.get("/auth");
-				console.log("called")
 				localStorage.setItem("session_code", Math.random().toString(36).slice(2, 12))
 				await new Promise((res) => setTimeout(res, 1000))
 				router.push("/projects");

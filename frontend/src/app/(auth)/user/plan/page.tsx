@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { showToast } from "@/components/Toasts";
 
 const page = () => {
 	const { data: user, error, isError, refetch } = useGetUserDetailedQuery()
@@ -26,7 +27,7 @@ const page = () => {
 		try {
 			const response = await axiosInstance.post("/billing/cancel")
 			if (response.status === 200) {
-				toast.success("Plan chnage request sent !!")
+				showToast.success("Plan change request sent !!")
 				await refetch()
 			}
 
