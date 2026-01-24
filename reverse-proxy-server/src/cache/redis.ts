@@ -47,7 +47,7 @@ class RedisService implements IRedisCache {
 		this.subscriber.subscribe('cache:invalidate');
 		this.subscriber.on('message', (channel: string, message: string) => {
 			try {
-				console.log("message on channel  = ", channel)
+
 				callback(JSON.parse(message));
 			} catch (error) {
 				console.log("error on redis message parsing", error)

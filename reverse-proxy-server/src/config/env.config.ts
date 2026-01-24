@@ -41,5 +41,5 @@ export function validateEnv() {
 		process.exit(1);
 	}
 
-	console.log(`✅ Environment validated (STORAGE_MODE=${storageMode})`);
+	console.log(`Environment validated (STORAGE_MODE=${storageMode})`);
 }

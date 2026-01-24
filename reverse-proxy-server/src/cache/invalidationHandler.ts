@@ -9,7 +9,6 @@ export interface InvalidationMessage {
 
 export const handleCacheInvalidation = (msg: InvalidationMessage): void => {
 	const { type, slug } = msg;
-	console.log("Invalidation event ", slug)
 	switch (type) {
 		case 'project':
 			projectService.invalidateSlug(slug)

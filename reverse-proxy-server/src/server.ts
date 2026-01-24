@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 7000;
 const startServer = async () => {
 	validateEnv()
 	startCacheInvalidationListener()
-	app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}\n PID => ${process.pid}`));
+	app.listen(PORT, () => console.log(`Server running on port ${PORT}\n PID => ${process.pid}`));
 };
 startServer().catch((e) => console.log(e));
 

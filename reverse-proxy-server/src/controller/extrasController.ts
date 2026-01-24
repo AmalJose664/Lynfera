@@ -46,14 +46,12 @@ export const downloadFilesCloud = async (req: Request, res: Response, next: Next
 
 		if (stream instanceof Readable || 'pipe' in stream) {
 			(stream as Readable).pipe(res);
-			console.log("pipe file")
 		} else {
 			const chunks: Uint8Array[] = [];
 			for await (const chunk of stream as AsyncIterable<Uint8Array>) {
 				chunks.push(chunk);
 			}
 			res.send(Buffer.concat(chunks));
-			console.log("Send file")
 		}
 	} catch (error) {
 		if (error instanceof NoSuchKey) {
@@ -85,9 +83,7 @@ export const trackCacheAnalytics = async (req: Request, res: Response, next: Nex
 
 		const slug = host.split('.')[0];
 		if (!slug || slug === ownDomain || slug === 'www') {
-			console.log(slug)
 			res.status(400).json({});
-			console.log("returned , no slug")
 			return;
 		}
 
@@ -95,13 +91,11 @@ export const trackCacheAnalytics = async (req: Request, res: Response, next: Nex
 		const cache = await redisService.get<ICacheAnalytics | null>(cacheKey)
 		if (!cache || !path) {
 			res.json({})
-			console.log("returned , no cache")
 			return
 		}
 		const { projectId, responseSize, responseTime } = cache
 		if (!projectId) {
 			res.json({})
-			console.log("returned , no projectid")
 			return
 		}
 		const ua = parseUA(uaAgent || "")
