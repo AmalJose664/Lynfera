@@ -1,58 +1,39 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request } from "express";
 import { createServer } from "http";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import passport from "passport";
 import "./config/passport.js";
-import rateLimit from "express-rate-limit";
-
 import connectDB from "./config/mongo.config.js";
-import authRouter from "./routes/authRoutes.js";
 import { errorHandler } from "./middlewares/globalErrorHandler.js";
-import projectRouter from "./routes/projectRoutes.js";
-import deploymentRouter from "./routes/deploymentRoutes.js";
-import internalRoutes from "./routes/containerRoutes.js";
-import logsRouter from "./routes/logsRoutes.js";
-import analyticsRouter from "./routes/analyticsRoutes.js";
-import paymentRouter from "./routes/paymentRoutes.js";
 import { corsOptions } from "./config/cors.config.js";
-import { analyticsLimiter, authLimiter, billingLimiter, dashboardLimiter, deploymentLimiter, logsLimiter } from "./config/rate-limiter.config.js";
+
+import { STRIPE_WEBHOOK_REQ_PATH } from "./constants/paths.js";
+import baseRouter from "./routes/base.route.js";
+import { apiRouter } from "./routes/index.js";
+import generateAllRouteLogs from "./utils/generateAllRouteLogs.js";
+
+
+
 
 const app = express();
 const httpServer = createServer(app);
 
 app.use(cors(corsOptions));
 
-app.use("/api/billing/stripe-webhook", express.raw({ type: "application/json" }));
+app.use(STRIPE_WEBHOOK_REQ_PATH, express.raw({ type: "application/json" }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
-app.use((req: any, res: any, next: any) => {
-	const time = new Date();
-	console.log(`\n----${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}----- ${req.path} ------${req.method}`);
+app.use((req: Request, res: any, next: any) => {
+	generateAllRouteLogs(req)
 	next();
 });
 
-app.use("/api/analytics", rateLimit(analyticsLimiter), analyticsRouter);
-app.use("/api/logs", rateLimit(logsLimiter), logsRouter);
-app.use("/api/deployments", rateLimit(deploymentLimiter), deploymentRouter);
-app.use("/api/projects", rateLimit(dashboardLimiter), projectRouter);
-app.use("/api/auth", rateLimit(authLimiter), authRouter);
-app.use("/api/billing", rateLimit(billingLimiter), paymentRouter);
-
-// ------- CONTAINER ROUTES--------------
-
-app.use("/api/internal", internalRoutes);
-
-// --------------------------------------
-
-app.get("/", (req, res) => {
-	console.log(req.headers);
-	res.json({ status: "working" });
-	return;
-});
+app.use('/api', apiRouter);
+app.get("/", baseRouter);
 
 app.use(errorHandler);
 

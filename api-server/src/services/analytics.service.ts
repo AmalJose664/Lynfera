@@ -41,7 +41,7 @@ class AnalyticsService implements IAnalyticsService {
 		const batch = this.analyticsBuffer.splice(0, this.BATCH_SIZE);
 		try {
 			await this.analyticsRepo.insertBatch(batch);
-			console.log(`✅ Saved ${batch.length} analytics `);
+			console.log(`Saved ${batch.length} analytics `);
 		} catch (error) {
 			console.error("save analytics error:", error, "Discarding data");
 		} finally {

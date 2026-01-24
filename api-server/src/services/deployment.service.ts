@@ -71,6 +71,9 @@ class DeploymentService implements IDeploymentService {
 		if (correspondindProject.status === ProjectStatus.QUEUED) {
 			throw new AppError(PROJECT_ERRORS.PROJECT_IN_PROGRESS, STATUS_CODES.CONFLICT);
 		}
+		if (correspondindProject.tempDeployment !== null || correspondindProject.tempDeployment) {
+			throw new AppError(PROJECT_ERRORS.PROJECT_IN_PROGRESS, STATUS_CODES.CONFLICT);
+		}
 		if (correspondindProject.isDeleted) {
 			throw new AppError(PROJECT_ERRORS.NOT_FOUND, 404);
 		}
@@ -82,8 +85,7 @@ class DeploymentService implements IDeploymentService {
 		deploymentData.identifierSlug = generateSlug(3);
 		deploymentData.project = new Types.ObjectId(correspondindProject._id);
 		deploymentData.user = correspondindProject.user;
-		await new Promise((res) => setTimeout(res, 4000))
-		throw new AppError(DEPLOYMENT_ERRORS.DAILY_DEPLOYMENT_LIMIT, STATUS_CODES.TOO_MANY_REQUESTS);
+
 		await this.incrementRunningDeplymnts(correspondindProject._id, canDeploy.user._id, canDeploy.user.plan);
 		try {
 			const deployment = await this.deploymentRepository.createDeployment(deploymentData);

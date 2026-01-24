@@ -184,7 +184,7 @@ class ProjectController implements IProjectController {
 			const projectId = req.params.projectId;
 
 			const result = await this.projectService.deleteProject(projectId, userId);
-			console.log(result);
+
 
 			res.status(STATUS_CODES.NO_CONTENT).json({ deleted: result });
 		} catch (err) {

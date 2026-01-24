@@ -58,7 +58,7 @@ function validateEnv() {
 		return envs;
 	} catch (err) {
 		const error = err as ZodError;
-		console.error("❌ Environment validation failed:");
+		console.error(" Environment validation failed:");
 		console.log(error);
 		process.exit(1);
 	}

@@ -28,7 +28,7 @@ export const oAuthLoginCallback = (req: Request, res: Response, next: NextFuncti
 		issueAuthAccessCookies(res, { id: req.user.id, plan: req.user.plan });
 		issueAuthRefreshCookies(res, { id: req.user.id, plan: req.user.plan });
 		const frontend = ENVS.FRONTEND_URL + FRONTEND_REDIRECT_PATH + ((req.user as any).newUser ? "?newuser=true" : "");
-		console.log({ frontend, user: req.user })
+		// console.log({ frontend, user: req.user })
 		res.redirect(frontend);
 	} catch (error) {
 		next(new AppError(USER_ERRORS.CALLBACK_ERROR, STATUS_CODES.INTERNAL_SERVER_ERROR, error));
@@ -75,7 +75,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 	try {
 		const decoded = jwt.verify(refreshToken, ENVS.REFRESH_TOKEN_SECRET as string) as RefreshTokenPayload;
 
-		console.log(decoded, "Trying to decode refesh");
+		console.log("Trying to decode refesh");
 		const user = await userService.getUser(decoded.id);
 		if (!user) {
 			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);

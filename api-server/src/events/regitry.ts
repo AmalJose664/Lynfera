@@ -104,7 +104,6 @@ export async function processAnalyticsEvent(
 }
 
 export async function processConumerLogs({ batch, heartbeat, commitOffsetsIfNecessary, resolveOffset }: EachBatchPayload) {
-	process.stdout.write(" %-%-%-%-%-% ");
 	const processFn = getEventProcessFn(batch.topic, "logs");
 	await Promise.all(
 		batch.messages.map(async (msg) => {
@@ -125,7 +124,7 @@ export async function processConumerLogs({ batch, heartbeat, commitOffsetsIfNece
 }
 
 export async function processConumerAnalytics({ batch }: EachBatchPayload) {
-	process.stdout.write(" *-*-*-*-*-*-*-* -> " + batch.messages.length);
+	process.stdout.write(" ** ->" + batch.messages.length);
 	const schema = getEventSchema(batch.topic, "analytics");
 	const processFn = getEventProcessFn(batch.topic, "analytics");
 	const bandwidthByProjectBatch: BandWidthWithProjectType = {};

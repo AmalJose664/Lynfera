@@ -18,7 +18,7 @@ class DeploymentEventHandler {
 				...log,
 			});
 		}
-		console.log("logs inserted...", `${log.level === "INFO" ? log.message : "-"}`);
+		process.stdout.write(" L ")
 
 		await logsService.__insertLog(log.message, projectId, deploymentId, new Date(log.timestamp), log.level, log.sequence);
 		//stream
@@ -28,7 +28,7 @@ class DeploymentEventHandler {
 		//service call
 		const { data } = event;
 		const { updates, deploymentId, projectId } = data;
-		console.log("Updates >>>>", data.updateType, `Deployment => ${deploymentId}, Project => ${projectId}`);
+		process.stdout.write(" U ")
 		if (!isRetry) {
 			deploymentEmitter.emitUpdates(deploymentId, {
 				...updates,
@@ -55,7 +55,7 @@ class DeploymentEventHandler {
 					deploymentService.decrementRunningDeplymnts(projectId, updates.user || ""),
 					deploymentService.__updateDeployment(projectId, deploymentId, {
 						status: updates.status,
-						complete_at: new Date(updates.complete_at || ""),
+						complete_at: updates.complete_at ? new Date(updates.complete_at) : new Date(),
 						...(updates.commit_hash && { commit_hash: updates.commit_hash }),
 						timings: {
 							install_ms: updates.install_ms || 0,
@@ -84,6 +84,7 @@ class DeploymentEventHandler {
 					deploymentService.__updateDeployment(projectId, deploymentId, {
 						status: updates.status,
 						error_message: updates.error_message,
+						complete_at: updates.complete_at ? new Date(updates.complete_at) : new Date(),
 					}),
 					projectService.__updateProjectById(
 						projectId,
@@ -120,7 +121,7 @@ class DeploymentEventHandler {
 				break;
 			}
 			default: {
-				console.log("Undefined Update type");
+				console.error("Undefined Update type");
 			}
 		}
 	}

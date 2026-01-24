@@ -17,7 +17,8 @@ import { PLANS } from "@/constants/plan.js";
 import { projectBasicFields, projectSettingsFields } from "@/constants/populates/project.populate.js";
 import { DeploymentStatus } from "@/models/Deployment.js";
 import { DEPLOYMENT_ERRORS, PROJECT_ERRORS, USER_ERRORS } from "@/constants/errors.js";
-import { reservedSubdomains } from "@/constants/subdomain.js";
+import { ADDITIONAL_RESERVED_SUBDOMAINS, BRAND_PROTECTION_REGEX, RESERVED_SUBDOMAINS } from "@/constants/subdomain.js";
+
 
 class ProjectService implements IProjectService {
 	private projectRepository: IProjectRepository;
@@ -121,7 +122,6 @@ class ProjectService implements IProjectService {
 			...(dto.hasOwnProperty("isDisabled") && { isDisabled: dto.isDisabled }),
 			...(dto.env?.length && { env: dto.env.map((en) => ({ name: en.name, value: en.value })) }),
 		};
-		console.log(newData, dto);
 		if (!newData || Object.keys(newData).length === 0) {
 			return null;
 		}
@@ -162,19 +162,27 @@ class ProjectService implements IProjectService {
 		return await this.projectBandwidthRepo.getUserTotalBandwidth(userId);
 	}
 	async checkSubdomainAvaiable(newSubdomain: string): Promise<boolean> {
-		const projects = await this.projectRepository.findProjectsBySubdomain(newSubdomain);
-		if (projects.length > 0) {
-			return false;
-		}
-		if (reservedSubdomains.includes(newSubdomain)) {
+		const word = newSubdomain.toLowerCase().trim()
+		if (word.includes("--")) {
 			return false
+		}
+		if (BRAND_PROTECTION_REGEX.test(word)) {
+			return false
+		}
+		if (RESERVED_SUBDOMAINS.has(newSubdomain) || ADDITIONAL_RESERVED_SUBDOMAINS.has(newSubdomain)) {
+			return false
+		}
+
+		const anyProjectId = await this.projectRepository.checkProjectExistBySubdomain(newSubdomain);
+		if (anyProjectId) {
+			return false;
 		}
 		return true;
 	}
 	async changeProjectSubdomain(userId: string, projectId: string, newSubdomain: string): Promise<IProject | null> {
-		const [project, isAvailable] = await Promise.all([
-			this.projectRepository.findProject(projectId, userId),
+		const [isAvailable, project] = await Promise.all([
 			this.checkSubdomainAvaiable(newSubdomain),
+			this.projectRepository.findProject(projectId, userId),
 		]);
 		if (!project) {
 			throw new AppError(PROJECT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
@@ -240,7 +248,7 @@ class ProjectService implements IProjectService {
 				else if (curr.status === DeploymentStatus.FAILED || curr.status === DeploymentStatus.CANCELED) {
 					acc.failure++;
 				}
-				acc.totalBuildTime += curr.timings.duration_ms || 0;
+				acc.totalBuildTime += (curr.complete_at ? curr.complete_at.getTime() - curr.createdAt.getTime() : curr.timings.duration_ms) || 0;
 				return acc;
 			},
 			{ success: 0, failure: 0, totalBuildTime: 0 },

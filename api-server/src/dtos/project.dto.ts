@@ -118,7 +118,7 @@ export const ProjectSubdomainSchema = z.object({
 export const SubdomainQuerySchema = z.object({
 	value: z
 		.string()
-		.min(7)
+		.min(3)
 		.max(MAX_SUBDOMAIN_LENGTH - (DEPLOYMENT_ID_LENGTH + DEPLOYMENT_SEPARATOR_LENGTH))
 		.regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers and hyphens allowed")
 		.regex(/^[a-z0-9]/, "Must start with a letter or number")

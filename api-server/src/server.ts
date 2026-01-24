@@ -8,13 +8,13 @@ const PORT = ENVS.PORT || 8000;
 
 const startServer = async () => {
 	console.log("starting.....");
-	httpServer.listen(PORT, () => console.log(`🎉🎉 Server running on port ${PORT}`));
+	httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 	// await startKafkaConsumer()
 };
 
-// remove test routes, at logs routes, deployment routes
+
 startServer().catch((e) => {
-	console.error("❌ Failed to start server:", e);
+	console.error("Failed to start server:", e);
 	process.exit(1);
 });
 process.on("SIGINT", async () => {
@@ -30,5 +30,5 @@ process.on("SIGTERM", async () => {
 });
 
 process.on("exit", (code) => {
-	console.log(`🎊🥀 Process exited`);
+	console.log(`Process exited`);
 });

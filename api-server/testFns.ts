@@ -13,7 +13,7 @@ import { generateSlug } from "random-word-slugs";
 import { nanoid } from "./src/utils/generateNanoid";
 import crypto from "crypto";
 import { OtpModel } from "./src/models/Otp";
-
+import { v4 as uuidV4 } from "uuid";
 function formatTimeWithSeconds(input: Date | string | number): string {
 	const date = input instanceof Date ? input : new Date(input);
 
@@ -69,7 +69,7 @@ async function mongodbData() {
 		process.exit(0);
 	}
 }
-mongodbData().then(async () => await mongoose.disconnect());
+// mongodbData().then(async () => await mongoose.disconnect());
 
 async function commitAllMessages() {
 	const kafka = new Kafka({
@@ -110,38 +110,26 @@ async function commitAllMessages() {
 	}
 }
 // commitAllMessages();
-
+// --------------------------------
 async function getClickhouseData() {
-	const insert = 2 === 2 + 3;
-
-	if (insert) {
-		console.log("inserting....");
-		const analyticsRepo = new AnalyticsRepo(client);
-		await analyticsRepo
-			.insertBatch([
-				{
-					project_id: "2174919898sa8da98",
-					subdomain: "wooden-little-terabyte-5628",
-					timestamp: new Date().getTime(),
-					path: "/assets/index.js",
-					request_size: Math.floor(Math.random() * 10000),
-					response_size: Math.floor(Math.random() * 10000),
-					response_time: Math.floor(Math.random() * 100),
-					ip: "127.0.0.1",
-					status_code: Math.floor(Math.random() * 100),
-					ua_browser: "chrome",
-					ua_os: "windows",
-					is_mobile: 1,
-					is_bot: 0,
-					referer: "",
-				},
-			])
-			.catch((e) => console.log(e));
-		return;
-	}
-
+	// await client.insert({
+	// 	table: "log_events_v2",
+	// 	values: [
+	// 		{
+	// 			event_id: uuidV4(),
+	// 			info: "WARN",
+	// 			deployment_id: "--------------------------------",
+	// 			project_id: "69246647869c614a349015fc",
+	// 			log: "Hi Mom",
+	// 			report_time: new Date().getTime(),
+	// 			sequence: 69,
+	// 		},
+	// 	],
+	// 	format: "JSONEachRow",
+	// });
+	// return
 	const data = await client.query({
-		query: `select * from log_events`,
+		query: `select * from log_events_v2 limit 5`,
 		// format: "JSON",
 	});
 	const datas = await data.json();
@@ -151,7 +139,7 @@ async function getClickhouseData() {
 	// 	query: "TRUNCATE analytics"
 	// })
 }
-// getClickhouseData().then(() => process.exit(0))
+getClickhouseData().then(() => process.exit(0))
 async function idChecker() {
 	const obj = new Set();
 	const id = "";

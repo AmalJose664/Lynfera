@@ -55,7 +55,7 @@ create table analytics(
 ENGINE = MergeTree()
 PARTITION BY toYYYYMM(date)
 ORDER BY(project_id, timestamp, path)
-TTL date + INTERVAL 90 DAY
+TTL date + INTERVAL 30 DAY
 SETTINGS index_granularity = 8192;
 
 CREATE INDEX idx_status_code ON analytics(status_code) TYPE minmax GRANULARITY 4;

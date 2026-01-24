@@ -10,7 +10,7 @@ const connectDB = async () => {
 		await mongoose.connect(mongouri);
 		console.log("Database connected");
 	} catch (error) {
-		console.log("❌ Database Connection Failed", error);
+		console.log(" Database Connection Failed", error);
 		process.exit(1);
 	}
 };

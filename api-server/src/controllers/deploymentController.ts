@@ -138,7 +138,7 @@ class DeploymentController implements IDeploymentController {
 				return;
 			}
 			res.status(STATUS_CODES.NOT_FOUND).json({ deployment: null });
-			console.log("not finded");
+			console.log("not found");
 		} catch (error) {
 			next(error);
 		}

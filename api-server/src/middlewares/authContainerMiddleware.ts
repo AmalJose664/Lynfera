@@ -14,7 +14,6 @@ export const authenticaContainerteToken = (req: Request, res: Response, next: Ne
 
 	if (token !== server_token) {
 		console.log("Invalid token");
-		console.log(server_token, "<<<>>>>", token);
 		return res.status(STATUS_CODES.UNAUTHORIZED).json({ message: USER_ERRORS.INVALID_TOKEN });
 	}
 	next();

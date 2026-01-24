@@ -28,12 +28,12 @@ class KafkaEventConsumer implements IKafkaEventConsumer {
 		}
 		try {
 			await Promise.all([this.logsConsumer.connect(), this.analyticsConsumer.connect()]);
-			console.log("🔌 Kafka consumers connected");
+			console.log(" Kafka consumers connected");
 
 			const [logsTopics, analyticsTopics] = getAllTopics();
 			await this.logsConsumer.subscribe({ topics: logsTopics });
 			await this.analyticsConsumer.subscribe({ topics: analyticsTopics });
-			console.log(`📡 Subscribed to topics:`, [...logsTopics, ...analyticsTopics]);
+			console.log(` Subscribed to topics:`, [...logsTopics, ...analyticsTopics]);
 
 			await this.logsConsumer.run({
 				autoCommit: false,

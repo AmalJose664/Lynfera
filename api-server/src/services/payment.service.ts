@@ -59,7 +59,7 @@ class PaymentService implements IPaymentService {
 			throw new AppError(PAYMENT_ERRORS.NOT_FOUND, STATUS_CODES.CONFLICT);
 		}
 		const result = await stripe.subscriptions.cancel(user.payment?.subscriptionId as string);
-		console.log(result);
+
 	}
 	async retriveSession(
 		userId: string,
@@ -125,7 +125,7 @@ class PaymentService implements IPaymentService {
 				payment: { subscriptionId: null, subscriptionStatus: SubscriptionStatus.cancelled },
 			});
 		}
-		console.log("Payment succed ,, 🎉🎉🎉 payment deleted  event:");
+		console.log("Payment succed, payment deleted  event:");
 	}
 }
 

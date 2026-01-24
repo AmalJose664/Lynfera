@@ -1,7 +1,7 @@
 import { FilterQuery, Types } from "mongoose";
 
 import { BaseRepository } from "./base/base.repository.js";
-import { IProject, Project } from "@/models/Projects.js";
+import { IProject, Project, ProjectStatus } from "@/models/Projects.js";
 import { IProjectRepository } from "@/interfaces/repository/IProjectRepository.js";
 import { PROJECT_POPULATE_MAP, projectUpdateFieldsString } from "@/constants/populates/project.populate.js";
 import { QueryProjectDTO } from "@/dtos/project.dto.js";
@@ -37,6 +37,9 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 	}
 	async findProjectsBySubdomain(subdomain: string): Promise<IProject[]> {
 		return await Project.find({ subdomain, isDeleted: false }); //
+	}
+	async checkProjectExistBySubdomain(subdomain: string): Promise<{ _id: string } | null> {
+		return Project.exists({ subdomain, isDeleted: false });  //
 	}
 
 	async getAllProjects(userId: string, options: QueryProjectDTO & { fields?: string[] }): Promise<{ projects: IProject[]; total: number }> {
@@ -81,6 +84,7 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 				lastDeployedAt: new Date(),
 				tempDeployment: newDeployment.toString(),
 				lastDeployment: newDeployment.toString(),
+				status: ProjectStatus.QUEUED,
 				$addToSet: { deployments: newDeployment },
 			},
 			{ new: true, },
