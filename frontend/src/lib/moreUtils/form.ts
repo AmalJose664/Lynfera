@@ -92,6 +92,6 @@ export const getBranches = async (
 		const res = await axios.get(apiUrl)
 		setFn(branchExtractor(res.data))
 	} catch (err) {
-		console.error("Invalid or unsupported repository")
+		console.warn("Invalid or unsupported repository")
 	}
 }

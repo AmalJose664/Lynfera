@@ -86,7 +86,7 @@ function ProjectForm() {
 	}
 
 	return (
-		<div className="min-h-screen bg-linear-to-br from-background dark:via-neutral-800 via-neutral-100 to-background  text-primary">
+		<div className="min-h-screen bg-linear-to-br from-background dark:via-neutral-800 via-neutral-100 to-background text-primary pb-24">
 			<header className="border-b border-gray-800/50 backdrop-blur-xl  sticky top-0 z-10">
 				<div className="max-w-7xl mx-auto px-8 py-2">
 					<div className="flex items-center gap-4">
@@ -99,17 +99,17 @@ function ProjectForm() {
 				</div>
 			</header>
 
-			<main className="max-w-[1320px] mx-auto px-8 py-3">
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-					<motion.form
-						className="mt-6 border p-2 rounded-md border-blue-600/30"
+			<main className="max-w-[1320px] mx-auto py-3">
+				<div className="flex flex-col lg:flex-row gap-12 lg:items-start sm:items-center">
+					<form
+						className="mt-6 border p-2 rounded-md border-blue-600/30 flex-[10%]"
 						noValidate
 						onSubmit={handleSubmit(onSubmit)}
-						transition={{ duration: 0.4, ease: "easeInOut" }}
+					// transition={{ duration: 0.4, ease: "easeInOut" }}
 					>
 						<BaseSettings form={form} branches={branches || []} />
 
-						<div className="px-4 my-4 group transition-all duration-200">
+						<div className="px-4 my-4 group transition-all duration-200 w-fit">
 							<span title="Show Advanced" className="transition-all duration-200 cursor-pointer hover:underline flex items-center gap-2 "
 								onClick={() => setShowAdvanced(!showAdvanced)}
 							>
@@ -118,7 +118,7 @@ function ProjectForm() {
 									className="inline duration-200" style={{ transform: `rotateZ(${showAdvanced ? "90" : "0"}deg)` }} />
 							</span>
 						</div>
-						<AnimatePresence mode="sync">
+						<AnimatePresence mode="sync" >
 							{showAdvanced && (
 								<AdvancedSettings form={form} />
 							)}
@@ -136,7 +136,7 @@ function ProjectForm() {
 							<LinkComponent
 								href="/docs/getting-started#start-project" className="text-xs text-blue-300/80!">Learn more</LinkComponent>
 						</div>
-					</motion.form>
+					</form>
 
 
 

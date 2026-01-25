@@ -47,7 +47,7 @@ export function ConfigPreview({ form }: { form: UseFormReturn<ProjectFormInput> 
 	]
 
 	return (
-		<div className="lg:sticky lg:top-32">
+		<div className="flex-1 lg:sticky lg:top-32 ">
 			<div className="relative overflow-hidden rounded-md border border-blue-600/30  backdrop-blur-sm p-2">
 
 				<Card className="dark:bg-background bg-white">

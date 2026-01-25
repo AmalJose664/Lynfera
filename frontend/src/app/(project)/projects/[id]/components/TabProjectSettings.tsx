@@ -234,14 +234,10 @@ const Configurations = ({ project, form, isUpdateMode, setIsUpdateMode }: { proj
 									<Input {...register("rootDir")} />
 									{errors.rootDir && <p className="text-sm text-red-500 mt-1">{errors.rootDir.message}</p>}
 								</div>
-								<div className="px-2">
-									<label htmlFor="">Build Command</label>
-									<Input {...register("buildCommand")} />
-									{errors.buildCommand && <p className="text-sm text-red-500 mt-1">{errors.buildCommand.message}</p>}
-								</div>
 								<div className="px-2 relative group">
 									<label htmlFor="">Install Commands</label>
-									<Input {...register("installCommand")} disabled />
+									<span className="absolute top-[31px] left-6 text-[15px]">npm</span>
+									<Input {...register("installCommand")} disabled className="pl-[52px]" />
 									{errors.installCommand && <p className="text-sm text-red-500 mt-1">{errors.installCommand.message}</p>}
 									<div
 										className="absolute -top-16 left-1/6 -translate-x-1/2 w-44 px-3 py-2 text-sm text-secondary 
@@ -253,6 +249,12 @@ const Configurations = ({ project, form, isUpdateMode, setIsUpdateMode }: { proj
 								pointer-events-none
 								">Editing Install command is currently disabled
 									</div>
+								</div>
+								<div className="px-2 relative">
+									<label htmlFor="">Build Command</label>
+									<span className="absolute top-[31px] text-primary left-6 text-[15px]">npm run</span>
+									<Input {...register("buildCommand")} className="pl-[78px]" />
+									{errors.buildCommand && <p className="text-sm text-red-500 mt-1">{errors.buildCommand.message}</p>}
 								</div>
 								<div className="px-2">
 									<label htmlFor="">Outputs Directory</label>

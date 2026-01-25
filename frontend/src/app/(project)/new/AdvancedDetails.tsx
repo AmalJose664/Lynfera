@@ -26,14 +26,13 @@ export function AdvancedSettings({ form }: {
 	const outputPath =
 		`${rootDir.replace(/\/$/, "")}/${outputDirectory.replace(/^\//, "")}`
 	return (
-		<>
-			<motion.div
-				initial={{ opacity: 0, height: 0 }}
-
-				animate={{ opacity: 1, height: "auto" }}
-				exit={{ opacity: 0, height: 0 }}
-				transition={{ duration: 0.4, ease: "easeInOut" }}
-				className="border px-4 py-3 mb-6 rounded-md  overflow-hidden dark:bg-background bg-white border-gray-800/50  p-6 backdrop-blur-sm space-y-5"
+		<motion.div
+			initial={{ opacity: 0, y: 100 }}
+			animate={{ opacity: 1, y: 0 }}
+			exit={{ opacity: 0, y: 100 }}
+			transition={{ duration: .4, ease: "easeInOut", }}
+		>
+			<div className="border px-4 py-3 mb-6 rounded-md  overflow-hidden dark:bg-background bg-white border-gray-800/50  p-6 backdrop-blur-sm space-y-5"
 			>
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-3">
@@ -92,15 +91,9 @@ export function AdvancedSettings({ form }: {
 					</div>
 				)}
 
-			</motion.div>
+			</div>
 
-			<motion.div
-				initial={{ opacity: 0, height: 0 }}
-				animate={{ opacity: 1, height: "auto" }}
-				exit={{ opacity: 0, height: 0 }}
-				transition={{ duration: 0.4, ease: "easeInOut" }}
-				className="border px-4 py-3 mb-6 rounded-md overflow-hidden dark:bg-background bg-white 	 p-6 backdrop-blur-sm space-y-5"
-			>
+			<div className="border px-4 py-3 mb-6 rounded-md overflow-hidden dark:bg-background bg-white 	 p-6 backdrop-blur-sm space-y-5">
 				<div className="flex items-center gap-3 mb-2">
 					<div className="p-2 border rounded-md">
 						<LiaWrenchSolid size={18} />
@@ -147,8 +140,8 @@ export function AdvancedSettings({ form }: {
 					<label className="flex items-center gap-2  mb-1 font-medium text-sm" htmlFor="">
 						<FiTerminal />{" "}<span className="text-primary">Build Command</span>
 					</label>
-					<span className="absolute top-[38px] left-6">npm</span>
-					<Input maxLength={20} {...register("buildCommand")} className="text-primary pl-13" />
+					<span className="absolute top-[38px] left-6">npm run</span>
+					<Input maxLength={20} {...register("buildCommand")} className="text-primary pl-20" />
 					{errors.buildCommand && <p className="text-sm text-red-500 mt-1">{errors.buildCommand.message}</p>}
 					<p className="text-xs text-gray-500 mt-2">
 						Command to build your project (e.g., npm run build)
@@ -169,8 +162,7 @@ export function AdvancedSettings({ form }: {
 					</p>
 				</div>
 
-			</motion.div>
-
-		</>
+			</div>
+		</motion.div>
 	)
 }
