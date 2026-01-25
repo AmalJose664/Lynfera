@@ -14,8 +14,8 @@ import FormData from "form-data";
 import axios from 'axios';
 import pLimit from "p-limit"
 
-let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "6970717ccf90b8cb0c786275"   // Received from env by apiserver or use backup for local testing
-let PROJECT_ID = process.env.PROJECT_ID || "69246647869c614a349015fc"   // Received from env by apiserver or use backup for local testing
+let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "---"   // Received from env by apiserver or use backup for local testing
+let PROJECT_ID = process.env.PROJECT_ID || "---"   // Received from env by apiserver or use backup for local testing
 const brandName = "Lynfera"
 const kafka = new Kafka({
 	clientId: `docker-build-server-${PROJECT_ID}-${DEPLOYMENT_ID}`,
@@ -105,6 +105,9 @@ const deleteEnvs = () => {
 	delete process.env.CLOUD_SECRETKEY;
 	delete process.env.CLOUD_ACCESSKEY;
 	delete process.env.CONTAINER_API_TOKEN;
+	delete process.env.CLOUD_ENDPOINT;
+	delete process.env.CLOUD_BUCKET;
+
 }
 
 const sendLogsAsBatch = async () => {
@@ -242,7 +245,7 @@ const publishUpdates = async (updateData = {}) => {
 				{ key: "log", value: value }
 			]
 		})
-		console.log("Sendted", updateData.type)
+		console.log("update Sent", updateData.type)
 	} catch (error) {
 		console.log("error on sending update", updateData.type, error)
 	}
@@ -401,7 +404,44 @@ function detectFrontendBuildConfig(pkg = {}) {
 	return { framework, tool };
 }
 
-
+function getBuildServerEnvsWithUserEnvs(envs = [], requiredData = {}) {
+	const { project, deployment } = requiredData
+	const lynfera = brandName.toUpperCase()
+	const urlSuffix = ".lynfera.qzz.io"
+	const serverEnvs = [
+		{ name: "NODE_ENV", value: "production", canOverride: false },
+		{ name: "ENVIRONMENT", value: "production", canOverride: false },
+		{ name: "CI", value: "true", canOverride: false },
+		{ name: lynfera + "_BUILD_ID", value: deployment._id, canOverride: false },
+		{ name: lynfera + "_GIT_COMMIT_SHA", value: requiredData.gitData.split("||")[0], canOverride: true },
+		{ name: lynfera + "_GIT_BRANCH", value: project.branch, canOverride: true },
+		{ name: lynfera + "_PUBLIC_ID", value: deployment.publicId, canOverride: true },
+		{ name: lynfera + "_PROJECT_ID", value: project._id, canOverride: true },
+		{ name: lynfera + "_PROJECT_URL", value: project.subdomain + urlSuffix, canOverride: true },
+		{ name: lynfera + "_DEPLOYMENT_URL", value: deployment.publicId + urlSuffix, canOverride: true },
+		{ name: lynfera + "_BUILD", value: "1", canOverride: true },
+		{ name: "NODE_VERSION", value: "22", canOverride: true },
+	]
+	const userEnvsMap = new Map(envs.map((ev) => [ev.name, ev.value]))
+	const updatedServerEnvs = serverEnvs.map((sev) => {
+		let { name, value } = sev
+		const { canOverride } = sev
+		if (userEnvsMap.get(name)) {
+			if (canOverride) {
+				value = userEnvsMap.get(name)
+			}
+			userEnvsMap.delete(name)
+		}
+		return { name, value }
+	})
+	const newUserEnvs = Array.from(userEnvsMap, ([key, value]) => ({
+		name: key,
+		value: value,
+	}));
+	const finalEnvs = [...updatedServerEnvs, ...newUserEnvs]
+	console.log(envs, finalEnvs)
+	return finalEnvs
+}
 
 async function validatePackageJsonAndGetFramework(dir, rootDir) {
 	const packageJsonPath = path.join(dir, "package.json")
@@ -788,12 +828,13 @@ async function init() {
 		commit_hash: gitCommitData,
 		status: deploymentStatus.BUILDING
 	})
+
 	try {
 		//logs
 		console.log("Executing script.js")
 
 		console.log("Fetching project data")
-		const taskDir = path.join(__dirname, "../test-grounds/");             // UPDATE THIS ON DEPLOYMENT !!!!!!!!!!!!!!!!!
+		const taskDir = path.join(__dirname, "/output/");             // UPDATE THIS ON DEPLOYMENT !!!!!!!!!!!!!!!!!
 
 		["Directory set to " + taskDir, "Fetching project data "].map((v) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
@@ -847,6 +888,12 @@ async function init() {
 
 
 		//-----------------------------------------------------------INSTALL-------------------------------------------------------------------------------------------
+		const envsToInject = getBuildServerEnvsWithUserEnvs(projectData.env ?? [], {
+			project: projectData,
+			deployment: deploymentData,
+			gitData: gitCommitData,
+
+		})
 
 
 		["\x1b[\x1b[1m\x1b[38;2;39;199;255m Installing packages...\x1b[0m", line(36)
@@ -870,7 +917,7 @@ async function init() {
 					level: logValues.INFO,
 					message: `\x1b[38;5;123m Installing with command $ npm ${installCommand} ${extraFlags.join(" ")}\x1b[0m`, stream: "system"
 				})
-				await runCommand("npm", [...installCommand.split(" "), ...extraFlags], runDir, projectData.env ?? [], 10)
+				await runCommand("npm", [...installCommand.split(" "), ...extraFlags], runDir, envsToInject ?? [], 10)
 				break
 			} catch (error) {
 				installTries++;
@@ -934,8 +981,8 @@ async function init() {
 			["run", ...buildCommand.split(" "), ...((settings.customBuildPath && framweworkIdentified.tool.toLowerCase() !== "cra") ? ["--", buildOptions] : [])],
 			runDir,
 			(framweworkIdentified.tool.toLowerCase() === "cra" && settings.customBuildPath)
-				? [...(projectData.env || []), { name: "PUBLIC_URL", value: "." }]
-				: [...projectData.env]
+				? [...(envsToInject || []), { name: "PUBLIC_URL", value: "." }]
+				: [...envsToInject]
 		)
 
 		const buildEndTimer = performance.now();
@@ -992,7 +1039,7 @@ async function init() {
 		const uploadEndTimer = performance.now()
 
 		const timerEnd = performance.now();
-		const durationMs = timerEnd - timerStart
+		const durationMs = timerEnd - timerStart;
 
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
@@ -1055,7 +1102,8 @@ async function init() {
 				type: "ERROR",
 				user: projectUser || "",
 				status: err.cancelled ? deploymentStatus.CANCELED : deploymentStatus.FAILED,
-				error_message: err.message + " || " + err.cause
+				error_message: err.message + " || " + err.cause,
+				complete_at: new Date().toISOString(),
 			})
 		}
 		else {
@@ -1069,7 +1117,8 @@ async function init() {
 				type: "ERROR",
 				status: deploymentStatus.FAILED,
 				user: projectUser || "",
-				error_message: "Internal server error"
+				error_message: "Internal server error",
+				complete_at: new Date().toISOString(),
 			})
 		}
 		console.log("Some error happened")

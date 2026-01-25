@@ -1,14 +1,37 @@
-FROM node:22-slim
+FROM node:22-bookworm
 
 
-RUN apt-get update && \
-    apt-get install -y git && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get remove -y \
+    man-db \
+    manpages \
+    wget \
+    curl \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    /var/cache/apt/archives/* \
+    /usr/share/doc/* \
+    /usr/share/man/* \
+    /usr/share/info/* \
+    /usr/share/locale/* \
+    /usr/share/groff/* \
+    /usr/share/lintian/* \
+    /usr/share/linda/* \
+    /usr/share/doc-base/* \
+    /usr/share/pixmaps/* \
+    /usr/share/common-licenses/* \
+    /usr/share/bash-completion/* \
+    /usr/share/zsh/* \
+    /tmp/* \
+    /var/tmp/* \
+    /var/log/* \
+    /root/.cache
+
 
 WORKDIR /home/app
 COPY package*.json .
-RUN npm install 
-# RUN npm ci && npm cache clean --force
+RUN npm ci && npm cache clean --force
+
 COPY main.sh main.sh
 COPY script.js script.js
 
