@@ -14,8 +14,8 @@ import FormData from "form-data";
 import axios from 'axios';
 import pLimit from "p-limit"
 
-let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "---"   // Received from env by apiserver or use backup for local testing
-let PROJECT_ID = process.env.PROJECT_ID || "---"   // Received from env by apiserver or use backup for local testing
+let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "6974a6a48132b4323bb98b8a"   // Received from env by apiserver or use backup for local testing
+let PROJECT_ID = process.env.PROJECT_ID || "6934502adfa2d8c1c254aabc"   // Received from env by apiserver or use backup for local testing
 const brandName = "Lynfera"
 const kafka = new Kafka({
 	clientId: `docker-build-server-${PROJECT_ID}-${DEPLOYMENT_ID}`,
@@ -78,13 +78,14 @@ const logValues = {
 }
 
 const settings = {
+	runnOnlyQueuedDeplymnts: !true, // only run if deployment is in queued state
 	customBuildPath: !true,
-	sendKafkaMessage: true,
+	sendKafkaMessage: !true,
 	deleteSourcesAfter: !true,
 	sendLocalDeploy: !true,       // for sending uploads to non s3
 	localDeploy: !true,           // for non s3 uploads
-	runCommands: true,            // for testing only 
-	cloneRepo: true            // for testing only 
+	runCommands: !true,            // for testing only 
+	cloneRepo: !true            // for testing only 
 }
 
 console.log(DEPLOYMENT_ID, PROJECT_ID, "<<<<<")
@@ -271,6 +272,7 @@ async function cloneGitRepoAndValidate(taskDir, runDir, projectData) {
 		return true
 	}
 }
+
 async function getGitCommitData(taskDir) {
 	const repoGit = simpleGit(taskDir);
 	const logss = await repoGit.log({})
@@ -293,6 +295,12 @@ async function fetchProjectData(deploymentId = "") {
 
 		if (!deploymentData.deployment) {
 			throw new ContainerError("Deployment data not found", "data fetching", "Invalid project or deployment Id")
+		}
+		if (settings.runnOnlyQueuedDeplymnts && deploymentData.deployment.status !== deploymentStatus.QUEUED) {
+			throw new ContainerError("Invalid Deployment",
+				"data fetching",
+				"Deployment is in invalid state to start the build; Must be in QUEUED state; -> " + deploymentData.deployment.status
+			)
 		}
 
 		const projectId = deploymentData.deployment.project
@@ -344,6 +352,33 @@ async function fetchProjectData(deploymentId = "") {
 	}
 }
 
+function validateDirectories(taskDir, buildSource = "", buildOutput = "") {
+
+	function isWithinTaskDir(userPath, pathType) {
+
+		const sanitized = userPath.replace(/^[\/\\]+/, '');
+		const resolvedPath = path.resolve(taskDir, sanitized);
+
+		const isValid = resolvedPath.startsWith(taskDirAbs + path.sep) || resolvedPath === taskDirAbs;
+		if (!isValid) {
+			throw new ContainerError(`${pathType} path - ${userPath} must be inside the repository root directory`,
+				"file validation", "Invalid paths", true
+			);
+		}
+
+		return resolvedPath;
+	}
+
+	const taskDirAbs = path.resolve(taskDir);
+	const sourceDirAbs = isWithinTaskDir(buildSource, 'Source');
+	const outputDirAbs = isWithinTaskDir(buildOutput, 'Output');
+	return {
+		taskDir: taskDirAbs,
+		sourceDir: sourceDirAbs,
+		outputDir: outputDirAbs,
+		isValid: true
+	};
+}
 function getDynamicBuildRoot(tool = "") {
 	tool = tool.toLowerCase();
 
@@ -439,7 +474,6 @@ function getBuildServerEnvsWithUserEnvs(envs = [], requiredData = {}) {
 		value: value,
 	}));
 	const finalEnvs = [...updatedServerEnvs, ...newUserEnvs]
-	console.log(envs, finalEnvs)
 	return finalEnvs
 }
 
@@ -706,6 +740,38 @@ async function uploadNonAws(dir, fileName) {
 	}
 
 }
+const EXCLUDE_PATTERNS = [
+	'node_modules',
+	'.git',
+	".next",
+	'.env',
+	'.env.local',
+	'.env.*.local',
+	'coverage',
+	'.cache',
+	'.vscode',
+	'.idea',
+	'*.log',
+	'.DS_Store',
+	'Thumbs.db'
+];
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB per file
+const MAX_TOTAL_SIZE = 300 * 1024 * 1024; // 500MB total
+const WARN_MAX_TOTAL_SIZE = 100 * 1024 * 1024;
+function shouldExcludeDir(entryName = "", relPath = "") {
+	for (const pattern of EXCLUDE_PATTERNS) {
+		if (pattern.includes('*')) {
+			const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+			if (regex.test(entryName)) return true;
+		}
+		else {
+			if (entryName === pattern || relPath.split(path.sep).includes(pattern)) {
+				return true
+			}
+		}
+	}
+	return false;
+}
 async function validateAnduploadFiles(sourceDir) {
 
 	const zipFileName = "output__" + Math.random().toString(36).slice(2, 12).replaceAll(".", "") + ".zip"
@@ -725,6 +791,10 @@ async function validateAnduploadFiles(sourceDir) {
 			const fullPath = path.join(currentDir, entry.name)
 			const relPath = path.join(relativePath, entry.name)
 
+			if (shouldExcludeDir(entry.name, relPath)) {
+				console.log("Skipping ---- ------- ", relPath)
+				continue;
+			}
 			if (entry.isDirectory()) {
 				await processDirectory(fullPath, relPath);
 
@@ -737,25 +807,52 @@ async function validateAnduploadFiles(sourceDir) {
 						DEPLOYMENT_ID, PROJECT_ID,
 						level: logValues.WARN,
 						message: `\x1b[38;5;9m Suspicious file path detected ${relPath} \x1b[0m`,
-						stream: "system"
+						stream: "upload"
 					});
 					publishLogs({
 						DEPLOYMENT_ID, PROJECT_ID,
 						level: logValues.WARN,
 						message: `\x1b[38;5;9m Skipping suspicious file path: ${relPath} \x1b[0m`,
-						stream: "system"
+						stream: "upload"
 					});
 					continue;
 				}
+				if (fileStat.size > MAX_FILE_SIZE) {
+					publishLogs({
+						DEPLOYMENT_ID, PROJECT_ID,
+						level: logValues.WARN,
+						message: `\x1b[38;5;9m File too large - ${relPath} - (${(fileStat.size / 1024 / 1024).toFixed(2)} MB): ${relPath} \x1b[0m`,
+						stream: "upload"
+					});
+					continue;
+				}
+
 				fileStructure.push({ name: relPath, size: fileStat.size });
 				totalSize += fileStat.size;
+				if (totalSize > WARN_MAX_TOTAL_SIZE) {
+					publishLogs({
+						DEPLOYMENT_ID, PROJECT_ID,
+						level: logValues.WARN,
+						message: `\x1b[38;5;9m Warning -> Large build size (${(totalSize / 1024 / 1024).toFixed(1)}MB). Verify output directory. \x1b[0m`,
+						stream: "upload"
+					});
+				}
+				if (totalSize > MAX_TOTAL_SIZE) {
+					publishLogs({
+						DEPLOYMENT_ID, PROJECT_ID,
+						level: logValues.ERROR,
+						message: `\x1b[38;5;9m Error -> Total size exceeded ${(MAX_TOTAL_SIZE / 1024 / 1024).toFixed(2)} MB. Possible node_modules in build directory? \x1b[0m`,
+						stream: "upload"
+					});
+					throw new ContainerError(`Total size exceeded ${(MAX_TOTAL_SIZE / 1024 / 1024).toFixed(2)} MB.`, "upload", "Output files Total size exceeded", true)
+				}
 
 				if (settings.localDeploy) {
 					publishLogs({
 						DEPLOYMENT_ID, PROJECT_ID,
 						level: logValues.INFO,
 						message: "\x1b[38;5;48m uploading " + relPath + "\x1b[0m",
-						stream: "system"
+						stream: "upload"
 					});
 					archive.file(fullPath, { name: relPath });
 					// await rename(fullPath, targetPath);
@@ -775,7 +872,7 @@ async function validateAnduploadFiles(sourceDir) {
 							Body: createReadStream(fullPath),
 							ContentType: mime.lookup(fullPath)
 						});
-						await s3Client.send(command);
+						// await s3Client.send(command);
 					}))
 
 				}
@@ -821,61 +918,66 @@ async function init() {
 		level: logValues.INFO,
 		message: "Starting deployment..", stream: "system"
 	})
-	const timerStart = performance.now()
+	const timerStart = performance.now();
 	await publishUpdates({
 		DEPLOYMENT_ID, PROJECT_ID,
 		type: "START",
 		commit_hash: gitCommitData,
 		status: deploymentStatus.BUILDING
-	})
+	});
 
 	try {
 		//logs
-		console.log("Executing script.js")
+		console.log("Executing script.js");
 
-		console.log("Fetching project data")
-		const taskDir = path.join(__dirname, "/output/");             // UPDATE THIS ON DEPLOYMENT !!!!!!!!!!!!!!!!!
+		console.log("Fetching project data");
+		const taskDir = path.join(__dirname, "../test-grounds/");            // UPDATE THIS ON DEPLOYMENT !!!!!!!!!!!!!!!!!
 
 		["Directory set to " + taskDir, "Fetching project data "].map((v) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
 			level: logValues.INFO,
 			message: `${v}`, stream: "system"
-		}))
+		}));
 
 		//-----------------------------------------CLONING_FETCHING-----------------------------------------------------------------------------------------------------
 
 
-		const [project, deploymentData] = await fetchProjectData(DEPLOYMENT_ID)
-		projectData = project
-		projectUser = project.user
-		DEPLOYMENT_ID = deploymentData._id
-		PROJECT_ID = projectData._id
+		const [project, deploymentData] = await fetchProjectData(DEPLOYMENT_ID);
+		projectData = project;
+		projectUser = project.user;
+		DEPLOYMENT_ID = deploymentData._id;
+		PROJECT_ID = projectData._id;
 
 		const installCommand = "install";
-		const buildCommand = projectData.buildCommand || "build"
-		const outputFilesDir = projectData.outputDirectory || "dist"
+		const buildCommand = projectData.buildCommand || "build";
 
 
 
-		const runDir = path.join(taskDir, projectData.rootDir)
+
+		const runDirDisplay = path.join(taskDir, projectData.rootDir); // to display in logs
+		const cleanedPaths = validateDirectories(taskDir, projectData.rootDir, projectData.outputDirectory || "dist");
+		const outputFilesDirDisplay = projectData.outputDirectory; // to display in logs
+		const runDir = cleanedPaths.sourceDir;
+		const distFolderPath = cleanedPaths.outputDir;
+
 
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
 			level: logValues.INFO,
 			message: `cloning repo..`, stream: "system"
-		})
+		});
 
 
-		await cloneGitRepoAndValidate(taskDir, runDir, projectData)
-		gitCommitData = await getGitCommitData(taskDir).catch((e) => console.log("Error getting commit", e)) || gitCommitData
+		await cloneGitRepoAndValidate(taskDir, runDir, projectData);
+		gitCommitData = await getGitCommitData(taskDir).catch((e) => console.log("Error getting commit", e)) || gitCommitData;
 
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
 			level: logValues.INFO,
 			message: `git repo cloned...`, stream: "system"
-		})
+		});
 
-		const framweworkIdentified = await validatePackageJsonAndGetFramework(runDir, projectData.rootDir)
+		const framweworkIdentified = await validatePackageJsonAndGetFramework(runDir, projectData.rootDir);
 		const buildOptions = getDynamicBuildRoot(framweworkIdentified.tool);
 
 		["Detected 1 framework", "Framework " + framweworkIdentified.framework + " identified",
@@ -893,7 +995,7 @@ async function init() {
 			deployment: deploymentData,
 			gitData: gitCommitData,
 
-		})
+		});
 
 
 		["\x1b[\x1b[1m\x1b[38;2;39;199;255m Installing packages...\x1b[0m", line(36)
@@ -1002,9 +1104,15 @@ async function init() {
 			message: msg, stream: "system"
 		}))
 
-		const distFolderPath = path.join(runDir, outputFilesDir);
+
 		if (!existsSync(distFolderPath)) {
-			throw new ContainerError(outputFilesDir + ' folder not found after build', "system");
+			publishLogs({
+				DEPLOYMENT_ID, PROJECT_ID,
+				level: logValues.ERROR,
+				message: `\x1b[38;5;9m ERROR -> Output not found after build; Wrong output directory? \x1b[0m`,
+				stream: "upload"
+			});
+			throw new ContainerError(outputFilesDirDisplay + ' folder not found after build', "system", "Output not found after build");
 		}
 		console.log("done.....");
 		console.log("Post build configurations running....");
@@ -1087,7 +1195,7 @@ async function init() {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.ERROR,
-				message: `${err.message} || ${err.cause}`, stream: err.stream
+				message: `${err.message} | ${err.cause}`, stream: err.stream
 			});
 
 			[repeat(" ", 10), repeat("\x1b[38;5;197m-", 60) + "\x1b[38;5;197m END " + repeat("\x1b[38;5;197m-\x1b[0m", 150),
@@ -1102,7 +1210,7 @@ async function init() {
 				type: "ERROR",
 				user: projectUser || "",
 				status: err.cancelled ? deploymentStatus.CANCELED : deploymentStatus.FAILED,
-				error_message: err.message + " || " + err.cause,
+				error_message: err.message + " | " + err.cause,
 				complete_at: new Date().toISOString(),
 			})
 		}
@@ -1121,7 +1229,7 @@ async function init() {
 				complete_at: new Date().toISOString(),
 			})
 		}
-		console.log("Some error happened")
+		console.log("Some error happened", err)
 		console.log("Exiting in 5 seconds")
 	} finally {
 		await sendLogsAsBatch()

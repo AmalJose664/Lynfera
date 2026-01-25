@@ -28,12 +28,15 @@ RUN apt-get update && apt-get remove -y \
     /root/.cache
 
 
-WORKDIR /home/app
+RUN groupadd builder \
+ && useradd -m -g builder -s /bin/bash builder
+WORKDIR /app
+RUN chown -R builder:builder /app
+
+USER builder
 COPY package*.json .
 RUN npm ci && npm cache clean --force
 
-COPY main.sh main.sh
-COPY script.js script.js
 
 COPY --chmod=755 main.sh script.js ./
 
