@@ -42,18 +42,14 @@ export const onProxyRes = async (proxyRes: IncomingMessage, req: RequestWithProj
 	// await redisService.set(req.project?.subdomain + req.path as string, toCache, 1200)
 	const data: IAnalytics = {
 		projectId: req.project?._id || "",
-		subdomain: req.project?.subdomain || "",
 		timestamp: new Date().getTime(),
 		path,
-		requestSize,
 		responseSize,
 		responseTime: parseFloat(responseTime),
 		ip: req.socket.remoteAddress || "0.0.0.0",
-		statusCode: proxyRes.statusCode || res.statusCode || 0,
+		statusCode: proxyRes.statusCode || res.statusCode || 404,
 		uaBrowser: ua.browser,
 		uaOs: ua.os,
-		isMobile: ua.isMobile,
-		isBot: (req as any).isBot,
 		referer: req.headers['referer'] || ""
 	}
 	// console.log(data, "--- --`Levele data")

@@ -3,7 +3,6 @@ import { redisService } from "../cache/redis.js"
 import { ICacheAnalytics } from "../interfaces/cache/IRedis.js"
 import { IAnalytics } from "../models/Analytics.js"
 import parseUA from "../utils/uaParser.js"
-import { isbot } from "isbot"
 import { analyticsService } from "../service/analytics.service.js"
 import { varyResponseTimeHuman } from "../utils/variateResponse.js"
 import { GetObjectCommand, GetObjectCommandOutput, NoSuchKey, S3ServiceException } from "@aws-sdk/client-s3";
@@ -99,21 +98,16 @@ export const trackCacheAnalytics = async (req: Request, res: Response, next: Nex
 			return
 		}
 		const ua = parseUA(uaAgent || "")
-		const isBot = isbot(uaAgent)
 		const data: IAnalytics = {
 			projectId,
-			subdomain: req.project?.subdomain || "",
 			timestamp: new Date().getTime(),
 			path,
-			requestSize: 10,
 			responseSize,
 			responseTime: varyResponseTimeHuman(Number(responseTime)),
 			ip: ip || "0.0.0.0",
 			statusCode: 304,
 			uaBrowser: ua.browser,
 			uaOs: ua.os,
-			isMobile: ua.isMobile,
-			isBot,
 			referer: req.headers['referer'] || ""
 		}
 		// console.log(JSON.stringify(data))
