@@ -42,6 +42,7 @@ export const DeploymentUpdatesEventSchema = z.object({
 			upload_ms: z.number().optional(),
 			duration_ms: z.number().optional(),
 			complete_at: z.iso.datetime().optional(),
+			preventAutoPromoteDeployment: z.boolean().optional(),
 			file_structure: z
 				.object({
 					totalSize: z.number().default(0),

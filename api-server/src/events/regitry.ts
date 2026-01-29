@@ -134,23 +134,19 @@ export async function processConumerAnalytics({ batch }: EachBatchPayload) {
 				const data = JSON.parse(msg.value?.toString() || "{}");
 
 				const safeData = schema.parse(data) as AnalyticsEvent;
-				const bandwidth = safeData.requestSize + safeData.responseSize;
+				const bandwidth = 100 + safeData.responseSize;
 				const projectId = safeData.projectId;
 				bandwidthByProjectBatch[projectId] = (bandwidthByProjectBatch[projectId] || 0) + bandwidth;
 
 				return {
 					project_id: safeData.projectId,
-					subdomain: safeData.subdomain,
 					path: safeData.path,
 					status_code: safeData.statusCode,
 					response_time: safeData.responseTime,
-					request_size: safeData.requestSize,
 					response_size: safeData.responseSize,
 					ip: safeData.ip,
 					ua_browser: safeData.uaBrowser || null,
 					ua_os: safeData.uaOs || null,
-					is_mobile: safeData.isMobile ? 1 : 0,
-					is_bot: safeData.isBot ? 1 : 0,
 					referer: safeData.referer || null,
 					timestamp: safeData.timestamp,
 				} as BufferAnalytics;

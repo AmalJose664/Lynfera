@@ -73,7 +73,7 @@ class DeploymentEventHandler {
 						status: updates.status as unknown as ProjectStatus,
 						techStack: updates.techStack,
 						tempDeployment: null,
-						...(updates.status === "READY" && { currentDeployment: deploymentId }),
+						...((updates.status === "READY" && !updates.preventAutoPromoteDeployment) && { currentDeployment: deploymentId }),
 					})
 				])
 				break;
