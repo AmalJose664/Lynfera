@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../axiosBaseQuery";
-import { AnalyticsParamsTypes, bandWidthType, osDistTypes, overviewType, topPagesType } from "@/types/Analytics";
+import { AnalyticsParamsTypes, bandWidthType, platformDistTypes, overviewType, topPagesType } from "@/types/Analytics";
 
 export const analyticsApi = createApi({
 	reducerPath: "analyticsApi",
@@ -34,7 +34,7 @@ export const analyticsApi = createApi({
 
 		}),
 		getTopPages: builder.query<topPagesType[], AnalyticsParamsTypes>({
-			query: ({ projectId, interval, limit }) => ({ url: `/analytics/${projectId}/top-pages?interval=${interval}&limit=${limit}`, method: 'get' }),
+			query: ({ projectId, range, limit }) => ({ url: `/analytics/${projectId}/top-pages?range=${range}&limit=${limit}`, method: 'get' }),
 			transformResponse: (data: any) => {
 				return data.data
 			},
@@ -43,8 +43,8 @@ export const analyticsApi = createApi({
 			],
 
 		}),
-		getOsStats: builder.query<osDistTypes[], AnalyticsParamsTypes>({
-			query: ({ projectId, interval, limit }) => ({ url: `/analytics/${projectId}/os-stats?interval=${interval}&limit=${limit}`, method: 'get' }),
+		getPlatformStats: builder.query<platformDistTypes, AnalyticsParamsTypes>({
+			query: ({ projectId, range, limit }) => ({ url: `/analytics/${projectId}/platform-stats?range=${range}&limit=${limit}`, method: 'get' }),
 			transformResponse: (data: any) => {
 				return data.data
 			},
@@ -59,4 +59,4 @@ export const analyticsApi = createApi({
 export const { useGetBandWidthQuery,
 	useGetOverviewQuery,
 	useGetTopPagesQuery, useClearAnalyticsMutation,
-	useGetOsStatsQuery } = analyticsApi
+	useGetPlatformStatsQuery, } = analyticsApi

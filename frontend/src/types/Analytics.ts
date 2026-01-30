@@ -33,8 +33,15 @@ export interface topPagesType {
 	errors: number
 	totalSize: number,
 }
-export interface osDistTypes {
-	uaOs: string,
-	users: number,
-	percentage: number
+export interface platformDistTypes {
+	osStats: {
+		uaOs: string;
+		users: number;
+		percentage: number;
+	}[],
+	browserStats: {
+		usBrowser: string;
+		users: number;
+		percentage: number;
+	}[]
 }

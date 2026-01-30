@@ -53,7 +53,7 @@ export default function BandwidthChart({ projectId, userPlan }: { projectId: str
 	const [interval, setIntervalA] = useState("1h")
 	const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("totalMB")
 
-	const { data: bandwidthData, isLoading: loading, error } = useGetBandWidthQuery({ interval, projectId, range })
+	const { data: bandwidthData, isLoading: loading, error, isError } = useGetBandWidthQuery({ interval, projectId, range })
 
 	const totals = useMemo(
 		() => ({
@@ -96,16 +96,6 @@ export default function BandwidthChart({ projectId, userPlan }: { projectId: str
 	}
 
 
-	if (error) {
-		return (
-			<Card>
-				<CardContent className="flex h-[400px] items-center justify-center">
-					<p className="text-destructive">{(error as any)?.message || (error as { data?: { message?: string } })?.data?.message}</p>
-				</CardContent>
-			</Card>
-		)
-	}
-
 	return (
 		<Card className="dark:bg-background pt-0 overflow-hidden">
 			<CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
@@ -115,6 +105,7 @@ export default function BandwidthChart({ projectId, userPlan }: { projectId: str
 						Request and response data transfer over time
 					</CardDescription>
 				</div>
+
 				<div className="flex ">
 					{(["requestMB", "responseMB", "totalMB"] as const).map((key) => {
 						const Icon = chartConfig[key].icon
@@ -153,8 +144,8 @@ export default function BandwidthChart({ projectId, userPlan }: { projectId: str
 							<SelectContent className="dark:bg-background">
 								<SelectItem value="1h">Last Hour</SelectItem>
 								<SelectItem value="24h">Last 24 Hours</SelectItem>
-								<SelectItem value="7d">Last 7 Days</SelectItem>
-								<SelectItem value="30d">Last 30 Days</SelectItem>
+								<SelectItem value="7d" disabled={!isPremiumUser}>Last 7 Days {!isPremiumUser && <p className="text-xs inline">(Pro user)</p>}</SelectItem>
+								<SelectItem value="30d" disabled={!isPremiumUser}>Last 30 Days {!isPremiumUser && <p className="text-xs inline">(Pro user)</p>}</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
@@ -191,8 +182,10 @@ export default function BandwidthChart({ projectId, userPlan }: { projectId: str
 						)}
 					</div>
 				</div>
-				{(bandwidthData?.length === 0 || !bandwidthData) ? (<Card className="dark:bg-background">
-					<CardContent className="flex h-[400px] items-center justify-center">
+
+				{isError || (bandwidthData?.length === 0 || !bandwidthData) ? (<Card className="dark:bg-background">
+					<CardContent className="flex h-[400px] items-center justify-center flex-col">
+						<p className="text-destructive">{(error as any)?.message || (error as { data?: { message?: string } })?.data?.message}</p>
 						<p className="text-muted-foreground">No data found yet</p>
 					</CardContent>
 				</Card>) :

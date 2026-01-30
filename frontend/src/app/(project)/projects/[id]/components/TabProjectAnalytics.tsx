@@ -16,7 +16,7 @@ import { LinkComponent } from "@/components/docs/HelperComponents";
 const BandwidthChart = lazy(() => import("@/components/analytics/Bandwidth"));
 const OverviewChart = lazy(() => import("@/components/analytics/Overview"));
 const TopPages = lazy(() => import("@/components/analytics/TopPages"));
-const OsStats = lazy(() => import("@/components/analytics/OsStats"));
+const OsStats = lazy(() => import("@/components/analytics/PlatformStats"));
 
 
 const ProjectAnalytics = ({ projectId }: { projectId: string }) => {
@@ -51,7 +51,7 @@ const ProjectAnalytics = ({ projectId }: { projectId: string }) => {
 			}
 			<Accordion type="multiple" defaultValue={["overview"]}>
 				<AccordionItem value="overview" >
-					<AccordionTrigger className="hover:no-underline text-xl">Traffic Overview</AccordionTrigger>
+					<AccordionTrigger className="hover:no-underline text-base">Traffic Overview</AccordionTrigger>
 					<AccordionContent>
 						<Suspense fallback={<div className="flex h-[400px] items-center justify-center">Loading...</div>}>
 							<OverviewChart projectId={projectId} userPlan={user?.plan || ""} />
@@ -60,7 +60,7 @@ const ProjectAnalytics = ({ projectId }: { projectId: string }) => {
 				</AccordionItem>
 
 				<AccordionItem value="bandwidth">
-					<AccordionTrigger className="hover:no-underline text-xl">Bandwidth</AccordionTrigger>
+					<AccordionTrigger className="hover:no-underline text-base">Bandwidth</AccordionTrigger>
 					<AccordionContent>
 						<Suspense fallback={<div className="flex h-[400px] items-center justify-center">Loading...</div>}>
 							<BandwidthChart projectId={projectId} userPlan={user?.plan || ""} />
@@ -69,18 +69,18 @@ const ProjectAnalytics = ({ projectId }: { projectId: string }) => {
 				</AccordionItem>
 
 				<AccordionItem value="pages">
-					<AccordionTrigger className="hover:no-underline text-xl">Top Pages</AccordionTrigger>
+					<AccordionTrigger className="hover:no-underline text-base">Top Pages</AccordionTrigger>
 					<AccordionContent>
 						<Suspense fallback={<div className="flex h-[400px] items-center justify-center">Loading...</div>}>
-							<TopPages projectId={projectId} />
+							<TopPages projectId={projectId} userPlan={user?.plan || ""} />
 						</Suspense>
 					</AccordionContent>
 				</AccordionItem>
 				<AccordionItem value="os">
-					<AccordionTrigger className="hover:no-underline text-xl">Os Stats</AccordionTrigger>
+					<AccordionTrigger className="hover:no-underline text-base">Platform View</AccordionTrigger>
 					<AccordionContent>
 						<Suspense fallback={<div className="flex h-[400px] items-center justify-center">Loading...</div>}>
-							<OsStats projectId={projectId} />
+							<OsStats projectId={projectId} userPlan={user?.plan || ""} />
 						</Suspense>
 					</AccordionContent>
 				</AccordionItem>

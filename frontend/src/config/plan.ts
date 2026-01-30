@@ -9,6 +9,7 @@ import {
 import { IconType } from "react-icons";
 import { IoIosCube, IoMdCloudDone } from "react-icons/io";
 import { GiProcessor } from "react-icons/gi";
+import { IoAnalyticsSharp } from "react-icons/io5";
 type EachPlanFields = {
 	name: string;
 	slug: string;
@@ -72,12 +73,12 @@ export function getPlanFeatures(plan: EachPlanFields): { text: string, Icon: Ico
 		{ text: `${plan.totalBandwidthGB}GB Total Monthly Bandwidth`, Icon: FiHardDrive },
 		...(plan.pricePerMonth > 0
 			? [
-				{ text: "Custom sub domains", Icon: FiLink },
+				{ text: "Simple Analytics", Icon: IoAnalyticsSharp },
 				{ text: "Priority builds", Icon: FiStar },
 				{ text: "More resources", Icon: FiPackage },
 			]
 			: [
-				{ text: "No custom sub domains", Icon: FiSlash },
+				{ text: "Advanced Analytics", Icon: IoAnalyticsSharp },
 				{ text: "Basic hosting", Icon: FiServer },
 			]
 		)

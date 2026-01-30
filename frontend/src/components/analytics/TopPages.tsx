@@ -22,6 +22,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select"
 import { useGetTopPagesQuery } from "@/store/services/analyticsApi"
+import { PLANS } from "@/config/plan";
 
 const chartConfig = {
 	requests: {
@@ -30,16 +31,15 @@ const chartConfig = {
 	},
 } satisfies ChartConfig
 
-export default function TopPagesChart({ projectId }: { projectId: string }) {
-	const [interval, setInterval] = useState("1d")
+export default function TopPagesChart({ projectId, userPlan }: { projectId: string, userPlan: string }) {
+	const [range, setRange] = useState("1d")
 	const [limit, setLimit] = useState("10")
 
-	const { data: topPagesData, isLoading: loading, error } = useGetTopPagesQuery({
-		projectId,
-		interval,
+	const { data: topPagesData, isLoading: loading, error, isError } = useGetTopPagesQuery({
+		projectId, range,
 		limit: parseInt(limit),
 	})
-
+	const isPremiumUser = userPlan === PLANS.PRO.name
 	if (loading) {
 		return (
 			<Card>
@@ -50,17 +50,7 @@ export default function TopPagesChart({ projectId }: { projectId: string }) {
 		)
 	}
 
-	if (error) {
-		return (
-			<Card>
-				<CardContent className="flex h-[400px] items-center justify-center">
-					<p className="text-destructive">
-						{(error as any)?.message || (error as { data?: { message?: string } })?.data?.message}
-					</p>
-				</CardContent>
-			</Card>
-		)
-	}
+
 
 	return (
 		<Card className="dark:bg-background">
@@ -74,15 +64,15 @@ export default function TopPagesChart({ projectId }: { projectId: string }) {
 						<CardDescription>Most visited pages by request count</CardDescription>
 					</div>
 					<div className="flex gap-2">
-						<Select value={interval} onValueChange={setInterval}>
+						<Select value={range} onValueChange={setRange}>
 							<SelectTrigger className="w-[120px]">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent className="dark:bg-background">
 								<SelectItem value="1h">Last Hour</SelectItem>
 								<SelectItem value="1d">Last 24h</SelectItem>
-								<SelectItem value="7d">Last 7d</SelectItem>
-								<SelectItem value="1mo">Last 30d</SelectItem>
+								<SelectItem value="7d" disabled={!isPremiumUser}>Last 7 Days {!isPremiumUser && <p className="text-xs inline">(Pro user)</p>}</SelectItem>
+								<SelectItem value="30d" disabled={!isPremiumUser}>Last 30 Days {!isPremiumUser && <p className="text-xs inline">(Pro user)</p>}</SelectItem>
 							</SelectContent>
 						</Select>
 						<Select value={limit} onValueChange={setLimit}>
@@ -99,8 +89,11 @@ export default function TopPagesChart({ projectId }: { projectId: string }) {
 				</div>
 			</CardHeader>
 			<CardContent>
-				{!topPagesData || topPagesData.length === 0 ? (
-					<div className="dark:bg-background flex h-[400px] items-center justify-center">
+				{isError || !topPagesData || topPagesData.length === 0 ? (
+					<div className="dark:bg-background flex-col flex h-[400px] items-center justify-center">
+						<p className="text-destructive">
+							{(error as any)?.message || (error as { data?: { message?: string } })?.data?.message}
+						</p>
 						<p className="text-muted-foreground">No page data available</p>
 					</div>
 				) : (

@@ -1,7 +1,7 @@
+@import url("https://fonts.googleapis.com/css2?family=Gabarito:wght@400..900&display=swap");
 @import "tailwindcss";
 @import "./animations.css";
 @import "tw-animate-css";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -60,7 +60,9 @@ h1,
 h2 {
 	transition: background-color 0.9s ease, color 0.1s ease;
 }
-
+.font-env {
+	font-family: "Gabarito", system-ui, sans-serif;
+}
 :root {
 	--radius: 0.625rem;
 	--background: #d73232;

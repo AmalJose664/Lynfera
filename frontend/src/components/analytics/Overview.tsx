@@ -65,7 +65,7 @@ export default function OverviewChart({ projectId, userPlan }: { projectId: stri
 	const [intervalA, setIntervalA] = useState<string>("1h")
 	const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("requests")
 
-	const { data: overviewData, isLoading: loading, error } = useGetOverviewQuery({
+	const { data: overviewData, isLoading: loading, error, isError } = useGetOverviewQuery({
 		interval: intervalA,
 		projectId,
 		range
@@ -112,17 +112,7 @@ export default function OverviewChart({ projectId, userPlan }: { projectId: stri
 			</Card>
 		)
 	}
-	if (error) {
-		return (
-			<Card>
-				<CardContent className="flex h-[400px] items-center justify-center">
-					<p className="text-destructive">
-						{(error as any)?.message || (error as { data?: { message?: string } })?.data?.message}
-					</p>
-				</CardContent>
-			</Card>
-		)
-	}
+
 
 	return (
 		<Card className="dark:bg-background pt-0 overflow-hidden">
@@ -176,8 +166,8 @@ export default function OverviewChart({ projectId, userPlan }: { projectId: stri
 							<SelectContent className="dark:bg-background">
 								<SelectItem value="1h">Last Hour</SelectItem>
 								<SelectItem value="24h">Last 24 Hours</SelectItem>
-								<SelectItem value="7d">Last 7 Days</SelectItem>
-								<SelectItem value="30d">Last 30 Days</SelectItem>
+								<SelectItem value="7d" disabled={!isPremiumUser}>Last 7 Days {!isPremiumUser && <p className="text-xs inline">(Pro user)</p>}</SelectItem>
+								<SelectItem value="30d" disabled={!isPremiumUser}>Last 30 Days {!isPremiumUser && <p className="text-xs inline">(Pro user)</p>}</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
@@ -214,9 +204,10 @@ export default function OverviewChart({ projectId, userPlan }: { projectId: stri
 						)}
 					</div>
 				</div>
-				{(overviewData?.length === 0 || !overviewData) ? (
+				{isError || (overviewData?.length === 0 || !overviewData) ? (
 					<Card className="dark:bg-background">
-						<CardContent className="flex h-[400px] items-center justify-center">
+						<CardContent className="flex h-[400px] flex-col items-center justify-center">
+							<p className="text-destructive">{(error as any)?.message || (error as { data?: { message?: string } })?.data?.message}</p>
 							<p className="text-muted-foreground">No data found yet</p>
 						</CardContent>
 					</Card>
