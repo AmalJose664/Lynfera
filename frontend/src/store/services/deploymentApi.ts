@@ -57,6 +57,10 @@ export const deployemntApis = createApi({
 		createDeployment: builder.mutation<Deployment, string>({
 			query: (projectId) => ({ url: `/projects/${projectId}/deployments`, method: "POST", data: { projectId } }),
 			invalidatesTags: (result, error, projectId) => [{ type: 'Deployments', id: 'LIST' }],
+		}),
+		deleteDeployment: builder.mutation<void, { projectId: string, deploymentId: string }>({
+			query: ({ deploymentId, projectId }) => ({ url: `/projects/${projectId}/deployments/${deploymentId}`, method: "DELETE", }),
+			invalidatesTags: (result, error, ids) => [{ type: 'Deployments', id: "LIST" }],
 		})
 	})
 
@@ -65,5 +69,5 @@ export const deployemntApis = createApi({
 export const {
 	useCreateDeploymentMutation, useGetDeploymentFilesQuery,
 	useGetDeploymentByIdQuery, useGetProjectDeploymentsQuery,
-	useGetDeploymentsQuery
+	useGetDeploymentsQuery, useDeleteDeploymentMutation
 } = deployemntApis

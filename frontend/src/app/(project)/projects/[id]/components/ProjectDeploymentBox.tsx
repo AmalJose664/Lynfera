@@ -4,7 +4,7 @@ import { IoMdGitBranch } from "react-icons/io";
 import { LiaExternalLinkAltSolid } from "react-icons/lia";
 import { MdAccessTime } from "react-icons/md";
 import { Deployment } from "@/types/Deployment";
-import { getElapsedTime, getGithubBranchUrl, getGithubCommitUrl, getStatusColor, shortHash, timeToSeconds } from "@/lib/moreUtils/combined";
+import { formatDuration, getElapsedTime, getGithubBranchUrl, getGithubCommitUrl, getStatusColor, shortHash, } from "@/lib/moreUtils/combined";
 import Link from "next/link";
 import StatusIcon from "@/components/ui/StatusIcon";
 import { useRouter } from "next/navigation";
@@ -57,7 +57,7 @@ const ProjectDeploymentBox = ({ deployment, projectBranch, repoURL, showLogs, ty
 									</div>
 									<div className="flex items-center text-xs gap-1.5">
 										<MdAccessTime size={12} />
-										<span>{timeToSeconds(deployment.performance.totalDuration)}</span>
+										<span>{formatDuration(deployment.performance.totalDuration)}</span>
 									</div>
 								</div>
 							</div>

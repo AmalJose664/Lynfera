@@ -4,7 +4,7 @@ import { MdOutlineCheckCircle, MdAccessTime, MdErrorOutline } from "react-icons/
 import { Project } from "@/types/Project";
 import RightFadeComponent from "@/components/RightFadeComponent";
 import { useGetProjectsSimpleStatsQuery } from "@/store/services/projectsApi";
-import { formatBytes, getElapsedTimeClean, getStatusColor } from "@/lib/moreUtils/combined";
+import { formatBytes, formatDuration, getElapsedTimeClean, getStatusColor } from "@/lib/moreUtils/combined";
 import { StatusHistory, SubtleProgressBar, ThinSparkline } from "@/components/SimpleStatsCompnts";
 import { LuHistory } from "react-icons/lu";
 import { HiOutlineArrowLongRight } from "react-icons/hi2";
@@ -100,7 +100,7 @@ const ProjectSimpleStats = ({ project }: { project: Project }) => {
 						<span className="text-[11px] font-medium text-less uppercase tracking-wider">Avg Build Time</span>
 					</div>
 					<div className="flex items-end justify-between">
-						<p className="text-xl font-mono font-semibold tracking-tight text-primary">{mockStats.avgBuildTime}s</p>
+						<p className="text-xl font-mono font-semibold tracking-tight text-primary">{formatDuration(mockStats.avgBuildTime)}</p>
 						<div className="flex items-center text-emerald-500/80 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded text-[10px] font-medium">
 							<IoIosTrendingDown size={10} className="mr-0.5" /> Faster
 						</div>

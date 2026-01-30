@@ -38,10 +38,11 @@ import { Deployment } from "@/types/Deployment";
 
 import { CiMicrochip } from "react-icons/ci";
 import OptionsComponent from "@/components/OptionsComponent";
-import { IoClipboardOutline } from "react-icons/io5";
+import { IoClipboardOutline, IoTrashOutline } from "react-icons/io5";
 import { useRouter } from "next/navigation";
 import { BsArrowUpCircle } from "react-icons/bs";
 import ChangeDeploymentModal from "@/components/modals/ChangeDeployment";
+import DeleteDeploymentModal from "@/components/modals/DeleteDeployment";
 
 
 const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => {
@@ -69,6 +70,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 		);
 	}
 	const [selectedDeploymentId, setSelectedDeploymentId] = useState<string | null>(null)
+	const [showDeleteModal, setShowDeleteModal] = useState(false)
 	if (!deployment && !isLoading) {
 		return (
 			<ErrorComponent
@@ -84,6 +86,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 	return (
 		<div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] text-neutral-900 dark:text-neutral-100">
 			{selectedDeploymentId && <ChangeDeploymentModal refetchDeply={refetchDeply} setSelectedDeploymentId={setSelectedDeploymentId} selectedDeploymentId={selectedDeploymentId} projectId={(deployment?.project as Project)._id} />}
+			{showDeleteModal && <DeleteDeploymentModal deploymentId={deployment?._id || ""} setShowDeleteDeplymntModal={setShowDeleteModal} showDeleteDeplymntModal={showDeleteModal} projectId={project._id} />}
 			<div className="sticky top-0 z-20 border-b bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md border-neutral-200 dark:border-neutral-800">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
 					<BackButton />
@@ -189,6 +192,13 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 										className: "",
 										Svg: IoClipboardOutline
 									},
+									...(isStatusFailure(deployment.status) && deployment._id !== project.currentDeployment ? [{
+										title: "Delete Failed Deployment",
+										actionFn: () => setShowDeleteModal(true),
+										isDisabled: !isStatusFailure(deployment.status),
+										className: "text-red-400",
+										Svg: IoTrashOutline
+									}] : []),
 
 								]} />
 							</div>

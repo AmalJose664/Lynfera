@@ -12,7 +12,7 @@ import { User } from "@/types/User";
 import { Project, ProjectStatus } from "@/types/Project";
 import Link from "next/link";
 import TechStack from "@/components/project/TechStack";
-import { generateRepoUrls, getGithubBranchUrl, getGithubCommitUrl, getStatusColor, isStatusFailure, isStatusProgress, parseGitHubRepo, timeToSeconds } from "@/lib/moreUtils/combined";
+import { formatDuration, generateRepoUrls, getStatusColor, isStatusFailure, isStatusProgress, parseGitHubRepo, } from "@/lib/moreUtils/combined";
 import StatusIcon, { AnimationBuild } from "@/components/ui/StatusIcon";
 
 import { Deployment } from "@/types/Deployment";
@@ -176,7 +176,7 @@ const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeplo
 									<div className="flex items-center gap-2">
 										<span className="text-xs  text-less">
 											<LinkComponent newPage
-												href={generateRepoUrls(project.repoURL, { commitSha: deployment?.commit.id }).commit || project.repoURL} className='flex gap-2 items-center font-medium hover:underline text-sky-200!'>
+												href={generateRepoUrls(project.repoURL, { commitSha: deployment?.commit.id }).commit || project.repoURL} className='flex gap-2 items-center font-medium hover:underline text-sky-200! rounded-sm'>
 												{deployment?.commit.id.slice(0, 10) || "" + "..."}
 												<p className="text-xl">/</p>
 												{deployment?.commit.msg}
@@ -225,7 +225,7 @@ const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeplo
 										<MdAccessTime size={14} />
 										<span className="text-xs text-gray-500">Duration</span>
 									</div>
-									<span className="text-sm  text-less">{timeToSeconds(deployment?.performance.totalDuration) || "- - - -"}</span>
+									<span className="text-sm  text-less">{formatDuration(deployment?.performance.totalDuration || 0) || "- - - -"}</span>
 								</div>
 							</div>
 						</RightFadeComponent>

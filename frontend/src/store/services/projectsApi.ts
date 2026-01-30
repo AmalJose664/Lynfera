@@ -134,7 +134,7 @@ export const projectApis = createApi({
 					deploys: { _id: string, count: number }[]
 				}
 			},
-		})
+		}),
 	})
 })
 

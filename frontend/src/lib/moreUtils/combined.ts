@@ -2,10 +2,6 @@ import { ParsedRepo, SourceLocation } from "@/types/Others";
 import { ProjectStatus } from "@/types/Project";
 import { parseRepoUrl } from "./form";
 
-export const timeToSeconds = (time: number | undefined) => {
-	if (!time) return time
-	return (time / 1000).toFixed(2) + " s";
-}
 
 export const formatDate = (date: Date | undefined) => { //chat gpt code
 	return new Date(date || 0).toLocaleDateString('en-US', {

@@ -1,11 +1,9 @@
 import StatusIcon from "@/components/ui/StatusIcon"
-import { getStatusBg, getStatusColor, timeToSeconds } from "@/lib/moreUtils/combined"
+import { getStatusBg, } from "@/lib/moreUtils/combined"
 import { useGetProjectDeploymentsQuery } from "@/store/services/deploymentApi"
 import Link from "next/link"
 
-import { IoIosArrowDown, IoMdGitBranch } from "react-icons/io"
-import { LiaExternalLinkAltSolid } from "react-icons/lia"
-import { MdAccessTime } from "react-icons/md"
+import { IoMdGitBranch } from "react-icons/io"
 import { CiSearch } from "react-icons/ci"
 
 import NoDeployment from "./NoDeployment"
