@@ -14,8 +14,8 @@ import FormData from "form-data";
 import axios from 'axios';
 import pLimit from "p-limit"
 
-let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "697c59bbe55f047c8ff2a990"   // Received from env by apiserver or use backup for local testing
-let PROJECT_ID = process.env.PROJECT_ID || "6934502adfa2d8c1c254aabc"   // Received from env by apiserver or use backup for local testing
+let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "---"   // Received from env by apiserver or use backup for local testing
+let PROJECT_ID = process.env.PROJECT_ID || "---"   // Received from env by apiserver or use backup for local testing
 const brandName = "Lynfera"
 
 let kafkaProducer = null
@@ -60,14 +60,14 @@ const logValues = {
 }
 
 const settings = {
-	runnOnlyQueuedDeplymnts: !true, // only run if deployment is in queued state
+	runnOnlyQueuedDeplymnts: true, // only run if deployment is in queued state
 	customBuildPath: !true,
 	sendKafkaMessage: true,
 	deleteSourcesAfter: !true,
 	sendLocalDeploy: !true,       // for sending uploads to non s3
 	localDeploy: !true,           // for non s3 uploads
-	runCommands: !true,            // for testing only 
-	cloneRepo: !true            // for testing only 
+	runCommands: true,            // for testing only 
+	cloneRepo: true            // for testing only 
 }
 
 console.log(DEPLOYMENT_ID, PROJECT_ID, "<<<<<")
@@ -311,6 +311,9 @@ async function fetchProjectData(deploymentId = "") {
 			throw new ContainerError("Project data not found", "data fetching", "Invalid project or deployment Id")
 		}
 
+		if (deploymentData.deployment.project !== projectData.project._id) {
+			throw new ContainerError("Project data not found", "data fetching", "Invalid project or deployment Id")
+		}
 		if (!projectData.project.installCommand) {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
@@ -443,7 +446,6 @@ function applyUserSettingsChanges(env = new Map()) {
 			String(value).toLowerCase()
 		)
 	}
-	console.log("Old === ", userSettings)
 	const settingEnvNames = {
 		skipInstall: "LYNFERA_SETTING_SKIP_INSTALL",
 		skipBuild: "LYNFERA_SETTING_SKIP_BUILD",
@@ -472,8 +474,6 @@ function applyUserSettingsChanges(env = new Map()) {
 	if (Number.isInteger(tries) && tries > 0 && tries <= 3) {
 		userSettings.maxInstallTries = tries
 	}
-
-	console.log("New === ", userSettings)
 }
 
 function getBuildServerEnvsWithUserEnvs(envs = [], requiredData = {}) {
@@ -530,8 +530,6 @@ function getBuildServerEnvsWithUserEnvs(envs = [], requiredData = {}) {
 	const finalEnvsInstall = [...updatedServerEnvsInstall, ...newUserEnvsInstall]
 	const finalEnvsBuild = [...updatedServerEnvsBuild, ...newUserEnvsBuild]
 
-	// console.log("FINAL FOR BUILD ", { finalEnvsBuild })
-	// console.log("FINAL FOR INSTALL ", { finalEnvsInstall })
 	return { finalEnvsBuild, finalEnvsInstall }
 }
 
@@ -1013,7 +1011,7 @@ async function uploadOutputFiles(sourceDir) {
 							Body: createReadStream(fullPath),
 							ContentType: mime.lookup(fullPath)
 						});
-						// await s3Client.send(command);
+						await s3Client.send(command);
 					}))
 				}
 			}
@@ -1096,13 +1094,6 @@ async function init() {
 		const installCommand = "install";
 		const buildCommand = projectData.buildCommand || "build";
 
-		const { finalEnvsBuild, finalEnvsInstall } = getBuildServerEnvsWithUserEnvs(projectData.env ?? [], {
-			project: projectData,
-			deployment: deploymentData,
-			gitData: gitCommitData,
-		});
-		// console.log({ finalEnvsBuild, finalEnvsInstall })
-
 
 		const runDirDisplay = path.join(taskDir, projectData.rootDir); // to display in logs
 		const cleanedPaths = validateDirectories(taskDir, projectData.rootDir, projectData.outputDirectory || "dist");
@@ -1119,11 +1110,22 @@ async function init() {
 		await cloneGitRepoAndValidate(taskDir, runDir, projectData);
 		gitCommitData = await getGitCommitData(taskDir).catch((e) => console.log("Error getting commit", e)) || gitCommitData;
 
+
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
 			level: logValues.INFO,
 			message: `git repo cloned...`, stream: "system"
 		});
+
+
+
+		const { finalEnvsBuild, finalEnvsInstall } = getBuildServerEnvsWithUserEnvs(projectData.env ?? [], {
+			project: projectData,
+			deployment: deploymentData,
+			gitData: gitCommitData,
+		});
+		// console.log({ finalEnvsBuild, finalEnvsInstall })
+
 
 		const framweworkIdentified = await validatePackageJsonAndGetFramework(runDir, projectData.rootDir);
 		const buildOptions = getDynamicBuildRoot(framweworkIdentified.tool);
@@ -1402,9 +1404,11 @@ async function init() {
 				status: err.cancelled ? deploymentStatus.CANCELED : deploymentStatus.FAILED,
 				error_message: `${err.message} ${err.cause ? "| " + err.cause : ""}`,
 				complete_at: new Date().toISOString(),
+				commit_hash: gitCommitData,
 			})
 		}
 		else {
+			console.log(err.message)
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.ERROR,
@@ -1419,7 +1423,7 @@ async function init() {
 				complete_at: new Date().toISOString(),
 			})
 		}
-		console.log("Some error happened", err)
+		console.log("Some error happened")
 		console.log("Exiting in 5 seconds")
 	} finally {
 		await sendLogsAsBatch();
@@ -1474,7 +1478,9 @@ async function shutdown(code = 0, reason = "") {
 	console.log("Shutdown:", reason);
 	if (currentProcess) killProcess(currentProcess);
 	if (code === 0) {
-		await kafkaProducer.disconnect();
+		if (kafkaProducer) {
+			await kafkaProducer.disconnect();
+		}
 		process.exit(0);
 		return
 	}
