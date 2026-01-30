@@ -88,10 +88,76 @@ const page = () => {
 
 				<section className="border px-4 py-2 rounded-md dark:bg-neutral-900 bg-white p-4">
 					<h2 className="mb-6 text-2xl font-bold tracking-tight text-primary">
+						User-Configurable Environment Variables
+					</h2>
+					<p className="mb-6 text-less">
+						{SITE_NAME} allows you to define environment variables that customize how your service is built and deployed.
+					</p>
+					<p className="mb-6 text-less">
+						These variables are injected into the build container at build time and can be used to control build behavior, feature flags, or environment-specific settings.
+					</p>
+					<div className="overflow-x-auto">
+						<table className="min-w-full divide-y divide-less border rounded-lg">
+							<thead className="bg-secondary/30">
+								<tr>
+									<th className="px-6 py-3 text-left text-xs font-bold uppercase text-primary">Variable</th>
+									<th className="px-6 py-3 text-left text-xs font-bold uppercase text-primary">Value / Purpose</th>
+								</tr>
+							</thead>
+							<tbody className="divide-y divide-less text-sm">
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">LYNFERA_SETTING_SKIP_INSTALL</td>
+									<td className="px-6 py-4 text-less">
+										Set to <CodeComponent>true</CodeComponent> to skip the dependency installation step. Useful when deploying prebuilt assets or static files that don’t require package installation.
+									</td>
+								</tr>
+
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">LYNFERA_SETTING_SKIP_BUILD</td>
+									<td className="px-6 py-4 text-less">
+										Set to <CodeComponent>true</CodeComponent> to skip the build step. When combined with <CodeComponent>SKIP_INSTALL</CodeComponent>, Lynfera directly uploads the provided files without running any build commands.
+									</td>
+								</tr>
+
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">LYNFERA_SETTING_SKIP_DECOR_LOGS</td>
+									<td className="px-6 py-4 text-less">
+										Set to <CodeComponent>true</CodeComponent> to disable decorative or non-essential logs, producing cleaner and more minimal build output.
+									</td>
+								</tr>
+
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">LYNFERA_SETTING_INSTALL_RETRIES</td>
+									<td className="px-6 py-4 text-less">
+										Number of times dependency installation should be retried on failure. Defaults to <CodeComponent>3</CodeComponent>. Each retry uses more permissive flags (such as legacy or force options) to improve install reliability.
+									</td>
+								</tr>
+
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">LYNFERA_SETTING_FRAMEWORK</td>
+									<td className="px-6 py-4 text-less">
+										Manually specify the framework for the project. Overrides automatic framework detection and allows Lynfera to apply the correct build configuration earlier in the process.
+									</td>
+								</tr>
+
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">LYNFERA_PREVENT_DEPLOYMENT_AUTO_PROMOTION</td>
+									<td className="px-6 py-4 text-less">
+										Set to <CodeComponent>true</CodeComponent> to disable automatic promotion of a successful deployment. This allows manual review or staged releases before making the deployment live.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+
+
+				<section className="border px-4 py-2 rounded-md dark:bg-neutral-900 bg-white p-4">
+					<h2 className="mb-6 text-2xl font-bold tracking-tight text-primary">
 						System Environment Variables
 					</h2>
 					<p className="mb-6 text-less">
-						Lynfera automatically injects these variables into every build container. You can use them to customize your app based on the deployment environment.
+						{SITE_NAME} automatically injects these variables into every build container. You can use them to customize your app based on the deployment environment.
 					</p>
 
 					<div className="overflow-x-auto">
