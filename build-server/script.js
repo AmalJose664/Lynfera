@@ -1,7 +1,7 @@
 import { execa } from 'execa';
 import { existsSync, } from "fs"
 import { readdir, stat, rename, mkdir, rm, readFile } from 'fs/promises';
-import { createWriteStream, createReadStream } from "fs"
+import { createWriteStream, readFileSync, createReadStream } from "fs"
 import path from "path"
 import mime from "mime-types"
 import { Kafka } from "kafkajs"
@@ -14,33 +14,15 @@ import FormData from "form-data";
 import axios from 'axios';
 import pLimit from "p-limit"
 
-let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "6974a6a48132b4323bb98b8a"   // Received from env by apiserver or use backup for local testing
+let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "697c59bbe55f047c8ff2a990"   // Received from env by apiserver or use backup for local testing
 let PROJECT_ID = process.env.PROJECT_ID || "6934502adfa2d8c1c254aabc"   // Received from env by apiserver or use backup for local testing
 const brandName = "Lynfera"
-const kafka = new Kafka({
-	clientId: `docker-build-server-${PROJECT_ID}-${DEPLOYMENT_ID}`,
-	brokers: ["pkc-l7pr2.ap-south-1.aws.confluent.cloud:9092"],
-	ssl: true, // or key
-	sasl: {
-		username: process.env.KAFKA_USERNAME,
-		password: process.env.KAFKA_PASSWORD,
-		mechanism: "plain"
-	},
-})
 
-const API_SERVER_CONTAINER_API_TOKEN = process.env.CONTAINER_API_TOKEN
-const producer = kafka.producer()
+let kafkaProducer = null
+let API_SERVER_CONTAINER_API_TOKEN = null
 
 
-const s3Client = new S3Client({
-	region: "auto",
-	credentials: {
-		accessKeyId: process.env.CLOUD_ACCESSKEY,
-		secretAccessKey: process.env.CLOUD_SECRETKEY,
-	},
-	endpoint: process.env.CLOUD_ENDPOINT,
-	forcePathStyle: true
-})
+let s3Client = null
 const BUCKET_NAME = process.env.CLOUD_BUCKET
 
 console.log("Starting file..")
@@ -80,7 +62,7 @@ const logValues = {
 const settings = {
 	runnOnlyQueuedDeplymnts: !true, // only run if deployment is in queued state
 	customBuildPath: !true,
-	sendKafkaMessage: !true,
+	sendKafkaMessage: true,
 	deleteSourcesAfter: !true,
 	sendLocalDeploy: !true,       // for sending uploads to non s3
 	localDeploy: !true,           // for non s3 uploads
@@ -92,13 +74,19 @@ console.log(DEPLOYMENT_ID, PROJECT_ID, "<<<<<")
 
 let gitCommitData = process.env.GIT_COMMIT_DATA || "----||-----"
 
-
+const userSettings = {
+	skipInstall: false,
+	skipBuild: false,
+	maxInstallTries: 3,
+	skipDecorLogs: false,
+	frameworkSetByUser: null,
+	preventAutoPromoteDeployment: false
+}
 
 let logsNumber = 0
 let logBuffer = [];
 let flushTimer = null;
 // ----------------------------------------------------FUNCTIONS--------------------------------------------------
-
 const deleteEnvs = () => {
 
 	delete process.env.KAFKA_USERNAME;
@@ -121,7 +109,7 @@ const sendLogsAsBatch = async () => {
 	const logsToSend = [...logBuffer];
 	logBuffer.length = 0;
 	try {
-		await producer.send({
+		await kafkaProducer.send({
 			topic: "deployment.logs",
 			messages: logsToSend.map(log => ({
 				key: "log",
@@ -134,9 +122,14 @@ const sendLogsAsBatch = async () => {
 		console.error("Kafka batch send failed:", error);
 	}
 }
-const publishLogs = async (logData = {}) => {
-	logsNumber++
+const publishLogs = (logData = {}) => {
+	logsNumber++;
 	if (!settings.sendKafkaMessage) return
+	if (userSettings.skipDecorLogs) {
+		if (logData.level === logValues.DECOR) {
+			return
+		}
+	}
 	logBuffer.push({
 		eventId: randomUUID(),
 		eventType: 'DEPLOYMENT_LOG',
@@ -160,24 +153,25 @@ const publishLogs = async (logData = {}) => {
 	if (logBuffer.length >= 50) {
 		sendLogsAsBatch();
 	} else {
-		flushTimer = setTimeout(sendLogsAsBatch, 300);
+		flushTimer = setTimeout(sendLogsAsBatch, 400);
 	}
 }
 
 const repeat = (s, n) => Array.from({ length: n }).fill(s).join(" ")
-const line = (n) => Array.from({ length: n }).fill("\x1b[38;5;14m──\x1b[0m").join("")
+const line = (n) => "\x1b[38;5;14m" + (Array.from({ length: n }).fill("──").join("")) + "\x1b[0m"
 const printInfoLogs = () => {
+	if (userSettings.skipDecorLogs) return
 	const symbols = ["✮", "❁", "✧", "❃", "✾", "✣", "─", "❆", "❀", "✴"]
-	const deco = `\x1b[96m${symbols[3]}\x1b[0m`
+	const deco = `${symbols[3]}`
 	const side = "\x1b[38;5;27m ➤  \x1b[0m "
 
 	const spaceValue = 3
 	const decorationsArray = [];
 	decorationsArray.push(repeat(" ", 25))
 
-	decorationsArray.push(repeat(deco, 120))
-	decorationsArray.push(" " + repeat(deco, 20) + `   \x1b[\x1b[1m\x1b[38;2;39;199;255m ${brandName.toUpperCase()} BUILD SERVER\x1b[0m   ` + repeat(deco, 20))
-	decorationsArray.push(repeat(deco, 120))
+	decorationsArray.push(" \x1b[96m" + repeat(deco, 120) + "\x1b[0m")
+	decorationsArray.push(" \x1b[96m" + repeat(deco, 20) + `\x1b[0m  \x1b[\x1b[1m\x1b[38;2;39;199;255m   ${brandName.toUpperCase()} BUILD SERVER   \x1b[0m\x1b[96m` + repeat(deco, 20) + "\x1b[0m")
+	decorationsArray.push(" \x1b[96m" + repeat(deco, 120) + "\x1b[0m")
 	decorationsArray.push(line(100))
 	decorationsArray.push(repeat(" ", 25))
 
@@ -204,8 +198,8 @@ const printInfoLogs = () => {
 	decorationsArray.push(repeat("  ", 25))
 
 	decorationsArray.push(repeat("  ", 25))
-	decorationsArray.push(repeat(deco, 4) + "  \x1b[96m ➤  BUILD PROCESS INITIALIZED\x1b[0m   " + repeat(deco, 4))
-	decorationsArray.push(repeat(deco, 25))
+	decorationsArray.push(" \x1b[96m" + repeat(deco, 4) + "   ➤ STARTING BUILD PROCESS   " + repeat(deco, 4) + "\x1b[0m")
+	decorationsArray.push(" \x1b[96m" + repeat(deco, 25) + "\x1b[0m")
 
 	decorationsArray.push(repeat(" ", 25))
 
@@ -238,10 +232,11 @@ const publishUpdates = async (updateData = {}) => {
 					...(updateData.commit_hash && { commit_hash: updateData.commit_hash }),
 					...(updateData.error_message && { error_message: updateData.error_message }),
 					...(updateData.file_structure && { file_structure: updateData.file_structure }),
+					...(true && { preventAutoPromoteDeployment: userSettings.preventAutoPromoteDeployment }),
 				}
 			}
 		})
-		await producer.send({
+		await kafkaProducer.send({
 			topic: "deployment.updates", messages: [
 				{ key: "log", value: value }
 			]
@@ -299,7 +294,7 @@ async function fetchProjectData(deploymentId = "") {
 		if (settings.runnOnlyQueuedDeplymnts && deploymentData.deployment.status !== deploymentStatus.QUEUED) {
 			throw new ContainerError("Invalid Deployment",
 				"data fetching",
-				"Deployment is in invalid state to start the build; Must be in QUEUED state; -> " + deploymentData.deployment.status
+				"Deployment is in invalid state to start the build; Must be in QUEUED state; -> " + deploymentData.deployment.status, true
 			)
 		}
 
@@ -346,7 +341,7 @@ async function fetchProjectData(deploymentId = "") {
 				message: `Error on fetching Project data, ${error.message}`,
 				stream: "data fetching"
 			});
-			throw new ContainerError("Api server not reachable " + error.message, "data fetching", "Api server not reachable")
+			throw new ContainerError("Api server not reachable " + error.message, "data fetching", "Server Error")
 		}
 		throw error
 	}
@@ -439,13 +434,66 @@ function detectFrontendBuildConfig(pkg = {}) {
 	return { framework, tool };
 }
 
+function applyUserSettingsChanges(env = new Map()) {
+	function envBool(value, defaultValue = false) {
+		if (value === undefined || value === null) return defaultValue
+		if (typeof value === "boolean") return value
+
+		return ["true", "1", "yes", "on"].includes(
+			String(value).toLowerCase()
+		)
+	}
+	console.log("Old === ", userSettings)
+	const settingEnvNames = {
+		skipInstall: "LYNFERA_SETTING_SKIP_INSTALL",
+		skipBuild: "LYNFERA_SETTING_SKIP_BUILD",
+		maxInstallTries: "LYNFERA_SETTING_INSTALL_RETRIES", //  <=3
+		skipDecorLogs: "LYNFERA_SETTING_SKIP_DECOR_LOGS", //  skip unwanted logs,
+		frameworkSetByUser: "LYNFERA_SETTING_FRAMEWORK",
+		preventAutoPromoteDeployment: "LYNFERA_PREVENT_DEPLOYMENT_AUTO_PROMOTION",
+	}
+	if (envBool(env.get(settingEnvNames.skipInstall))) {
+		userSettings.skipInstall = true
+	}
+	if (envBool(env.get(settingEnvNames.skipBuild))) {
+		userSettings.skipBuild = true
+	}
+	if (envBool(env.get(settingEnvNames.skipDecorLogs))) {
+		userSettings.skipDecorLogs = true
+	}
+	if (envBool(env.get(settingEnvNames.preventAutoPromoteDeployment), false)) {
+		userSettings.preventAutoPromoteDeployment = true
+	}
+	if (env.get(settingEnvNames.frameworkSetByUser)) {
+		userSettings.frameworkSetByUser = env.get(settingEnvNames.frameworkSetByUser)
+	}
+
+	const tries = Number(env.get(settingEnvNames.maxInstallTries))
+	if (Number.isInteger(tries) && tries > 0 && tries <= 3) {
+		userSettings.maxInstallTries = tries
+	}
+
+	console.log("New === ", userSettings)
+}
+
 function getBuildServerEnvsWithUserEnvs(envs = [], requiredData = {}) {
 	const { project, deployment } = requiredData
 	const lynfera = brandName.toUpperCase()
 	const urlSuffix = ".lynfera.qzz.io"
+	const applyUserOverridesAndConsume = (server = [{ name: "", value: "" }], userAsMap = new Map()) => {
+		return server.map((sEv) => {
+			let { name, value } = sEv
+			const { canOverride } = sEv
+			if (userAsMap.has(name)) {
+				if (canOverride) {
+					value = userAsMap.get(name)
+				}
+				userAsMap.delete(name)
+			}
+			return { name, value }
+		})
+	}
 	const serverEnvs = [
-		{ name: "NODE_ENV", value: "production", canOverride: false },
-		{ name: "ENVIRONMENT", value: "production", canOverride: false },
 		{ name: "CI", value: "true", canOverride: false },
 		{ name: lynfera + "_BUILD_ID", value: deployment._id, canOverride: false },
 		{ name: lynfera + "_GIT_COMMIT_SHA", value: requiredData.gitData.split("||")[0], canOverride: true },
@@ -457,24 +505,34 @@ function getBuildServerEnvsWithUserEnvs(envs = [], requiredData = {}) {
 		{ name: lynfera + "_BUILD", value: "1", canOverride: true },
 		{ name: "NODE_VERSION", value: "22", canOverride: true },
 	]
-	const userEnvsMap = new Map(envs.map((ev) => [ev.name, ev.value]))
-	const updatedServerEnvs = serverEnvs.map((sev) => {
-		let { name, value } = sev
-		const { canOverride } = sev
-		if (userEnvsMap.get(name)) {
-			if (canOverride) {
-				value = userEnvsMap.get(name)
-			}
-			userEnvsMap.delete(name)
-		}
-		return { name, value }
-	})
-	const newUserEnvs = Array.from(userEnvsMap, ([key, value]) => ({
+	const installOnlyEnvs = [
+		{ name: "NODE_ENV", value: "development", canOverride: false },
+	]
+	const buildOnlyEnvs = [
+		{ name: "NODE_ENV", value: "production", canOverride: false },
+	]
+	const userEnvsMapInstall = new Map(envs.map((ev) => [ev.name, ev.value]))
+	const userEnvsMapBuild = new Map(envs.map((ev) => [ev.name, ev.value]))
+	applyUserSettingsChanges(userEnvsMapInstall)
+
+	const updatedServerEnvsInstall = applyUserOverridesAndConsume([...serverEnvs, ...installOnlyEnvs], userEnvsMapInstall)
+	const updatedServerEnvsBuild = applyUserOverridesAndConsume([...serverEnvs, ...buildOnlyEnvs], userEnvsMapBuild)
+
+	const newUserEnvsInstall = Array.from(userEnvsMapInstall, ([key, value]) => ({
 		name: key,
 		value: value,
 	}));
-	const finalEnvs = [...updatedServerEnvs, ...newUserEnvs]
-	return finalEnvs
+	const newUserEnvsBuild = Array.from(userEnvsMapInstall, ([key, value]) => ({
+		name: key,
+		value: value,
+	}));
+
+	const finalEnvsInstall = [...updatedServerEnvsInstall, ...newUserEnvsInstall]
+	const finalEnvsBuild = [...updatedServerEnvsBuild, ...newUserEnvsBuild]
+
+	// console.log("FINAL FOR BUILD ", { finalEnvsBuild })
+	// console.log("FINAL FOR INSTALL ", { finalEnvsInstall })
+	return { finalEnvsBuild, finalEnvsInstall }
 }
 
 async function validatePackageJsonAndGetFramework(dir, rootDir) {
@@ -546,7 +604,7 @@ async function validatePackageJsonAndGetFramework(dir, rootDir) {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.WARN,
-				message: `⚠️ \x1b[38;5;214m  Warning: "postinstall" script detected
+				message: `⚠️ \x1b[38;5;214m  Warning: "postinstall" script detected.
 The postinstall script runs automatically during npm install and may affect build behavior.
 If your build fails, ensure this script is required for your project. \x1b[0m`, stream: "file validation"
 			});
@@ -555,7 +613,7 @@ If your build fails, ensure this script is required for your project. \x1b[0m`, 
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.WARN,
-				message: `⚠️ \x1b[38;5;214m  Warning: "preinstall" script detected Preinstall scripts run before dependencies are installed and can modify the environment. Review this script carefully. \x1b[0m`, stream: "file validation"
+				message: `⚠️ \x1b[38;5;214m  Warning: "preinstall" script detected. Preinstall scripts run before dependencies are installed and can modify the environment. Review this script carefully. \x1b[0m`, stream: "file validation"
 			});
 		}
 
@@ -563,7 +621,7 @@ If your build fails, ensure this script is required for your project. \x1b[0m`, 
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.WARN,
-				message: `⚠️ \x1b[38;5;214m Warning: "prepare" script detected Prepare scripts may run during install and publish steps. This is common but can cause unexpected behavior in CI. \x1b[0m`, stream: "file validation"
+				message: `⚠️ \x1b[38;5;214m Warning: "prepare" script detected. Prepare scripts may run during install and publish steps. This is common but can cause unexpected behavior in CI. \x1b[0m`, stream: "file validation"
 			});
 		};
 
@@ -629,6 +687,7 @@ async function runCommand(command, args, cwd, env = [], timeout = 15) {
 		});
 		currentProcess = subprocess;
 		subprocess.stdout?.on("data", (data) => {
+			console.log(data.toString())
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.INFO,
@@ -679,7 +738,7 @@ async function runCommand(command, args, cwd, env = [], timeout = 15) {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.ERROR,
-				message: `${command} exited with code ${code}`, stream: "stderr"
+				message: `${command} exited with code ${error.exitCode}`, stream: "stderr"
 			})
 			throw new ContainerError(
 				`${command} exited with code ${error.exitCode}`,
@@ -743,11 +802,12 @@ async function uploadNonAws(dir, fileName) {
 const EXCLUDE_PATTERNS = [
 	'node_modules',
 	'.git',
-	".next",
+	".next/cache",
 	'.env',
 	'.env.local',
 	'.env.*.local',
 	'coverage',
+	".turbo",
 	'.cache',
 	'.vscode',
 	'.idea',
@@ -755,9 +815,10 @@ const EXCLUDE_PATTERNS = [
 	'.DS_Store',
 	'Thumbs.db'
 ];
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB per file
-const MAX_TOTAL_SIZE = 300 * 1024 * 1024; // 500MB total
-const WARN_MAX_TOTAL_SIZE = 100 * 1024 * 1024;
+const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30MB per file
+const MAX_TOTAL_SIZE = 280 * 1024 * 1024; // 280MB total
+const WARN_MAX_TOTAL_SIZE = 80 * 1024 * 1024; // give warning on this limit
+const MAX_NO_OF_FILES = 1000
 function shouldExcludeDir(entryName = "", relPath = "") {
 	for (const pattern of EXCLUDE_PATTERNS) {
 		if (pattern.includes('*')) {
@@ -772,19 +833,10 @@ function shouldExcludeDir(entryName = "", relPath = "") {
 	}
 	return false;
 }
-async function validateAnduploadFiles(sourceDir) {
-
-	const zipFileName = "output__" + Math.random().toString(36).slice(2, 12).replaceAll(".", "") + ".zip"
-
-	const output = createWriteStream(path.join(sourceDir, zipFileName));
-	const archive = archiver('zip', {
-		zlib: { level: 9 }
-	});
-
-	archive.pipe(output);
-	const uploadsArray = []
+async function validateBuilds(sourceDir) {
 	const fileStructure = []
 	let totalSize = 0;
+	let warned = false;
 	async function processDirectory(currentDir, relativePath = "") {
 		const entries = await readdir(currentDir, { withFileTypes: true })
 		for (const entry of entries) {
@@ -800,40 +852,52 @@ async function validateAnduploadFiles(sourceDir) {
 
 			} else if (entry.isFile()) {
 				const fileStat = await stat(fullPath);
-				const normalizedPath = path.normalize(fullPath);
-				if (!normalizedPath.startsWith(sourceDir)) {
-					console.warn(`Skipping suspicious file path: ${relPath}`);
-					publishLogs({
-						DEPLOYMENT_ID, PROJECT_ID,
-						level: logValues.WARN,
-						message: `\x1b[38;5;9m Suspicious file path detected ${relPath} \x1b[0m`,
-						stream: "upload"
-					});
-					publishLogs({
-						DEPLOYMENT_ID, PROJECT_ID,
-						level: logValues.WARN,
-						message: `\x1b[38;5;9m Skipping suspicious file path: ${relPath} \x1b[0m`,
-						stream: "upload"
-					});
-					continue;
-				}
 				if (fileStat.size > MAX_FILE_SIZE) {
 					publishLogs({
 						DEPLOYMENT_ID, PROJECT_ID,
-						level: logValues.WARN,
-						message: `\x1b[38;5;9m File too large - ${relPath} - (${(fileStat.size / 1024 / 1024).toFixed(2)} MB): ${relPath} \x1b[0m`,
+						level: logValues.ERROR,
+						message: `\x1b[38;5;9m File too large - (${(fileStat.size / 1024 / 1024).toFixed(2)} MB): ${relPath} \x1b[0m`,
 						stream: "upload"
 					});
+					publishLogs({
+						DEPLOYMENT_ID, PROJECT_ID,
+						level: logValues.ERROR,
+						message: `\x1b[38;5;9m Build fail - ${relPath}  \x1b[0m`,
+						stream: "upload"
+					});
+					throw new ContainerError(
+						`File "${relPath}" exceeds the maximum allowed size of ${(MAX_FILE_SIZE / 1024 / 1024).toFixed(2)} MB.`,
+						"upload",
+						"Output file size limit exceeded",
+						true
+					)
 					continue;
 				}
 
 				fileStructure.push({ name: relPath, size: fileStat.size });
+				if (fileStructure.length > MAX_NO_OF_FILES) {
+					publishLogs({
+						DEPLOYMENT_ID,
+						PROJECT_ID,
+						level: logValues.ERROR,
+						message: `\x1b[38;5;9m Error -> Total files exceeded ${MAX_NO_OF_FILES}. Possible node_modules or cache directory in build output? \x1b[0m`,
+						stream: "upload"
+					});
+
+					throw new ContainerError(
+						`Total number of output files exceeded the limit of ${MAX_NO_OF_FILES}.`,
+						"upload",
+						"Output files count limit exceeded",
+						true
+					);
+				}
 				totalSize += fileStat.size;
-				if (totalSize > WARN_MAX_TOTAL_SIZE) {
+				if (!warned && totalSize > WARN_MAX_TOTAL_SIZE) {
+					warned = true
 					publishLogs({
 						DEPLOYMENT_ID, PROJECT_ID,
 						level: logValues.WARN,
-						message: `\x1b[38;5;9m Warning -> Large build size (${(totalSize / 1024 / 1024).toFixed(1)}MB). Verify output directory. \x1b[0m`,
+						message: `\x1b[38;5;214m Warning -> Large build size (${(totalSize / 1024 / 1024).toFixed(1)}MB). Verify output directory. \x1b[0m`,
 						stream: "upload"
 					});
 				}
@@ -846,7 +910,85 @@ async function validateAnduploadFiles(sourceDir) {
 					});
 					throw new ContainerError(`Total size exceeded ${(MAX_TOTAL_SIZE / 1024 / 1024).toFixed(2)} MB.`, "upload", "Output files Total size exceeded", true)
 				}
+			}
+		}
+	}
+	await processDirectory(sourceDir);
+}
+async function uploadOutputFiles(sourceDir) {
 
+	// ====================================================================
+	// only for non cloud uploads, Use test server as non cloud upload.
+	// we make it into zip and upload to storage server, then upzip it there,
+	// skip if not doing non cloud upload
+	const zipFileName = "output__" + Math.random().toString(36).slice(2, 12).replaceAll(".", "") + ".zip"
+
+	const output = createWriteStream(path.join(sourceDir, zipFileName));
+	const archive = archiver('zip', {
+		zlib: { level: 9 }
+	});
+
+	archive.pipe(output);
+	// ====================================================================
+
+	const uploadsArray = []
+	const fileStructure = []
+	let totalSize = 0;
+	async function processDirectory(currentDir, relativePath = "") {
+		const entries = await readdir(currentDir, { withFileTypes: true })
+		for (const entry of entries) {
+			const fullPath = path.join(currentDir, entry.name)
+			const relPath = path.join(relativePath, entry.name)
+
+			if (shouldExcludeDir(entry.name, relPath)) {
+				console.log("Skipping ----------- ", relPath)
+				continue;
+			}
+			if (entry.isDirectory()) {
+				await processDirectory(fullPath, relPath);
+
+			} else if (entry.isFile()) {
+				const fileStat = await stat(fullPath);
+				const normalizedPath = path.normalize(fullPath);
+				if (!normalizedPath.startsWith(sourceDir)) {
+					console.warn(`Skipping suspicious file path: ${relPath}`);
+					publishLogs({
+						DEPLOYMENT_ID, PROJECT_ID,
+						level: logValues.WARN,
+						message: `\x1b[38;5;214m Suspicious file path detected ${relPath} \x1b[0m`,
+						stream: "upload"
+					});
+					publishLogs({
+						DEPLOYMENT_ID, PROJECT_ID,
+						level: logValues.WARN,
+						message: `\x1b[38;5;214m Skipping suspicious file path: ${relPath} \x1b[0m`,
+						stream: "upload"
+					});
+					continue;
+				}
+				if (fileStat.size > MAX_FILE_SIZE) {
+					throw new ContainerError(
+						`File "${relPath}" exceeds the maximum allowed size of ${(MAX_FILE_SIZE / 1024 / 1024).toFixed(2)} MB.`,
+						"upload",
+						"Output file size limit exceeded",
+						true
+					)
+					continue;
+				}
+
+				fileStructure.push({ name: relPath, size: fileStat.size });
+				totalSize += fileStat.size;
+				if (fileStructure.length > MAX_NO_OF_FILES) {
+					throw new ContainerError(
+						`Total number of output files exceeded the limit of ${MAX_NO_OF_FILES}.`,
+						"upload",
+						"Output files count limit exceeded",
+						true
+					);
+				}
+				if (totalSize > MAX_TOTAL_SIZE) {
+					throw new ContainerError(`Total size exceeded ${(MAX_TOTAL_SIZE / 1024 / 1024).toFixed(2)} MB.`, "upload", "Output files Total size exceeded", true)
+				}
 				if (settings.localDeploy) {
 					publishLogs({
 						DEPLOYMENT_ID, PROJECT_ID,
@@ -855,7 +997,6 @@ async function validateAnduploadFiles(sourceDir) {
 						stream: "upload"
 					});
 					archive.file(fullPath, { name: relPath });
-					// await rename(fullPath, targetPath);
 
 				} else {
 					uploadsArray.push(limit(async () => {
@@ -874,18 +1015,22 @@ async function validateAnduploadFiles(sourceDir) {
 						});
 						// await s3Client.send(command);
 					}))
-
 				}
 			}
 		}
 	}
 	await processDirectory(sourceDir);
-	await Promise.all(uploadsArray);
+	try {
+		await Promise.all(uploadsArray);
+	} catch (error) {
+		console.log(error)
+		throw new ContainerError("Error on File upload", "upload",)
+	}
 	await archive.finalize();
 	return new Promise((resolve, reject) => {
 		output.on("finish", async () => {
 			try {
-				await uploadNonAws(sourceDir, zipFileName)
+				await uploadNonAws(sourceDir, zipFileName) // skips internally with settings.sendLocalDeploy
 				resolve({ fileStructure, totalSize })
 			} catch (err) {
 				reject(err)
@@ -905,10 +1050,10 @@ let projectUser = ""
 async function init() {
 
 	if (settings.sendKafkaMessage) {
-		await producer.connect();
+		await kafkaProducer.connect();
 	};
 
-	[repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m BEGIN " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 100)].map((v) => publishLogs({
+	["\x1b[38;5;153m\x1b[3;2m" + repeat("-", 60) + "\x1b[38;5;153m\x1b[3;2m BEGIN " + "\x1b[38;5;153m\x1b[3;2m" + repeat("-", 150) + "\x1b[0m", repeat(" ", 100)].map((v) => publishLogs({
 		DEPLOYMENT_ID, PROJECT_ID,
 		level: logValues.DECOR,
 		message: v, stream: "system"
@@ -931,7 +1076,7 @@ async function init() {
 		console.log("Executing script.js");
 
 		console.log("Fetching project data");
-		const taskDir = path.join(__dirname, "../test-grounds/");            // UPDATE THIS ON DEPLOYMENT !!!!!!!!!!!!!!!!!
+		const taskDir = path.join(__dirname, "./output/");            // UPDATE THIS ON DEPLOYMENT !!!!!!!!!!!!!!!!!
 
 		["Directory set to " + taskDir, "Fetching project data "].map((v) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
@@ -951,7 +1096,12 @@ async function init() {
 		const installCommand = "install";
 		const buildCommand = projectData.buildCommand || "build";
 
-
+		const { finalEnvsBuild, finalEnvsInstall } = getBuildServerEnvsWithUserEnvs(projectData.env ?? [], {
+			project: projectData,
+			deployment: deploymentData,
+			gitData: gitCommitData,
+		});
+		// console.log({ finalEnvsBuild, finalEnvsInstall })
 
 
 		const runDirDisplay = path.join(taskDir, projectData.rootDir); // to display in logs
@@ -960,13 +1110,11 @@ async function init() {
 		const runDir = cleanedPaths.sourceDir;
 		const distFolderPath = cleanedPaths.outputDir;
 
-
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
 			level: logValues.INFO,
 			message: `cloning repo..`, stream: "system"
 		});
-
 
 		await cloneGitRepoAndValidate(taskDir, runDir, projectData);
 		gitCommitData = await getGitCommitData(taskDir).catch((e) => console.log("Error getting commit", e)) || gitCommitData;
@@ -981,80 +1129,93 @@ async function init() {
 		const buildOptions = getDynamicBuildRoot(framweworkIdentified.tool);
 
 		["Detected 1 framework", "Framework " + framweworkIdentified.framework + " identified",
-			repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m INSTALL " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), repeat(" ", 10)].map((v) => publishLogs({
+			repeat(" ", 10), "\x1b[38;5;153m\x1b[3;2m" + repeat("-", 60) + "\x1b[38;5;153m\x1b[3;2m INSTALL " + "\x1b[38;5;153m\x1b[3;2m" + repeat("-", 150) + "\x1b[0m", repeat(" ", 10)].map((v) => publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.DECOR,
 				message: v, stream: "system"
 			}))
 		printInfoLogs();
 
-
 		//-----------------------------------------------------------INSTALL-------------------------------------------------------------------------------------------
-		const envsToInject = getBuildServerEnvsWithUserEnvs(projectData.env ?? [], {
-			project: projectData,
-			deployment: deploymentData,
-			gitData: gitCommitData,
-
-		});
 
 
-		["\x1b[\x1b[1m\x1b[38;2;39;199;255m Installing packages...\x1b[0m", line(36)
-		].map((v) => publishLogs({
-			DEPLOYMENT_ID, PROJECT_ID,
-			level: logValues.DECOR,
-			message: v, stream: "system"
-		}))
-		const installTimer = performance.now()
 		let installTries = 0
-		while (installTries < 3) {
-			const extraFlags =
-				installTries === 1
-					? ["--legacy-peer-deps"]
-					: installTries >= 2
-						? ["--force"]
-						: []
-			try {
-				publishLogs({
-					DEPLOYMENT_ID, PROJECT_ID,
-					level: logValues.INFO,
-					message: `\x1b[38;5;123m Installing with command $ npm ${installCommand} ${extraFlags.join(" ")}\x1b[0m`, stream: "system"
-				})
-				await runCommand("npm", [...installCommand.split(" "), ...extraFlags], runDir, envsToInject ?? [], 10)
-				break
-			} catch (error) {
-				installTries++;
-				[`\x1b[38;5;220m Failed to install with command npm ${installCommand} \x1b[0m`, //\x1b[3m
-				`---------------Retrying install${installTries}-------------`,
-				`---------------Try No. ${installTries}-------------`
-				].map((v) => publishLogs({
-					DEPLOYMENT_ID, PROJECT_ID,
-					level: logValues.WARN,
-					message: v, stream: "system"
-				}))
-				if (installTries >= 3) throw error;
-				await new Promise(r => setTimeout(r, 2000));
+		let maxInstallTries = (userSettings.maxInstallTries && userSettings.maxInstallTries > 0 && userSettings.maxInstallTries < 3) ? userSettings.maxInstallTries : 3
+		const installTimer = performance.now()
+		let installDuration = 0
+		if (userSettings.skipInstall) {
+			installTries = 4;
+			maxInstallTries = 0;
+			["\x1b[\x1b[1m\x1b[38;2;39;199;255m Skipping install step \x1b[0m", line(36)
+			].map((v) => publishLogs({
+				DEPLOYMENT_ID, PROJECT_ID,
+				level: logValues.INFO,
+				message: v, stream: "system"
+			}))
+		} else {
+			["\x1b[\x1b[1m\x1b[38;2;39;199;255m Installing packages...\x1b[0m", line(36)
+			].map((v) => publishLogs({
+				DEPLOYMENT_ID, PROJECT_ID,
+				level: logValues.DECOR,
+				message: v, stream: "system"
+			}))
+
+			while (installTries < maxInstallTries) {
+				console.log("trying install ", installTries)
+				const extraFlags =
+					installTries === 1
+						? ["--legacy-peer-deps"]
+						: installTries >= 2
+							? ["--force"]
+							: []
+				try {
+					publishLogs({
+						DEPLOYMENT_ID, PROJECT_ID,
+						level: logValues.INFO,
+						message: `\x1b[38;5;123m Installing with command $ npm ${installCommand} ${extraFlags.join(" ")}\x1b[0m`, stream: "system"
+					})
+					await runCommand("npm", [...installCommand.split(" "), ...extraFlags], runDir, finalEnvsInstall ?? [], 10)
+					break
+				} catch (error) {
+					installTries++;
+					publishLogs({
+						DEPLOYMENT_ID, PROJECT_ID,
+						level: logValues.WARN,
+						message: `\x1b[38;5;220m Failed to install with command 'npm ${installCommand}' ${extraFlags.join(" ")} \x1b[0m`, stream: "system"
+					})
+					if (installTries >= maxInstallTries) throw error;
+
+					[`---------------    Retrying install    -------------`,
+						`---------------    Try No. ${installTries}    -------------`
+					].map((v) => publishLogs({
+						DEPLOYMENT_ID, PROJECT_ID,
+						level: logValues.WARN,
+						message: v, stream: "system"
+					}));
+					await new Promise(r => setTimeout(r, 2000));
+				}
 			}
+			const installEndTimer = performance.now()
+			installDuration = ((installEndTimer - installTimer) / 1000).toFixed(2)
+			console.log('Dependencies installed successfully in ', installDuration, " seconds");
+
+			publishLogs({
+				DEPLOYMENT_ID, PROJECT_ID,
+				level: logValues.DECOR,
+				message: repeat(" ", 25), stream: "system"
+			});
+
+			[
+				"\x1b[38;5;123m Install Success\x1b[0m",
+				`Dependencies installed successfully  in ${installDuration} seconds`
+			].map((v) => publishLogs({
+				DEPLOYMENT_ID, PROJECT_ID,
+				level: logValues.SUCCESS,
+				message: v, stream: "system"
+			}))
 		}
 
-		const installEndTimer = performance.now()
 
-		console.log('Dependencies installed successfully in ',
-			((installEndTimer - installTimer) / 1000).toFixed(2), " seconds");
-
-		publishLogs({
-			DEPLOYMENT_ID, PROJECT_ID,
-			level: logValues.DECOR,
-			message: repeat(" ", 25), stream: "system"
-		});
-
-		[
-			"\x1b[38;5;123m Install Success\x1b[0m",
-			`Dependencies installed successfully  in ${((installEndTimer - installTimer) / 1000).toFixed(2)} seconds`
-		].map((v) => publishLogs({
-			DEPLOYMENT_ID, PROJECT_ID,
-			level: logValues.SUCCESS,
-			message: v, stream: "system"
-		}))
 
 
 
@@ -1067,37 +1228,55 @@ async function init() {
 
 		[
 			{ msg: repeat(" ", 10), state: logValues.DECOR },
-			{ msg: repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m BUILD " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), state: logValues.DECOR },
+			{ msg: "\x1b[38;5;153m\x1b[3;2m" + repeat("-", 60) + "\x1b[38;5;153m\x1b[3;2m BUILD " + "\x1b[38;5;153m\x1b[3;2m" + repeat("-", 150) + "\x1b[0m", state: logValues.DECOR },
 			{ msg: repeat(" ", 10), state: logValues.DECOR },
-			{ msg: "Starting build", state: logValues.INFO },
-			{ msg: `\x1b[1m\x1b[38;2;39;199;255m ${brandName} Build...\x1b[0m`, state: logValues.DECOR },
-			{ msg: line(36), state: logValues.DECOR },
-			{ msg: "\x1b[38;5;123m Building with command $ npm run \x1b[38;5;220m" + buildCommand + "\x1b[0m", state: logValues.INFO },
+			...(userSettings.skipBuild
+				? [
+					{ msg: "Skipping build step", state: logValues.INFO },
+					{ msg: `\x1b[1m\x1b[38;2;39;199;255m Skipping build step \x1b[0m`, state: logValues.DECOR }
+				]
+				: [
+					{ msg: `\x1b[1m\x1b[38;2;39;199;255m ${brandName} Build...\x1b[0m`, state: logValues.DECOR },
+					{ msg: "Starting build", state: logValues.INFO },
+					{ msg: line(36), state: logValues.DECOR },
+					{ msg: "\x1b[38;5;123m Building with command $ npm run \x1b[38;5;220m" + buildCommand + "\x1b[0m", state: logValues.INFO }
+				]
+			),
 		].map(({ msg, state }) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
 			level: state,
 			message: msg, stream: "system"
 		}));
-		await runCommand(
-			"npm",
-			["run", ...buildCommand.split(" "), ...((settings.customBuildPath && framweworkIdentified.tool.toLowerCase() !== "cra") ? ["--", buildOptions] : [])],
-			runDir,
-			(framweworkIdentified.tool.toLowerCase() === "cra" && settings.customBuildPath)
-				? [...(envsToInject || []), { name: "PUBLIC_URL", value: "." }]
-				: [...envsToInject]
-		)
+		let buildTries = 0
+		while (buildTries < 1) {
+			if (userSettings.skipBuild) {
+				break
+			}
+			buildTries++;
+			await runCommand(
+				"npm",
+				["run", ...buildCommand.split(" "), ...((settings.customBuildPath && framweworkIdentified.tool.toLowerCase() !== "cra") ? ["--", buildOptions] : [])],
+				runDir,
+				(framweworkIdentified.tool.toLowerCase() === "cra" && settings.customBuildPath)
+					? [...(finalEnvsBuild || []), { name: "PUBLIC_URL", value: "." }]
+					: [...finalEnvsBuild]
+			)
+		}
 
 		const buildEndTimer = performance.now();
 		console.log("Build complete ", ((buildEndTimer - buildTimer) / 1000).toFixed(2), " seconds");
 		[
 			{ msg: repeat(" ", 25), state: logValues.INFO },
-			{ msg: "\x1b[38;5;123m Build Success\x1b[0m", state: logValues.SUCCESS },
-			{
-				msg: `Build complete in ${((buildEndTimer - buildTimer) / 1000).toFixed(2)} seconds`,
-				state: logValues.SUCCESS
-			},
-			{ msg: repeat(" ", 25), state: logValues.INFO },
-			{ msg: "Validating build files", state: logValues.INFO }
+			...(!userSettings.skipBuild ? [
+				{ msg: "\x1b[38;5;123m Build Success\x1b[0m", state: logValues.SUCCESS },
+				{
+					msg: `Build complete in ${((buildEndTimer - buildTimer) / 1000).toFixed(2)} seconds`,
+					state: logValues.SUCCESS
+				},
+				{ msg: repeat(" ", 25), state: logValues.INFO },
+				{ msg: "Validating build files", state: logValues.INFO }
+			] : []
+			)
 		].map(({ msg, state }) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
 			level: state,
@@ -1109,10 +1288,13 @@ async function init() {
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.ERROR,
-				message: `\x1b[38;5;9m ERROR -> Output not found after build; Wrong output directory? \x1b[0m`,
+				message: `\x1b[38;5;9m ERROR -> Output not found ${userSettings.skipBuild ? "" : "after build"}; Wrong output directory? \x1b[0m`,
 				stream: "upload"
 			});
-			throw new ContainerError(outputFilesDirDisplay + ' folder not found after build', "system", "Output not found after build");
+			throw new ContainerError(outputFilesDirDisplay + ` folder not found ${userSettings.skipBuild ? "" : "after build"}`,
+				"system",
+				`Output not found ${userSettings.skipBuild ? "" : "after build"}`
+			);
 		}
 		console.log("done.....");
 		console.log("Post build configurations running....");
@@ -1121,7 +1303,7 @@ async function init() {
 			{ msg: "File validation done ", state: logValues.SUCCESS },
 			{ msg: "Post build configurations running....", state: logValues.INFO },
 			{ msg: repeat(" ", 10), state: logValues.DECOR },
-			{ msg: repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m UPLOAD " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150), state: logValues.DECOR },
+			{ msg: "\x1b[38;5;153m\x1b[3;2m" + repeat("-", 60) + "\x1b[38;5;153m\x1b[3;2m UPLOAD " + "\x1b[38;5;153m\x1b[3;2m" + repeat("-", 150) + "\x1b[0m", state: logValues.DECOR },
 			{ msg: repeat(" ", 10), state: logValues.DECOR },
 			{ msg: "Starting to Uploading files...", state: logValues.INFO },
 			{ msg: "Validating build output files", state: logValues.INFO }
@@ -1138,7 +1320,14 @@ async function init() {
 
 
 		const uploadTimer = performance.now()
-		const { fileStructure, totalSize } = await validateAnduploadFiles(distFolderPath)
+		await validateBuilds(distFolderPath);
+		console.log("Validation success");
+		[repeat(" ", 10), "Files validated", repeat(" ", 10),].map((v) => publishLogs({
+			DEPLOYMENT_ID, PROJECT_ID,
+			level: logValues.INFO,
+			message: v, stream: "system"
+		}));
+		const { fileStructure, totalSize } = await uploadOutputFiles(distFolderPath)
 
 		if (settings.localDeploy && settings.deleteSourcesAfter) {
 			await rm(taskDir, { recursive: true, force: true });
@@ -1155,7 +1344,7 @@ async function init() {
 			message: "Upload Complete", stream: "system"
 		});
 
-		[repeat(" ", 10), repeat("\x1b[38;5;153m\x1b[3;2m-", 60) + "\x1b[38;5;153m\x1b[3;2m END " + repeat("\x1b[38;5;153m\x1b[3;2m-\x1b[0m", 150),
+		[repeat(" ", 10), "\x1b[38;5;153m\x1b[3;2m" + repeat("-", 60) + "\x1b[38;5;153m\x1b[3;2m END " + "\x1b[38;5;153m\x1b[3;2m" + repeat("-", 150) + "\x1b[0m",
 		repeat(" ", 10),
 		].map((v) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
@@ -1178,8 +1367,8 @@ async function init() {
 			type: "END",
 			status: deploymentStatus.READY,
 			user: projectData.user,
-			techStack: framweworkIdentified.framework,
-			install_ms: Number((installEndTimer - installTimer).toFixed(2)),
+			techStack: userSettings.frameworkSetByUser || framweworkIdentified.framework,
+			install_ms: Number(installDuration),
 			build_ms: Number((buildEndTimer - buildTimer).toFixed(2)),
 			upload_ms: Number((uploadEndTimer - uploadTimer).toFixed(2)),
 			duration_ms: Number(durationMs.toFixed(2)),
@@ -1192,13 +1381,14 @@ async function init() {
 	} catch (err) {
 		//logs
 		if (err?.isContainerError || err instanceof ContainerError) {
-			publishLogs({
+			[`${err.message} ${err.cause ? "| " + err.cause : ""}`, "Deployment completed with errors"].map((v) => publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.ERROR,
-				message: `${err.message} | ${err.cause}`, stream: err.stream
-			});
+				message: v, stream: err.stream
+			})
+			);
 
-			[repeat(" ", 10), repeat("\x1b[38;5;197m-", 60) + "\x1b[38;5;197m END " + repeat("\x1b[38;5;197m-\x1b[0m", 150),
+			[repeat(" ", 10), "\x1b[38;5;197m" + repeat("-", 60) + "\x1b[38;5;197m END " + "\x1b[38;5;197m" + repeat("-", 150) + "\x1b[0m",
 			repeat(" ", 10),
 			].map((v) => publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
@@ -1210,7 +1400,7 @@ async function init() {
 				type: "ERROR",
 				user: projectUser || "",
 				status: err.cancelled ? deploymentStatus.CANCELED : deploymentStatus.FAILED,
-				error_message: err.message + " | " + err.cause,
+				error_message: `${err.message} ${err.cause ? "| " + err.cause : ""}`,
 				complete_at: new Date().toISOString(),
 			})
 		}
@@ -1232,39 +1422,166 @@ async function init() {
 		console.log("Some error happened", err)
 		console.log("Exiting in 5 seconds")
 	} finally {
-		await sendLogsAsBatch()
-		await producer.disconnect()
-		await new Promise((res) => setTimeout(res, 5000))
-		process.exit(0)
-
+		await sendLogsAsBatch();
+		await kafkaProducer.disconnect();
+		await new Promise((res) => setTimeout(res, 5000));
 	}
 }
 
-process.on('SIGTERM', async () => {
-	console.log('Terminate signal, cleaning up...');
-	if (currentProcess) killProcess(currentProcess);
-	await producer.disconnect();
-	process.exit(0);
-});
 
-process.on('SIGINT', async () => {
-	console.log('Kill signal  cleaning up...');
-	if (currentProcess) killProcess(currentProcess);
-	await producer.disconnect();
-	process.exit(0);
-});
+function createClients(input) {
+	const { kUid, kPass, aKey, aSecret, cldEndpoint } = input;
 
-process.on('uncaughtException', async (err) => {
-	console.error('Error:', err);
-	if (currentProcess) killProcess(currentProcess);
-	await publishUpdates({
-		DEPLOYMENT_ID, PROJECT_ID,
-		type: logValues.ERROR,
-		status: deploymentStatus.FAILED,
-		error_message: "Internal server error"
+	const kafkaClient = new Kafka({
+		clientId: `docker-build-server-${PROJECT_ID}-${DEPLOYMENT_ID}`,
+		brokers: ["pkc-l7pr2.ap-south-1.aws.confluent.cloud:9092"],
+		ssl: true, // or key
+		sasl: {
+			mechanism: "plain",
+			username: kUid,
+			password: kPass,
+		},
 	});
-	await producer.disconnect();
-	process.exit(1);
+
+
+	const producer = kafkaClient.producer();
+	const s3 = new S3Client({
+		region: "auto",
+		credentials: {
+			accessKeyId: aKey,
+			secretAccessKey: aSecret,
+		},
+		endpoint: cldEndpoint,
+		forcePathStyle: true,
+	});
+
+	return { producer, s3 };
+}
+async function starterFunc(external, otherScrts) {
+	const { producer, s3 } = createClients(external);
+	kafkaProducer = producer;
+	s3Client = s3;
+	external = null;
+	API_SERVER_CONTAINER_API_TOKEN = otherScrts.token;
+
+
+	deleteEnvs()
+	await init();
+	console.log("--------------END-------------")
+}
+
+async function shutdown(code = 0, reason = "") {
+	console.log("Shutdown:", reason);
+	if (currentProcess) killProcess(currentProcess);
+	if (code === 0) {
+		await kafkaProducer.disconnect();
+		process.exit(0);
+		return
+	}
+	try {
+		if (kafkaProducer) {
+			await publishUpdates({
+				DEPLOYMENT_ID, PROJECT_ID,
+				type: "ERROR",
+				status: deploymentStatus.FAILED,
+				error_message: "Internal server error",
+				complete_at: new Date().toISOString(),
+			});
+			await kafkaProducer.disconnect();
+		}
+	} catch (e) {
+		console.error("Disconnect failed:", e);
+	}
+	process.exit(code);
+}
+
+process.on("SIGTERM", () => shutdown(0, "SIGTERM"));
+process.on("SIGINT", () => shutdown(0, "SIGINT"));
+
+process.on("uncaughtException", async err => {
+	console.error("Fatal error:", err);
+	await shutdown(1, "uncaughtException");
 });
-deleteEnvs()
-init()
+
+function readStdin() {
+	const input = readFileSync(0, 'utf8');
+	process.stdin.destroy()
+	return input
+}
+
+function cleanEnv(input = "") {
+	const scrts = input.trimEnd().split(/\r?\n/);
+
+	let [token, aKey, aSecret, cldEndpoint, kUid, kPass] = scrts
+	let isError = false
+	if (!scrts || scrts.length !== 6) {
+		throw new Error("Invalid configs given, required 6, given " + scrts.length)
+	}
+	if (!token) {
+		isError = true
+		console.log(" token not found ")
+	}
+	if (!aKey) {
+		isError = true
+		console.log("access key not found ")
+	}
+	if (!aSecret) {
+		isError = true
+		console.log(" access secret not found ")
+	}
+	if (!cldEndpoint) {
+		isError = true
+		console.log("access endpoint not found ")
+	}
+	if (!kUid) {
+		isError = true
+		console.log(" kfk id  not found ")
+	}
+	if (!kPass) {
+		isError = true
+		console.log(" kpass not found ")
+	}
+	if (isError) {
+		throw new Error("Some secrets missing")
+	} else {
+		console.log(" SUCCESS ")
+	}
+	return scrts
+}
+
+(async function main() {
+	try {
+		if (!process.stdin.isTTY) {
+
+			const input = readStdin();
+			if (!input) {
+				throw new Error("No config input given")
+			}
+
+			const scrts = cleanEnv(input)
+
+			let [token, aKey, aSecret, cldEndpoint, kUid, kPass] = scrts
+
+			// const externalScrts = { aKey: process.env.CLOUD_ACCESSKEY, aSecret: process.env.CLOUD_SECRETKEY, kUid: process.env.KAFKA_USERNAME, kPass: process.env.KAFKA_PASSWORD }
+			// const otherScrts = { token: process.env.CONTAINER_API_TOKEN, cldEndpoint: process.env.CLOUD_ENDPOINT }
+			// console.log(scrts)
+			const externalScrts = { aKey, aSecret, kUid, kPass, cldEndpoint }
+			const otherScrts = { token }
+			scrts.length = 0; token = ""; aKey = ""; aSecret = ""; cldEndpoint = ""; kUid = ""; kPass = ""
+
+			await starterFunc(externalScrts, otherScrts)
+			await shutdown(0, "completed");
+		} else {
+			console.error("Invalid file execution");
+			process.exit(1);
+		}
+	} catch (err) {
+		console.error(err, " < < ");
+		await shutdown(1, "startup failure");
+	}
+})();
+
+
+
+
+
