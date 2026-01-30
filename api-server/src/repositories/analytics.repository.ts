@@ -40,9 +40,9 @@ class AnalyticsRepository implements IAnalyticsRepository {
             toTimeZone(timestamp, 'Asia/Kolkata'), 
             INTERVAL {interval:UInt32} ${queryOptions.intervalUnit}
           	) as time,
-          	sum(request_size) / 1024 / 1024 as request_mb,
+          	4000 / 1024 / 1024 as request_mb,
           	sum(response_size) / 1024 / 1024 as response_mb,
-          	(sum(request_size) + sum(response_size)) / 1024 / 1024 as total_mb
+          	sum(response_size) / 1024 / 1024 as total_mb
         	FROM analytics
         	WHERE project_id = {projectId:String}
           	AND timestamp >= now() - INTERVAL  {range:UInt32} ${queryOptions.rangeUnit}
@@ -70,7 +70,7 @@ class AnalyticsRepository implements IAnalyticsRepository {
   			count() as requests,
   			uniq(ip) as unique_visitors,
   			avg(response_time) as avg_response_time,
-  			(SUM(request_size) + SUM(response_size)) / 1024 / 1024 as total_bandwidth_mb
+  			(SUM(response_size)) / 1024 / 1024 as total_bandwidth_mb
 			FROM analytics
 			WHERE project_id = {projectId:String}
   			AND timestamp >= now() - INTERVAL {range:UInt32} ${queryOptions.rangeUnit}
@@ -95,7 +95,7 @@ class AnalyticsRepository implements IAnalyticsRepository {
     		countIf(status_code < 400) as successful,
     		avg(response_time) as avg_response_time,
     		quantile(0.95)(response_time) as p95_response_time,
-    		(SUM(request_size) + SUM(response_size)) / 1024 / 1024 as total_bandwidth,
+    		(SUM(response_size)) / 1024 / 1024 as total_bandwidth,
     		uniq(ip) as active_users
 			FROM analytics
 			WHERE project_id = {projectId:String}
@@ -116,11 +116,11 @@ class AnalyticsRepository implements IAnalyticsRepository {
     		path,
     		count() as requests,
     		avg(response_time) as avg_response_time,
-    		(SUM(request_size) + SUM(response_size)) / 1024 / 1024 as total_size,
+    		SUM(response_size) / 1024 / 1024 as total_size,
     		countIf(status_code >= 400) as errors
 			FROM analytics
 			WHERE project_id = {projectId:String}
-  			AND timestamp >= now() - INTERVAL {interval:UInt32} ${queryOptions.intervalUnit}
+  			AND timestamp >= now() - INTERVAL {interval:UInt32} ${queryOptions.rangeUnit}
 			GROUP BY path
 			ORDER BY requests DESC
 			LIMIT {limit:UInt32}
@@ -128,7 +128,7 @@ class AnalyticsRepository implements IAnalyticsRepository {
 
 			query_params: {
 				projectId,
-				interval: queryOptions.interval,
+				interval: queryOptions.range,
 				limit: queryOptions.limit,
 			},
 			format: "JSONEachRow",
@@ -144,7 +144,7 @@ class AnalyticsRepository implements IAnalyticsRepository {
     		(count() * 100.0 / sum(count()) OVER ()) as percentage
 			FROM analytics
 			WHERE project_id = {projectId:String}
-  			AND timestamp >= now() - INTERVAL {interval:UInt32} ${queryOptions.intervalUnit}
+  			AND timestamp >= now() - INTERVAL {interval:UInt32} ${queryOptions.rangeUnit}
   			AND ua_os IS NOT NULL
 			GROUP BY ua_os
 			ORDER BY users DESC
@@ -152,7 +152,30 @@ class AnalyticsRepository implements IAnalyticsRepository {
 
 			query_params: {
 				projectId,
-				interval: queryOptions.interval,
+				interval: queryOptions.range,
+			},
+			format: "JSONEachRow",
+		});
+
+		return await result.json();
+	}
+	async getBrowserStats(projectId: string, queryOptions: QueryOptions): Promise<unknown[]> {
+		const result = await this.client.query({
+			query: `SELECT 
+    		ua_browser,
+    		count() as users,
+    		(count() * 100.0 / sum(count()) OVER ()) as percentage
+			FROM analytics
+			WHERE project_id = {projectId:String}
+  			AND timestamp >= now() - INTERVAL {interval:UInt32} ${queryOptions.rangeUnit}
+  			AND ua_browser IS NOT NULL
+			GROUP BY ua_browser
+			ORDER BY users DESC
+			`,
+
+			query_params: {
+				projectId,
+				interval: queryOptions.range,
 			},
 			format: "JSONEachRow",
 		});

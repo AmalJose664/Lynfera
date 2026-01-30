@@ -30,10 +30,17 @@ interface topPagesType {
 	errors: number;
 	totalSize: number;
 }
-interface osDistTypes {
-	uaOs: string;
-	users: number;
-	percentage: number;
+interface platformDistTypes {
+	osStats: {
+		uaOs: string;
+		users: number;
+		percentage: number;
+	}[],
+	browserStats: {
+		uaBrowser: string;
+		users: number;
+		percentage: number;
+	}[]
 }
 
 export class AnalyticsMapper {
@@ -125,24 +132,36 @@ export class AnalyticsMapper {
 			meta: { ...meta, total: data.length } as unknown as meta,
 		};
 	}
-	static osStatsResponse(
-		data: any[],
+	static platformResponse(
+		data: {
+			osStats: unknown[];
+			browserStats: unknown[];
+		},
 		projectId: string,
 		meta: QueryOptions,
 	): {
 		projectId: string;
-		data: osDistTypes[];
+		data: platformDistTypes;
 		meta: meta;
 	} {
+		const { osStats, browserStats } = data
+		console.log({ browserStats, osStats })
 		return {
 			projectId,
-			data: data.map((d: any) => ({
-				uaOs: d.ua_os,
-				users: Number(d.users),
-				percentage: Number(d.percentage),
-			})),
+			data: {
+				osStats: osStats.map((d: any) => ({
+					uaOs: d.ua_os,
+					users: Number(d.users),
+					percentage: Number(d.percentage),
+				})),
+				browserStats: browserStats.map((d: any) => ({
+					uaBrowser: d.ua_browser,
+					users: Number(d.users),
+					percentage: Number(d.percentage),
+				}))
+			},
 
-			meta: { ...meta, total: data.length } as unknown as meta,
+			meta: { ...meta, totals: { osStat: osStats.length, browserStat: browserStats.length } } as unknown as meta,
 		};
 	}
 }

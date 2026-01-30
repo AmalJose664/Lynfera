@@ -17,4 +17,5 @@ export interface IAnalyticsRepository {
 	getRealtime(projectId: string, queryOptions: QueryOptions): Promise<unknown[]>;
 	getTopPages(projectId: string, queryOptions: QueryOptions): Promise<unknown[]>;
 	getOsStats(projectId: string, queryOptions: QueryOptions): Promise<unknown[]>;
+	getBrowserStats(projectId: string, queryOptions: QueryOptions): Promise<unknown[]>;
 }

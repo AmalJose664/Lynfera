@@ -1,7 +1,7 @@
 import { PLANS } from "@/constants/plan.js";
 import { IAnalyticsRepository, QueryOptions } from "@/interfaces/repository/IAnalyticsRepository.js";
 import { IProjectBandwidthRepository } from "@/interfaces/repository/IProjectBandwidthRepository.js";
-import { BandWidthWithProjectType, IAnalyticsService } from "@/interfaces/service/IAnalyticsService.js";
+import { BandWidthWithProjectType, IAnalyticsService, QueryOptionsString } from "@/interfaces/service/IAnalyticsService.js";
 import { BufferAnalytics } from "@/models/Analytics.js";
 import { fillEmptyQueries, getInterval, getRange, getUnit, validateFreeAnalyticsParams } from "@/utils/analyticsUnits.js";
 
@@ -87,12 +87,16 @@ class AnalyticsService implements IAnalyticsService {
 	async clearAnalytics(projectId: string): Promise<void> {
 		return this.analyticsRepo.clearProjectAnalytics(projectId)
 	}
+
+
+
 	async getBandwidthData(
 		projectId: string,
-		range: string | undefined,
-		interval: string | undefined,
 		userPlan: string,
+		queryOptionsString?: QueryOptionsString
 	): Promise<[unknown[], QueryOptions]> {
+		const range = queryOptionsString?.range
+		const interval = queryOptionsString?.interval
 		const [filteredRange, fillteredInterval] = fillEmptyQueries(range, interval);
 
 		const queryOptions = {
@@ -109,10 +113,11 @@ class AnalyticsService implements IAnalyticsService {
 	}
 	async getOverView(
 		projectId: string,
-		range: string | undefined,
-		interval: string | undefined,
 		userPlan: string,
+		queryOptionsString?: QueryOptionsString
 	): Promise<[unknown[], QueryOptions]> {
+		const range = queryOptionsString?.range
+		const interval = queryOptionsString?.interval
 		const [filteredRange, fillteredInterval] = fillEmptyQueries(range, interval);
 
 		const queryOptions = {
@@ -127,30 +132,48 @@ class AnalyticsService implements IAnalyticsService {
 		const data = await this.analyticsRepo.getOverview(projectId, queryOptions);
 		return [data, queryOptions];
 	}
-	async getRealtime(projectId: string, interval: string): Promise<[unknown[], QueryOptions]> {
+	async getRealtime(projectId: string, queryOptionsString?: QueryOptionsString): Promise<[unknown[], QueryOptions]> {
+		const range = queryOptionsString?.range
+		const [filteredRange,] = fillEmptyQueries(range,);
 		const queryOptions = {
-			interval: getInterval(interval),
-			intervalUnit: getUnit(interval),
+			range: getRange(filteredRange),
+			rangeUnit: getUnit(filteredRange),
 		};
 		const data = await this.analyticsRepo.getRealtime(projectId, queryOptions);
 		return [data, queryOptions];
 	}
-	async getTopPages(projectId: string, interval: string, limit: number): Promise<[unknown[], QueryOptions]> {
+	async getTopPages(projectId: string, userPlan: string, queryOptionsString?: QueryOptionsString): Promise<[unknown[], QueryOptions]> {
+		const range = queryOptionsString?.range
+		const limit = queryOptionsString?.limit
+		const [filteredRange] = fillEmptyQueries(range,);
+
 		const queryOptions = {
-			interval: getInterval(interval),
-			intervalUnit: getUnit(interval),
-			limit,
+			range: getRange(filteredRange),
+			rangeUnit: getUnit(filteredRange),
+			limit: 60,
 		};
+		if (userPlan !== PLANS.PRO.name) {
+			validateFreeAnalyticsParams(queryOptions, range,);
+		}
 		const data = await this.analyticsRepo.getTopPages(projectId, queryOptions);
 		return [data, queryOptions];
 	}
-	async getOsStats(projectId: string, interval: string): Promise<[unknown[], QueryOptions]> {
+	async getPlatformStats(projectId: string, userPlan: string, queryOptionsString?: QueryOptionsString): Promise<[{ osStats: unknown[], browserStats: unknown[] }, QueryOptions]> {
+		const range = queryOptionsString?.range
+		const [filteredRange] = fillEmptyQueries(range,);
 		const queryOptions = {
-			interval: getInterval(interval),
-			intervalUnit: getUnit(interval),
+			range: getRange(filteredRange),
+			rangeUnit: getUnit(filteredRange),
 		};
-		const data = await this.analyticsRepo.getOsStats(projectId, queryOptions);
-		return [data, queryOptions];
+		if (userPlan !== PLANS.PRO.name) {
+			validateFreeAnalyticsParams(queryOptions, range,);
+		}
+		const [osStats, browserStats] = await Promise.all([
+			this.analyticsRepo.getOsStats(projectId, queryOptions),
+			this.analyticsRepo.getBrowserStats(projectId, queryOptions),
+
+		])
+		return [{ osStats, browserStats }, queryOptions];
 	}
 }
 

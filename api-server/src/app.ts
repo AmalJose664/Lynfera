@@ -33,7 +33,7 @@ app.use((req: Request, res: any, next: any) => {
 });
 
 app.use('/api', apiRouter);
-app.get("/", baseRouter);
+app.use("/", baseRouter);
 
 app.use(errorHandler);
 
