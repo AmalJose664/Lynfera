@@ -75,9 +75,6 @@ export function validateFreeAnalyticsParams(params: QueryOptions, range: string 
 			rule.range === params.range &&
 			rule.rangeUnit === params.rangeUnit,
 	);
-	console.log(params, " <---------------------------<<<", allowed)
-
-
 	if (params.range === 1 && params.rangeUnit === "MONTH") {
 		throw new AppError(`More interval and range requires Pro plan  => [Range = ${range}] ${interval ? ', [Interval = ${interval}]' : ''}`, 400);
 	}

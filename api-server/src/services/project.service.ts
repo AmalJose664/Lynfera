@@ -122,7 +122,7 @@ class ProjectService implements IProjectService {
 			...(dto.hasOwnProperty("isDisabled") && { isDisabled: dto.isDisabled }),
 			...(dto.env?.length && { env: dto.env.map((en) => ({ name: en.name, value: en.value })) }),
 		};
-		if (!newData || Object.keys(newData).length === 0) {
+		if ((!newData || Object.keys(newData).length === 0) && !dto.hasOwnProperty("env")) {
 			return null;
 		}
 		const project = await this.projectRepository.updateProject(id, userId, newData);
