@@ -60,7 +60,7 @@ const logValues = {
 }
 
 const settings = {
-	runnOnlyQueuedDeplymnts: true, // only run if deployment is in queued state
+	runnOnlyQueuedDeplymnts: !true, // only run if deployment is in queued state
 	customBuildPath: !true,
 	sendKafkaMessage: true,
 	deleteSourcesAfter: !true,
@@ -1198,8 +1198,8 @@ async function init() {
 				}
 			}
 			const installEndTimer = performance.now()
-			installDuration = ((installEndTimer - installTimer) / 1000).toFixed(2)
-			console.log('Dependencies installed successfully in ', installDuration, " seconds");
+			installDuration = (installEndTimer - installTimer)
+			console.log('Dependencies installed successfully in ', (installDuration / 1000).toFixed(2), " seconds");
 
 			publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
@@ -1209,7 +1209,7 @@ async function init() {
 
 			[
 				"\x1b[38;5;123m Install Success\x1b[0m",
-				`Dependencies installed successfully  in ${installDuration} seconds`
+				`Dependencies installed successfully  in ${(installDuration / 1000).toFixed(2)} seconds`
 			].map((v) => publishLogs({
 				DEPLOYMENT_ID, PROJECT_ID,
 				level: logValues.SUCCESS,
@@ -1370,7 +1370,7 @@ async function init() {
 			status: deploymentStatus.READY,
 			user: projectData.user,
 			techStack: userSettings.frameworkSetByUser || framweworkIdentified.framework,
-			install_ms: Number(installDuration),
+			install_ms: Number(installDuration.toFixed(2)),
 			build_ms: Number((buildEndTimer - buildTimer).toFixed(2)),
 			upload_ms: Number((uploadEndTimer - uploadTimer).toFixed(2)),
 			duration_ms: Number(durationMs.toFixed(2)),
