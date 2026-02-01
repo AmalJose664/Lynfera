@@ -1,7 +1,7 @@
 import NodeCache from "node-cache";
 import { IProjectRepo } from "../interfaces/repository/IProjectRepo.js";
 import { IProjectService } from "../interfaces/service/IProjectService.js";
-import { IProject, User } from "../models/Project.js";
+import { IProject, ProjectStatus, User } from "../models/Project.js";
 import { projectRepo } from "../repository/project.repo.js";
 import AppError from "../utils/AppError.js";
 import { IProjectBandwidthRepository } from "../interfaces/repository/IProjectBandwidth.js";
@@ -48,6 +48,10 @@ class ProjectService implements IProjectService {
 			isDeleted: project.isDeleted,
 			isDisabled: project.isDisabled,
 			rewriteNonFilePaths: project.rewriteNonFilePaths
+		}
+		if ((project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED) && project.tempDeployment) {
+			this.projectCache.set(slug, projectRefined, 50)
+			return projectRefined as IProject
 		}
 		this.projectCache.set(slug, projectRefined)
 		return projectRefined as IProject
