@@ -60,7 +60,7 @@ export const deployemntApis = createApi({
 		}),
 		deleteDeployment: builder.mutation<void, { projectId: string, deploymentId: string }>({
 			query: ({ deploymentId, projectId }) => ({ url: `/projects/${projectId}/deployments/${deploymentId}`, method: "DELETE", }),
-			invalidatesTags: (result, error, ids) => [{ type: 'Deployments', id: "LIST" }],
+			invalidatesTags: (result, error, ids) => [{ type: 'Deployments', id: `PROJECT_${ids.projectId}` }, { type: 'Deployments', id: "LIST" }],
 		})
 	})
 

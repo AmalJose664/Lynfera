@@ -1,5 +1,4 @@
-import React, { useState } from "react"
-import { ImFileText2 } from "react-icons/im";
+import React from "react"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import {
 	Card,
@@ -23,10 +22,18 @@ const chartConfig2 = {
 	},
 } satisfies ChartConfig
 
-function ChartDailyDeploys({ deploys }: { deploys: { _id: string, count: number }[] }) {
+function ChartDailyDeploys({ deploys, todaysDeploys }: { deploys: { _id: string, count: number }[], todaysDeploys: number }) {
+	const todaysDate = new Date().toISOString().slice(0, 10)
+	const deploysWithDailyDeploys = deploys.map((d) => {
+		const { _id, count } = d
+		if (_id === todaysDate) {
+			return { _id, count: Math.max(count, todaysDeploys) }
+		}
+		return d
+	})
 	const total = React.useMemo(
-		() => deploys.reduce((acc, curr) => acc + curr.count, 0),
-		[deploys]
+		() => deploysWithDailyDeploys.reduce((acc, curr) => acc + curr.count, 0),
+		[deploysWithDailyDeploys]
 	)
 	return (
 		<Card className="dark:bg-background bg-white border-t rounded-none">
@@ -50,7 +57,7 @@ function ChartDailyDeploys({ deploys }: { deploys: { _id: string, count: number 
 				>
 					<BarChart
 						accessibilityLayer
-						data={deploys}
+						data={deploysWithDailyDeploys}
 						margin={{
 							left: 0,
 							right: 0,

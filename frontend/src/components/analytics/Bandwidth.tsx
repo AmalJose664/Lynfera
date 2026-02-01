@@ -244,6 +244,9 @@ export default function BandwidthChart({ projectId, userPlan }: { projectId: str
 												minute: "2-digit",
 											})
 										}}
+										formatter={(value) => {
+											return `${value} mb`
+										}}
 									/>
 								}
 							/>

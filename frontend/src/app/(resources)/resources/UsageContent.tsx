@@ -282,7 +282,7 @@ const UsagePage = () => {
 								<h2 className="text-2xl font-semibold tracking-tight text-primary ">Builds by Day</h2>
 							</div>
 							<Suspense fallback={<LoadingSpinner3 isLoading />}>
-								<ChartDailyDeploys deploys={deploys || []} />
+								<ChartDailyDeploys deploys={deploys || []} todaysDeploys={userDetailed?.deploymentsToday || 0} />
 							</Suspense>
 						</section>
 					</main>

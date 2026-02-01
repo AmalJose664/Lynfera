@@ -51,3 +51,52 @@ const RightFadeComponent = ({
 };
 
 export default RightFadeComponent;
+
+
+export const VerticalFadeComponent = ({
+	children,
+	delay = 0,
+	duration = 0.4,
+	style = {},
+	top = false,
+	className,
+	distance = 30,
+	inView,
+	...props
+}: {
+	children: React.ReactNode;
+	delay?: number;
+	duration?: number;
+	style?: Record<string, {}>
+	distance?: number;
+	className?: string
+	inView?: boolean
+	top?: boolean
+}) => {
+	return (
+		<motion.div
+			style={style}
+			{...props}
+			initial={{ y: top ? -distance : distance, opacity: 0 }}
+			{...(
+				inView
+					? {
+						whileInView: { opacity: 1, y: 0 },
+						viewport: { once: true, amount: 0.2 },
+					}
+					: {
+						animate: { y: 0, opacity: 1 },
+					}
+			)}
+			transition={{
+				duration,
+				delay,
+				ease: [0.25, 0.1, 0.25, 1],
+			}}
+			className={cn(className)}
+		>
+			{children}
+		</motion.div >
+	);
+};
+
