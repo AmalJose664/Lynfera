@@ -9,7 +9,7 @@ const PORT = ENVS.PORT || 8000;
 const startServer = async () => {
 	console.log("starting.....");
 	httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-	await startKafkaConsumer()
+	// await startKafkaConsumer()
 };
 
 

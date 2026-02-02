@@ -73,10 +73,11 @@ class AnalyticsRepository implements IAnalyticsRepository {
   			(SUM(response_size)) / 1024 / 1024 as total_bandwidth_mb
 			FROM analytics
 			WHERE project_id = {projectId:String}
+			AND date >= toDate(now() - INTERVAL {range:UInt32} ${queryOptions.rangeUnit})
   			AND timestamp >= now() - INTERVAL {range:UInt32} ${queryOptions.rangeUnit}
 			GROUP BY time
 			ORDER BY time`,
-
+			//AND date >= toDate(now() - INTERVAL {range:UInt32} ${queryOptions.rangeUnit})
 			query_params: {
 				projectId,
 				range: queryOptions.range,

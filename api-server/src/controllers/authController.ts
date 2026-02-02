@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { Profile, VerifyCallback } from "passport-google-oauth20";
 import jwt from "jsonwebtoken";
-import { JwtPayload } from "jsonwebtoken";
+
 
 import { ENVS } from "@/config/env.config.js";
 import AppError from "@/utils/AppError.js";
@@ -84,6 +84,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 		const hoursLeft = (expiresAt - now) / (1000 * 60 * 60);
 
 		if (hoursLeft < 6 && hoursLeft > 0) {
+			console.log("refreshing refresh token also")
 			issueAuthRefreshCookies(res, { id: user._id, plan: user.plan }, { currentRefresh: decoded.crntRfrshCount + 1, originalIssuedAt: decoded.oIAT })
 		}
 		issueAuthAccessCookies(res, { id: user._id, plan: user.plan });
@@ -93,6 +94,17 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 		if (error instanceof AppError) {
 			next(error)
 			return
+		}
+		if (error instanceof Error) {
+			if (error.name === 'TokenExpiredError') {
+				next(new AppError(USER_ERRORS.REFRESH_TOKEN_EXPIRED, STATUS_CODES.UNAUTHORIZED, error));
+				return;
+			}
+
+			if (error.name === 'JsonWebTokenError') {
+				next(new AppError(USER_ERRORS.INVALID_TOKEN, STATUS_CODES.UNAUTHORIZED, error));
+				return;
+			}
 		}
 		next(new AppError(COMMON_ERRORS.TOKEN_VALIDATION, STATUS_CODES.INTERNAL_SERVER_ERROR, error));
 		console.log("Error in token valiadation ");

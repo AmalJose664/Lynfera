@@ -13,6 +13,7 @@ export const USER_ERRORS = {
 	NOT_AUTHENTICATED: "User not authenticated",
 	CALLBACK_ERROR: "Error during google callback",
 	CREATION_ERROR: "Error on user sign up",
+	REFRESH_TOKEN_EXPIRED: "Refresh token expired"
 };
 
 export const PROJECT_ERRORS = {
