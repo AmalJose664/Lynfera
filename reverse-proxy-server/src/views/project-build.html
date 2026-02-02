@@ -7,13 +7,13 @@
 		<style>
 			:root {
 				--bg: #0a0a0a;
-				--text-primary: #ffffff;
+				--card-bg: #111111;
+				--text-primary: #fafafa;
 				--text-secondary: #a1a1aa;
-				--accent: #ffffff;
-				--accent-hover: #e4e4e7;
 				--border: #27272a;
-				--font-sans: "Inter", -apple-system, system-ui, sans-serif;
-				--font-mono: "JetBrains Mono", "SF Mono", monospace;
+				--accent: #fafafa;
+				--font-sans: system-ui, -apple-system, sans-serif;
+				--font-mono: ui-monospace, "Cascadia Code", monospace;
 			}
 
 			* {
@@ -24,130 +24,80 @@
 
 			body {
 				background-color: var(--bg);
-				background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-					linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px), radial-gradient(circle at 50% -20%, #1a1a1a 0%, #0a0a0a 100%);
-				background-size: 40px 40px, 40px 40px, 100% 100%;
 				color: var(--text-primary);
 				font-family: var(--font-sans);
 				height: 100vh;
 				display: flex;
-				flex-direction: column;
 				align-items: center;
 				justify-content: center;
-				text-align: center;
 				padding: 24px;
+				line-height: 1.5;
 				overflow: hidden;
 			}
 
 			.container {
-				animation: fadeIn 0.8s ease-out;
-				z-index: 10;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
 				width: 100%;
-				max-width: 500px;
+				max-width: 480px;
+				text-align: center;
 			}
 
-			@keyframes fadeIn {
-				from {
-					opacity: 0;
-					transform: translateY(10px);
-				}
-				to {
-					opacity: 1;
-					transform: translateY(0);
-				}
-			}
-
-			/* Logo Animation */
-			.logo-mark {
-				margin-bottom: 32px;
-				animation: breath 4s ease-in-out infinite;
-			}
-
-			@keyframes breath {
-				0%,
-				100% {
-					transform: scale(1);
-					opacity: 0.8;
-				}
-				50% {
-					transform: scale(1.05);
-					opacity: 1;
-				}
-			}
-
-			.logo-mark h3 {
-				font-weight: 500;
-				letter-spacing: 2px;
-				text-transform: uppercase;
-				font-size: 12px;
-				margin-bottom: 12px;
-				color: var(--text-secondary);
-			}
-
-			/* Build Status Badge */
+			/* Status Badge */
 			.status-badge {
 				display: inline-flex;
 				align-items: center;
 				gap: 8px;
-				font-size: 12px;
+				font-size: 11px;
 				font-weight: 600;
-				letter-spacing: 0.1em;
 				text-transform: uppercase;
-				padding: 6px 16px;
+				letter-spacing: 0.05em;
+				padding: 6px 14px;
 				border-radius: 100px;
-				background: rgba(255, 255, 255, 0.05);
+				background: var(--card-bg);
 				border: 1px solid var(--border);
 				margin-bottom: 24px;
+				color: var(--text-secondary);
 			}
 
 			.pulse-dot {
-				width: 8px;
-				height: 8px;
-				background-color: #3b82f6; /* Blue for building */
+				width: 6px;
+				height: 6px;
+				background-color: #3b82f6;
 				border-radius: 50%;
-				box-shadow: 0 0 10px #3b82f6;
-				animation: pulse 1.5s infinite;
+				animation: pulse 2s infinite;
 			}
 
 			@keyframes pulse {
 				0% {
-					transform: scale(0.95);
 					box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
 				}
 				70% {
-					transform: scale(1);
-					box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+					box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
 				}
 				100% {
-					transform: scale(0.95);
 					box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
 				}
 			}
 
 			h1 {
-				font-size: clamp(1.8rem, 6vw, 2.5rem);
-				font-weight: 700;
+				font-size: 24px;
+				font-weight: 600;
+				margin-bottom: 8px;
 				letter-spacing: -0.02em;
-				margin-bottom: 12px;
 			}
 
 			p {
-				font-size: 16px;
+				font-size: 15px;
 				color: var(--text-secondary);
 				margin-bottom: 32px;
-				line-height: 1.5;
 			}
 
-			/* Progress Bar */
-			.progress-container {
+			/* Loading Bar */
+			.progress-wrapper {
 				width: 100%;
-				height: 4px;
+				height: 2px;
 				background: var(--border);
 				border-radius: 2px;
-				margin-bottom: 32px;
+				margin-bottom: 24px;
 				overflow: hidden;
 				position: relative;
 			}
@@ -155,15 +105,14 @@
 			.progress-bar {
 				position: absolute;
 				height: 100%;
-				width: 40%;
+				width: 30%;
 				background: var(--accent);
-				border-radius: 2px;
-				animation: loading 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+				animation: loading 1.8s infinite ease-in-out;
 			}
 
 			@keyframes loading {
 				0% {
-					left: -40%;
+					left: -30%;
 				}
 				100% {
 					left: 100%;
@@ -173,27 +122,31 @@
 			/* Build Terminal */
 			.build-log {
 				width: 100%;
-				background: rgba(0, 0, 0, 0.4);
+				background: var(--card-bg);
 				border: 1px solid var(--border);
 				border-radius: 8px;
 				padding: 16px;
 				font-family: var(--font-mono);
-				font-size: 13px;
+				font-size: 12px;
 				text-align: left;
 				margin-bottom: 32px;
-				min-height: 100px;
-				backdrop-filter: blur(4px);
+				height: 140px;
+				overflow-y: auto;
+				scrollbar-width: none; /* Firefox */
+			}
+			.build-log::-webkit-scrollbar {
+				display: none;
 			}
 
 			.log-line {
-				margin-bottom: 6px;
+				margin-bottom: 4px;
 				display: flex;
-				gap: 10px;
+				gap: 12px;
 			}
 
 			.log-time {
 				color: #52525b;
-				font-size: 11px;
+				min-width: 65px;
 			}
 			.log-msg {
 				color: var(--text-secondary);
@@ -202,106 +155,81 @@
 				color: var(--text-primary);
 			}
 
+			/* Actions */
 			.cta-group {
 				display: flex;
 				gap: 12px;
 			}
 
 			.btn {
-				padding: 12px 24px;
+				flex: 1;
+				padding: 10px 18px;
 				border-radius: 6px;
 				font-size: 14px;
 				font-weight: 500;
 				text-decoration: none;
 				transition: all 0.2s ease;
 				cursor: pointer;
-			}
-
-			.btn-primary {
-				background-color: var(--accent);
-				color: #000;
 				border: none;
 			}
 
-			.btn-primary:hover {
-				background-color: var(--accent-hover);
-				transform: translateY(-2px);
+			.btn-primary {
+				background: var(--text-primary);
+				color: var(--bg);
 			}
 
 			.btn-secondary {
 				background: transparent;
-				color: var(--text-primary);
 				border: 1px solid var(--border);
+				color: var(--text-primary);
 			}
 
-			.btn-secondary:hover {
-				background: rgba(255, 255, 255, 0.05);
+			.btn:hover {
+				opacity: 0.8;
 			}
 
 			@media (max-width: 480px) {
 				.cta-group {
 					flex-direction: column;
-					width: 100%;
 				}
 			}
 		</style>
 	</head>
 	<body>
 		<div class="container">
-			<div class="logo-mark">
-				<h3>Lynfera</h3>
-				<svg
-					stroke="currentColor"
-					fill="currentColor"
-					style="transform: rotate(180deg)"
-					viewBox="0 0 512 512"
-					height="40px"
-					width="40px"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path
-						d="M440.8 129.5L261.7 49.2c-3.6-1.6-7.7-1.6-11.3 0L71.2 129.5c-6 2.7-6.2 11.8-.4 14.8l178.7 94.1c4.1 2.2 8.9 2.2 13 0l178.7-94.1c5.8-3 5.6-12.1-.4-14.8zM280.2 462.9l180.1-95.3c2.2-1.4 3.6-4 3.6-6.8V175.9c0-5.9-5.8-9.7-10.7-7.1l-180.1 92.8c-2.6 1.3-4.2 4.1-4.2 7.1V456c.1 6.2 6.4 10 11.3 6.9zM48 175.9v184.8c0 2.8 1.4 5.4 3.6 6.8l180.1 95.3c5 3.2 11.2-.6 11.2-6.8V268.7c0-3-1.6-5.8-4.2-7.1l-180-92.8c-4.9-2.6-10.7 1.3-10.7 7.1z"
-					></path>
-				</svg>
-			</div>
-
 			<div class="status-badge">
 				<span class="pulse-dot"></span>
 				Build in progress
 			</div>
 
-			<h1>Project is building.</h1>
-			<p>We're currently deploying your project to our edge network. This usually takes less than a minute.</p>
+			<h1>Project is building</h1>
+			<p>Deploying your project to the edge. This usually takes less than a minute.</p>
 
-			<div class="progress-container">
+			<div class="progress-wrapper">
 				<div class="progress-bar"></div>
 			</div>
 
 			<div class="build-log" id="build-log"></div>
 
 			<div class="cta-group">
-				<button onclick="window.location.reload()" class="btn btn-primary">Refresh Page</button>
-				<a href="/project/" class="btn btn-secondary project-link">View Deployment Logs</a>
+				<button onclick="window.location.reload()" class="btn btn-primary">Refresh status</button>
+				<a href="/projects" class="btn btn-secondary project-link">View dashboard</a>
 			</div>
 		</div>
 
 		<script>
 			const logContainer = document.getElementById("build-log")
-
-			const projectLinkElemment = document.querySelector(".project-link")
-
-			const logs = ["Logs are comming...", "Logs are comming...", "Logs are comming...", "Logs are comming...", "Logs are comming..."]
+			const logs = [
+				"logs are coming ...",
+				"logs are coming ...",
+				"logs are coming ...",
+				"logs are coming ...",
+				"logs are coming ...",
+				"Warmup in progress ...",
+			]
 
 			let currentLine = 0
 
-			function getCookie(name) {
-				const value = `; ${document.cookie}`
-				const parts = value.split(`; ${name}=`)
-				if (parts.length === 2) {
-					return parts.pop().split(";").shift()
-				}
-				console.log()
-			}
 			function addLogLine() {
 				if (currentLine < logs.length) {
 					const line = document.createElement("div")
@@ -309,9 +237,9 @@
 					const time = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" })
 
 					line.innerHTML = `
-                        <span class="log-time">[${time}]</span>
-                        <span class="log-msg active">> ${logs[currentLine]}</span>
-                    `
+                    <span class="log-time">${time}</span>
+                    <span class="log-msg active">→ ${logs[currentLine]}</span>
+                `
 
 					if (logContainer.lastChild) {
 						logContainer.lastChild.querySelector(".log-msg").classList.remove("active")
@@ -319,18 +247,30 @@
 
 					logContainer.appendChild(line)
 					currentLine++
-
 					logContainer.scrollTop = logContainer.scrollHeight
 
-					setTimeout(addLogLine, 2000 + Math.random() * 1000)
+					setTimeout(addLogLine, 1500 + Math.random() * 2000)
 				}
 			}
 
 			addLogLine()
-			const data = JSON.parse(decodeURIComponent(getCookie("project_id")))
-			if (data._id) {
-				projectLinkElemment.href = data.frontend + "/projects/" + data._id
+
+			// Cookie handling for dashboard link
+			function getCookie(name) {
+				const value = `; ${document.cookie}`
+				const parts = value.split(`; ${name}=`)
+				if (parts.length === 2) return parts.pop().split(";").shift()
 			}
+
+			try {
+				const cookieData = getCookie("project_id")
+				if (cookieData) {
+					const data = JSON.parse(decodeURIComponent(cookieData))
+					if (data._id && data.frontend) {
+						document.querySelector(".project-link").href = `${data.frontend}/projects/${data._id}`
+					}
+				}
+			} catch (e) {}
 		</script>
 	</body>
 </html>

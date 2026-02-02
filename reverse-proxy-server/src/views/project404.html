@@ -3,17 +3,17 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>404 - Path Not Found</title>
+		<title>404 - Project Not Found</title>
 		<style>
 			:root {
+				/* Neutral 950 theme */
 				--bg: #0a0a0a;
-				--text-primary: #ffffff;
+				--card-bg: #111111;
+				--text-primary: #fafafa;
 				--text-secondary: #a1a1aa;
-				--accent: #ffffff;
-				--accent-hover: #e4e4e7;
 				--border: #27272a;
-				--font-sans: "Inter", -apple-system, system-ui, sans-serif;
-				--font-mono: "JetBrains Mono", "SF Mono", monospace;
+				--font-sans: system-ui, -apple-system, sans-serif;
+				--font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
 			}
 
 			* {
@@ -24,250 +24,114 @@
 
 			body {
 				background-color: var(--bg);
-				/* Subtle grid and radial spotlight */
-				background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-					linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px), radial-gradient(circle at 50% 40%, #1a1a1a 0%, #0a0a0a 100%);
-				background-size: 32px 32px, 32px 32px, 100% 100%;
 				color: var(--text-primary);
 				font-family: var(--font-sans);
 				height: 100vh;
 				display: flex;
-				flex-direction: column;
 				align-items: center;
 				justify-content: center;
-				text-align: center;
-				padding: 24px;
-				overflow: hidden;
+				padding: 20px;
+				line-height: 1.5;
 			}
 
 			.container {
-				animation: slideUp 0.6s ease-out;
-				z-index: 10;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-			}
-
-			@keyframes slideUp {
-				from {
-					opacity: 0;
-					transform: translateY(20px);
-				}
-				to {
-					opacity: 1;
-					transform: translateY(0);
-				}
-			}
-
-			.logo-mark {
-				margin-bottom: 32px;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				opacity: 0.9;
-			}
-
-			.logo-mark h3 {
-				font-weight: 400;
-				letter-spacing: 4px;
-				text-transform: uppercase;
-				font-size: 11px;
-				margin-bottom: 12px;
-				color: var(--text-secondary);
-			}
-
-			.error-badge {
-				font-size: 12px;
-				font-weight: 700;
-				letter-spacing: 0.1em;
-				text-transform: uppercase;
-				color: var(--text-primary);
-				border: 1px solid var(--border);
-				padding: 4px 12px;
-				border-radius: 100px;
-				margin-bottom: 20px;
-				background: rgba(255, 255, 255, 0.03);
+				width: 100%;
+				max-width: 480px;
 			}
 
 			h1 {
-				font-size: clamp(2rem, 7vw, 3rem);
-				font-weight: 700;
-				letter-spacing: -0.04em;
-				margin-bottom: 16px;
+				font-size: 24px;
+				font-weight: 600;
+				margin-bottom: 8px;
+				letter-spacing: -0.02em;
 			}
 
 			p {
-				font-size: 16px;
+				font-size: 15px;
 				color: var(--text-secondary);
-				max-width: 440px;
-				margin: 0 auto 32px auto;
-				line-height: 1.6;
+				margin-bottom: 24px;
 			}
 
-			/* Terminal-style Info Box */
-			.path-info {
-				background: rgba(0, 0, 0, 0.4);
+			/* Minimal Technical Info Box */
+			.debug-box {
+				background: var(--card-bg);
 				border: 1px solid var(--border);
 				border-radius: 8px;
-				padding: 16px 20px;
-				width: 100%;
-				max-width: 420px;
-				margin-bottom: 32px;
+				padding: 16px;
+				margin-bottom: 24px;
 				font-family: var(--font-mono);
-				text-align: left;
-				position: relative;
-				overflow: hidden;
-			}
-
-			.path-info::before {
-				content: "";
-				position: absolute;
-				top: 0;
-				left: 0;
-				width: 2px;
-				height: 100%;
-				background: var(--text-secondary);
-				opacity: 0.3;
-			}
-
-			.info-line {
-				display: flex;
 				font-size: 13px;
-				margin-bottom: 6px;
 			}
 
-			.info-line:last-child {
+			.line {
+				display: flex;
+				gap: 12px;
+				margin-bottom: 4px;
+			}
+
+			.line:last-child {
 				margin-bottom: 0;
 			}
 
-			.label {
+			.key {
 				color: #52525b;
-				width: 60px;
-				flex-shrink: 0;
+				user-select: none;
+				min-width: 45px;
 			}
-			.value {
-				color: var(--text-primary);
+
+			.val {
+				color: var(--text-secondary);
 				word-break: break-all;
 			}
 
-			.cta-group {
-				display: flex;
-				gap: 12px;
-			}
-
 			.btn {
-				padding: 12px 24px;
+				display: inline-block;
+				background: var(--text-primary);
+				color: var(--bg);
+				padding: 10px 20px;
 				border-radius: 6px;
 				font-size: 14px;
 				font-weight: 500;
 				text-decoration: none;
-				transition: all 0.2s ease;
+				transition: opacity 0.2s;
 			}
 
-			.btn-primary {
-				background-color: var(--accent);
-				color: #000;
-			}
-
-			.btn-primary:hover {
-				background-color: var(--accent-hover);
-				transform: translateY(-2px);
-			}
-
-			.btn-secondary {
-				color: var(--text-primary);
-				border: 1px solid var(--border);
-			}
-
-			.btn-secondary:hover {
-				background-color: rgba(255, 255, 255, 0.05);
-			}
-
-			/* Status Bar Footer */
-			.footer {
-				position: absolute;
-				bottom: 40px;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				gap: 16px;
-			}
-
-			.status-indicator {
-				font-size: 12px;
-				color: var(--text-secondary);
-				display: flex;
-				align-items: center;
-				gap: 8px;
-				padding: 6px 12px;
-				border-radius: 4px;
-			}
-
-			.dot {
-				width: 8px;
-				height: 8px;
-				background-color: #10b981;
-				border-radius: 50%;
-				box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+			.btn:hover {
+				opacity: 0.9;
 			}
 
 			@media (max-width: 480px) {
-				.cta-group {
-					flex-direction: column;
-					width: 100%;
+				h1 {
+					font-size: 20px;
 				}
-				.btn {
-					text-align: center;
+				p {
+					font-size: 14px;
 				}
 			}
 		</style>
 	</head>
 	<body>
 		<div class="container">
-			<div class="logo-mark">
-				<h3>Lynfera</h3>
-				<svg
-					stroke="currentColor"
-					fill="currentColor"
-					style="transform: rotate(180deg)"
-					viewBox="0 0 512 512"
-					height="40px"
-					width="40px"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path
-						d="M440.8 129.5L261.7 49.2c-3.6-1.6-7.7-1.6-11.3 0L71.2 129.5c-6 2.7-6.2 11.8-.4 14.8l178.7 94.1c4.1 2.2 8.9 2.2 13 0l178.7-94.1c5.8-3 5.6-12.1-.4-14.8zM280.2 462.9l180.1-95.3c2.2-1.4 3.6-4 3.6-6.8V175.9c0-5.9-5.8-9.7-10.7-7.1l-180.1 92.8c-2.6 1.3-4.2 4.1-4.2 7.1V456c.1 6.2 6.4 10 11.3 6.9zM48 175.9v184.8c0 2.8 1.4 5.4 3.6 6.8l180.1 95.3c5 3.2 11.2-.6 11.2-6.8V268.7c0-3-1.6-5.8-4.2-7.1l-180-92.8c-4.9-2.6-10.7 1.3-10.7 7.1z"
-					></path>
-				</svg>
-			</div>
+			<h1>Project not found</h1>
+			<p>The requested deployment could not be located. Check the URL or contact the owner.</p>
 
-			<div class="error-badge">404 Error</div>
-			<h1>Project not found.</h1>
-			<p>The project you are looking for doesn't exist, has been deleted, or moved to a new address.</p>
-
-			<div class="path-info">
-				<div class="info-line">
-					<span class="label">HOST:</span>
-					<span class="value" id="host-val"></span>
+			<div class="debug-box">
+				<div class="line">
+					<span class="key">HOST</span>
+					<span class="val" id="host-val">...</span>
 				</div>
-				<div class="info-line">
-					<span class="label">PATH:</span>
-					<span class="value" id="path-val"></span>
+				<div class="line">
+					<span class="key">PATH</span>
+					<span class="val" id="path-val">...</span>
 				</div>
 			</div>
 
-			<div class="cta-group">
-				<a href="javascript:history.back()" class="btn btn-secondary">Go back</a>
-			</div>
+			<a href="javascript:history.back()" class="btn">Return back</a>
 		</div>
 
 		<script>
-			const hostVal = document.getElementById("host-val")
-			const pathVal = document.getElementById("path-val")
-			const currentUrl = new URL(window.location.href)
-
-			hostVal.innerText = currentUrl.hostname
-			pathVal.innerText = currentUrl.pathname
+			document.getElementById("host-val").textContent = window.location.hostname
+			document.getElementById("path-val").textContent = window.location.pathname
 		</script>
 	</body>
 </html>
