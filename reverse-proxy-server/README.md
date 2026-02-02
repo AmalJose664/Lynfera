@@ -9,57 +9,93 @@ reverse-proxy-server Directory
 ```
 reverse-proxy-server
 └───src
-    │   app.ts
-    │   server.ts
     │
-    ├───config
-    │       db.ts
-    │       kafka.ts
-    │
-    ├───contants
-    │       paths.ts
-    │       plan.ts
-    │
-    ├───controller
-    │       extrasController.ts
-    │
-    ├───interfaces
-    │   ├───repository
-    │   │       IProjectBandwidth.ts
-    │   │       IProjectRepo.ts
-    │   │
-    │   └───service
-    │           IAnalyticsService.ts
-    │           IProjectService.ts
-    │
-    ├───middleware
-    │       extraProxy.ts
-    │       globalErrorHandler.ts
-    │       projectChecker.ts
-    │       proxy.ts
-    │       validate.ts
-    │
-    ├───models
-    │       Analytics.ts
-    │       Project.ts
-    │       ProjectBandwidth.ts
-    │
-    ├───repository
-    │       project.repo.ts
-    │       projectBandwidth.repo.ts
-    │
-    ├───routes
-    │       routes.ts
-    │
-    ├───service
-    │       analytics.service.ts
-    │       project.service.ts
-    │
-    └───utils
-            analyticsCleaner.ts
-            AppError.ts
-            CircuitBreaker.ts
-            uaParser.ts
+	├───cache
+	│       invalidationHandler.ts
+	│       redis.ts
+	│
+	├───config
+	│       env.config.ts
+	│       kafka.ts
+	│       mongo.config.ts
+	│       proxy.config.ts
+	│       rate-limiter.config.ts
+	│       redis.config.ts
+	│       storage.config.ts
+	│
+	├───constants
+	│       cookieContanst.ts
+	│       paths.ts
+	│       plan.ts
+	│       proxyCacheValues.ts
+	│       topics.ts
+	│
+	├───controller
+	│       extrasController.ts
+	│
+	├───interfaces
+	│   ├───cache
+	│   │       IRedis.ts
+	│   │
+	│   ├───repository
+	│   │       IDeploymentRepository.ts
+	│   │       IProjectBandwidth.ts
+	│   │       IProjectRepo.ts
+	│   │
+	│   └───service
+	│           IAnalyticsService.ts
+	│           IDeploymentService.ts
+	│           IProjectService.ts
+	│
+	├───middleware
+	│       globalErrorHandler.ts
+	│       projectFinder.ts
+	│       proxy.ts
+	│       validate.ts
+	│
+	├───models
+	│       Analytics.ts
+	│       Deployment.ts
+	│       Project.ts
+	│       ProjectBandwidth.ts
+	│
+	├───proxy
+	│   │   extra.proxy.ts
+	│   │   index.ts
+	│   │   main.proxy.ts
+	│   │   proxyRewrite.ts
+	│   │
+	│   └───handlers
+	│           onProxyError.ts
+	│           onProxyReq.ts
+	│           onProxyRes.ts
+	│
+	├───repository
+	│       deployment.repo.ts
+	│       project.repo.ts
+	│       projectBandwidth.repo.ts
+	│
+	├───routes
+	│       routes.ts
+	│
+	├───service
+	│       analytics.service.ts
+	│       deployment.service.ts
+	│       project.service.ts
+	│
+	├───utils
+	│       analyticsCleaner.ts
+	│       AppError.ts
+	│       CircuitBreaker.ts
+	│       uaParser.ts
+	│       variateResponse.ts
+	│
+	└───views
+			no-deployment.html
+			path404.html
+			project-build.html
+			project-disabled.html
+			project404.html
 
 ```
 
