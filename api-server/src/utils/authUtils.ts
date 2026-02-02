@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { generateAccessToken, generateRefreshToken } from "./generateToken.js";
+import { generateAccessToken, generateRefreshToken, RefreshTokenOptions } from "./generateToken.js";
 import { accessCookieConfig, refreshCookieConfig } from "@/config/cookie.config.js";
 
 export function issueAuthAccessCookies(res: Response, user: Request["user"]) {
@@ -7,7 +7,7 @@ export function issueAuthAccessCookies(res: Response, user: Request["user"]) {
 	res.cookie("access_token", accessToken, { ...accessCookieConfig });
 }
 
-export function issueAuthRefreshCookies(res: Response, user: Request["user"]) {
-	const refreshToken = generateRefreshToken(user);
+export function issueAuthRefreshCookies(res: Response, user: Request["user"], refreshTokenOptions: RefreshTokenOptions) {
+	const refreshToken = generateRefreshToken(user, refreshTokenOptions);
 	res.cookie("refresh_token", refreshToken, { ...refreshCookieConfig });
 }

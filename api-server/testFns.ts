@@ -129,7 +129,20 @@ async function getClickhouseData() {
 	// });
 	// return
 	const data = await client.query({
-		query: `select * from log_events_v2 limit 5`,
+		query: `SELECT
+  			toStartOfInterval(
+    		toTimeZone(timestamp, 'Asia/Kolkata'),
+    		INTERVAL 1 MINUTE
+  			) as time,
+  			count() as requests,
+  			uniq(ip) as unique_visitors,
+  			avg(response_time) as avg_response_time,
+  			(SUM(response_size)) / 1024 / 1024 as total_bandwidth_mb
+			FROM analytics
+			WHERE project_id = '6934502adfa2d8c1c254aabc'
+  			AND timestamp >= now() - INTERVAL 24 HOUR
+			GROUP BY time
+			ORDER BY time`,
 		// format: "JSON",
 	});
 	const datas = await data.json();

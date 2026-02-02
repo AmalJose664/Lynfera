@@ -19,9 +19,9 @@ export const PLANS: IPlans = {
 		pricePerMonth: 0,
 		maxProjects: 10,
 		concurrentBuilds: 1,
-		maxDailyDeployments: 8,
-		totalBandwidthGB: 100,
-		features: [] // view in frontend code
+		maxDailyDeployments: 18,
+		totalBandwidthGB: 15,
+		features: [] // call as function
 	},
 	PRO: {
 		name: "PRO",
@@ -30,7 +30,7 @@ export const PLANS: IPlans = {
 		maxProjects: 30,
 		concurrentBuilds: 3,
 		maxDailyDeployments: 40,
-		totalBandwidthGB: 1000,
-		features: [] // view in frontend code
+		totalBandwidthGB: 80,
+		features: [] // call as function
 	},
 } as const;

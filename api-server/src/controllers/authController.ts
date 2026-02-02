@@ -10,15 +10,13 @@ import { userService } from "@/instances.js";
 import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { UserMapper } from "@/mappers/userMapper.js";
 import { LoginUserDTO, SignUpUserDTO, VerifyOtpDTO } from "@/dtos/auth.dto.js";
-import { generateOtpToken } from "@/utils/generateToken.js";
+import { generateOtpToken, RefresheTokenType } from "@/utils/generateToken.js";
 import { accessCookieConfig } from "@/config/cookie.config.js";
 import { COMMON_ERRORS, OTP_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 import { FRONTEND_REDIRECT_PATH } from "@/constants/paths.js";
 
 const OTP_COOKIE = "otp_Cookie";
-interface RefreshTokenPayload extends JwtPayload {
-	id: string;
-}
+
 
 export const oAuthLoginCallback = (req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -26,7 +24,7 @@ export const oAuthLoginCallback = (req: Request, res: Response, next: NextFuncti
 			return next(new AppError(USER_ERRORS.NOT_AUTHENTICATED, STATUS_CODES.UNAUTHORIZED));
 		}
 		issueAuthAccessCookies(res, { id: req.user.id, plan: req.user.plan });
-		issueAuthRefreshCookies(res, { id: req.user.id, plan: req.user.plan });
+		issueAuthRefreshCookies(res, { id: req.user.id, plan: req.user.plan }, { currentRefresh: 0, originalIssuedAt: Date.now() });
 		const frontend = ENVS.FRONTEND_URL + FRONTEND_REDIRECT_PATH + ((req.user as any).newUser ? "?newuser=true" : "");
 		// console.log({ frontend, user: req.user })
 		res.redirect(frontend);
@@ -73,16 +71,29 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 		return;
 	}
 	try {
-		const decoded = jwt.verify(refreshToken, ENVS.REFRESH_TOKEN_SECRET as string) as RefreshTokenPayload;
+		const decoded = jwt.verify(refreshToken, ENVS.REFRESH_TOKEN_SECRET as string) as RefresheTokenType;
 
-		console.log("Trying to decode refesh");
+		console.log("Trying to decode refesh", decoded);
 		const user = await userService.getUser(decoded.id);
 		if (!user) {
 			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
+
+		const expiresAt = (decoded.exp as number) * 1000;
+		const now = Date.now();
+		const hoursLeft = (expiresAt - now) / (1000 * 60 * 60);
+
+		if (hoursLeft < 6 && hoursLeft > 0) {
+			issueAuthRefreshCookies(res, { id: user._id, plan: user.plan }, { currentRefresh: decoded.crntRfrshCount + 1, originalIssuedAt: decoded.oIAT })
+		}
 		issueAuthAccessCookies(res, { id: user._id, plan: user.plan });
 		return res.status(STATUS_CODES.OK).json({ ok: true });
+
 	} catch (error) {
+		if (error instanceof AppError) {
+			next(error)
+			return
+		}
 		next(new AppError(COMMON_ERRORS.TOKEN_VALIDATION, STATUS_CODES.INTERNAL_SERVER_ERROR, error));
 		console.log("Error in token valiadation ");
 	}
@@ -155,7 +166,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 				return;
 			}
 			issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan });
-			issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan });
+			issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan }, { currentRefresh: 0, originalIssuedAt: Date.now() });
 			res.status(STATUS_CODES.OK).json({ loginSuccess: true, user: response.user });
 			return;
 		}
@@ -175,7 +186,7 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
 			if (user) {
 				const response = UserMapper.toUserResponse(user);
 				issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan });
-				issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan });
+				issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan }, { currentRefresh: 0, originalIssuedAt: Date.now() });
 				res.clearCookie(OTP_COOKIE);
 				res.status(STATUS_CODES.OK).json({ message: "OTP Verified succesfully", user: response.user });
 				return;
