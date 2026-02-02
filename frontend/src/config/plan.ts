@@ -48,8 +48,8 @@ export const PLANS: IPlans = {
 		pricePerMonth: 0,
 		maxProjects: 10,
 		concurrentBuilds: 1,
-		maxDailyDeployments: 8,
-		totalBandwidthGB: 100,
+		maxDailyDeployments: 18,
+		totalBandwidthGB: 15,
 		features: [] // call as function
 	},
 	PRO: {
@@ -59,7 +59,7 @@ export const PLANS: IPlans = {
 		maxProjects: 30,
 		concurrentBuilds: 3,
 		maxDailyDeployments: 40,
-		totalBandwidthGB: 1000,
+		totalBandwidthGB: 80,
 		features: [] // call as function
 	},
 } as const;
@@ -73,12 +73,12 @@ export function getPlanFeatures(plan: EachPlanFields): { text: string, Icon: Ico
 		{ text: `${plan.totalBandwidthGB}GB Total Monthly Bandwidth`, Icon: FiHardDrive },
 		...(plan.pricePerMonth > 0
 			? [
-				{ text: "Simple Analytics", Icon: IoAnalyticsSharp },
+				{ text: "Advanced Analytics", Icon: IoAnalyticsSharp },
 				{ text: "Priority builds", Icon: FiStar },
 				{ text: "More resources", Icon: FiPackage },
 			]
 			: [
-				{ text: "Advanced Analytics", Icon: IoAnalyticsSharp },
+				{ text: "Simple Analytics", Icon: IoAnalyticsSharp },
 				{ text: "Basic hosting", Icon: FiServer },
 			]
 		)
