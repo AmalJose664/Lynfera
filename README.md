@@ -9,7 +9,7 @@ justify-content: center; gap: 20px">
 
 A platform to host, build, and deploy frontend applications, similar to a lightweight self-hosted Vercel/Netlify workflow.
 
-This repository contains multiple coordinated services that handle builds, routing, storage, UI, and deployment automation.
+This repository contains multiple coordinated services that handle builds, routing, storage, UI, and deployment automations.
 
 ---
 
