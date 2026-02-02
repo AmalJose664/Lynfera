@@ -8,14 +8,17 @@ import parseUA from "../../utils/uaParser.js";
 import { IncomingMessage, ServerResponse } from "http";
 
 
-export const onProxyRes = async (proxyRes: IncomingMessage, req: RequestWithProject, res: ServerResponse) => {
+export const onProxyRes = (proxyRes: IncomingMessage, req: RequestWithProject, res: ServerResponse) => {
 	res.setHeader('Access-Control-Allow-Origin', '*');
-	const requestSize = parseInt(req.headers['content-length'] || '0', 10);
 	const size = proxyRes.headers["x-file-size"] as string
 
-	const responseSize = parseInt(size || proxyRes.headers['content-length'] || '0', 10);
-	// const { path: path1, baseUrl, url, originalUrl } = req
-	// console.log({ path1, baseUrl, url, originalUrl })
+	const responseSize1 = proxyRes.headers['content-length']
+	const responseSize2 = proxyRes.headers['x-original-size'] as string
+
+
+	const responseSize = parseInt(responseSize1 || responseSize2 || size || "10", 10);
+
+
 	let path = req.originalUrl.includes("?") ? req.originalUrl.split("?")[0] : req.originalUrl
 	if (exemptedRegex.some((e_path: RegExp) => e_path.test(req.path))) {
 		path = "/"
@@ -34,12 +37,7 @@ export const onProxyRes = async (proxyRes: IncomingMessage, req: RequestWithProj
 	const startTime = (req as any).startTime || endTime;
 	const responseTime = (endTime - startTime).toFixed(2);
 	const ua = parseUA(req.headers['user-agent'] || "")
-	// const toCache = {
-	// 	projectId: req.project?._id,
-	// 	responseSize,
-	// 	responseTime,
-	// }
-	// await redisService.set(req.project?.subdomain + req.path as string, toCache, 1200)
+
 	const data: IAnalytics = {
 		projectId: req.project?._id || "",
 		timestamp: new Date().getTime(),
