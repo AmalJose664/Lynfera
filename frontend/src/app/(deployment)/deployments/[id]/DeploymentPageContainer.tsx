@@ -259,7 +259,9 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 														className="inline-flex items-center px-2.5 py-1 rounded-md bg-neutral-100 dark:bg-neutral-800 text-xs font-mono hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
 													>
 														<IoMdGitBranch className="mr-1 size-3" />
-														{project.branch}
+														<span className="line-clamp-1 text-primary">
+															{project.branch}
+														</span>
 													</Link>
 												</div>
 											</div>
@@ -269,7 +271,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 													<FiGitCommit className="size-4" /> Commit
 												</div>
 												<Link target="_blank" href={generateRepoUrls(project.repoURL, { commitSha: deployment.commit.id }).commit || project.repoURL} className="sm:col-span-2 flex flex-col gap-1 w-fit">
-													<span className="text-sm text-neutral-900 dark:text-neutral-200 truncate">
+													<span className="text-sm text-neutral-900 dark:text-neutral-200 line-clamp-1">
 														{deployment.commit.msg}
 													</span>
 													<span className="text-xs">

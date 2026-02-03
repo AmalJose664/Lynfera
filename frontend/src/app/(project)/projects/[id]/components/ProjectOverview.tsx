@@ -2,10 +2,10 @@
 import { IoMdGlobe, IoMdGitBranch } from "react-icons/io";
 import { BsActivity } from "react-icons/bs";
 import { VscLibrary } from "react-icons/vsc";
-import { FiGithub, FiGitCommit, } from "react-icons/fi";
+import { FiGithub, FiGitCommit, FiAlertCircle, } from "react-icons/fi";
 import { GrRotateRight } from "react-icons/gr";
 import { CgUnavailable } from "react-icons/cg";
-import { IoSettingsOutline } from "react-icons/io5";
+import { IoClose, IoSettingsOutline } from "react-icons/io5";
 import { MdAccessTime, MdCreate } from "react-icons/md";
 import { RxExternalLink } from "react-icons/rx";
 import { User } from "@/types/User";
@@ -20,17 +20,19 @@ import { Button } from "@/components/ui/button";
 import RightFadeComponent from "@/components/RightFadeComponent";
 import { TbHexagonNumber1Filled } from "react-icons/tb";
 import { LinkComponent } from "@/components/docs/HelperComponents";
+import { useEffect, useState } from "react";
 
 interface ProjectOverviewProps {
 	project: Project,
 	deployment?: Deployment
 	reDeploy: () => void
-	runningDeploymentStatus?: string;
+	runningDeployment?: Deployment;
 	setShowBuild: (state: boolean) => void;
 	setTabs: (state: string) => void;
 }
-const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeploy, setShowBuild, setTabs }: ProjectOverviewProps) => {
+const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, setShowBuild, setTabs }: ProjectOverviewProps) => {
 	const isprojectError = isStatusFailure(project.status)
+	const runningDeploymentStatus = runningDeployment?.status
 	const isDeplymentError = project.deployments?.length !== 0
 		&& deployment
 		&& (isStatusFailure(deployment.status))
@@ -38,11 +40,47 @@ const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeplo
 	const deploymentRunning = isStatusProgress(runningDeploymentStatus)
 	const repoValues = parseGitHubRepo(project.repoURL)
 	const projectLink = `${window.location.protocol}//${project.subdomain}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`
+	const [lastFailed, setLastFailed] = useState<boolean>(false)
+	useEffect(() => {
+		if (runningDeploymentStatus === ProjectStatus.FAILED || runningDeploymentStatus === ProjectStatus.CANCELED) {
+			setLastFailed(true)
+		}
+	}, [runningDeploymentStatus])
 	return (
 		<>
 			<div>
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 					<div className="lg:col-span-2 space-y-6">
+						{lastFailed && (
+							<RightFadeComponent className="border   rounded-lg dark:bg-neutral-900  bg-white overflow-hidden relative">
+								<div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900 rounded-lg p-4 flex items-start gap-3">
+									<FiAlertCircle className="text-red-500 mt-0.5 size-5" />
+									<div>
+										<h3 className="text-sm font-semibold text-red-700 dark:text-red-400">
+											Last Deployment Failed <LinkComponent href={"/deployments/" + runningDeployment?._id} className="ml-3">View</LinkComponent>
+										</h3>
+										<p className="text-sm text-red-600 dark:text-red-300 mt-1">
+											{runningDeployment?.errorMessage ||
+												"An unknown error occurred during the build process."}
+										</p>
+										<div className="space-y-1">
+											<p className="text-sm text-primary">
+												Deployment ID: {runningDeployment?._id}
+											</p>
+											<p className="text-sm text-primary">
+												Deployment Slug: {runningDeployment?.identifierSlug}
+											</p>
+											<p className="text-xs text-primary">
+												Status: {runningDeployment?.status}
+											</p>
+										</div>
+									</div>
+								</div>
+								<button className="absolute top-1 right-1" onClick={() => setLastFailed(false)}>
+									<IoClose size={20} className="m-2" />
+								</button>
+							</RightFadeComponent>
+						)}
 						<RightFadeComponent className="border   rounded-lg dark:bg-neutral-900  bg-white overflow-hidden">
 							<div className="px-4 py-3 border-b   flex justify-between items-start">
 								<div>
@@ -179,7 +217,7 @@ const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeplo
 												href={generateRepoUrls(project.repoURL, { commitSha: deployment?.commit.id }).commit || project.repoURL} className='flex gap-2 items-center font-medium hover:underline text-sky-200! rounded-sm'>
 												{deployment?.commit.id.slice(0, 10) || "" + "..."}
 												<p className="text-xl">/</p>
-												{deployment?.commit.msg}
+												<span className="truncate max-w-40">{deployment?.commit.msg}</span>
 											</LinkComponent>
 										</span>
 									</div>
@@ -189,7 +227,7 @@ const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeplo
 										<IoMdGitBranch size={14} />
 										<span className="text-xs text-gray-500">Branch</span>
 									</div>
-									<span className="text-sm  text-less"><LinkComponent newPage
+									<span className="text-sm max-w-40 truncate text-less"><LinkComponent newPage
 										href={generateRepoUrls(project.repoURL, { branch: project.branch }).branch || project.repoURL}
 										className='text-xs! hover:underline font-medium text-sky-200!'>{project.branch}</LinkComponent>
 									</span>
@@ -208,7 +246,7 @@ const ProjectOverview = ({ project, deployment, runningDeploymentStatus, reDeplo
 										<div className="w-5 h-5 bg-background border uppercase rounded-full text-primary flex items-center justify-center text-[10px] font-bold">
 											{project.techStack.slice(0, 1)}
 										</div>
-										<span className="text-sm  text-less">{project.techStack}</span>
+										<span className="text-sm max-w-40 truncate text-less">{project.techStack}</span>
 									</div>
 								</div>
 								<div className="flex justify-between items-center py-2 border-b  /50 last:border-0">

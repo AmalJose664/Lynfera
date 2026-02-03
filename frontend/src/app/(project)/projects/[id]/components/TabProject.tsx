@@ -58,7 +58,7 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 				<ProjectOverview
 					project={project}
 					deployment={deployment || lastDeployment}
-					runningDeploymentStatus={tempDeployment?.status}
+					runningDeployment={tempDeployment}
 					reDeploy={reDeploy}
 					setShowBuild={setShowBuild}
 					setTabs={setTabs}

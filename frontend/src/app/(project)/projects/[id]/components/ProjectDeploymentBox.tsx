@@ -53,7 +53,7 @@ const ProjectDeploymentBox = ({ deployment, projectBranch, repoURL, showLogs, ty
 								<div className="flex items-center gap-4 text-xs text-gray-400">
 									<div className="flex items-center text-xs gap-1.5">
 										<IoMdGitBranch size={12} />
-										<Link target="_blank" href={getGithubBranchUrl(repoURL, projectBranch)} className="hover:undeline">{projectBranch}</Link>
+										<Link target="_blank" href={getGithubBranchUrl(repoURL, projectBranch)} className="hover:undeline max-w-40 truncate">{projectBranch}</Link>
 									</div>
 									<div className="flex items-center text-xs gap-1.5">
 										<MdAccessTime size={12} />

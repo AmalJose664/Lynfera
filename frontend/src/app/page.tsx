@@ -295,7 +295,7 @@ const Features = () => {
 
 const Frameworks = () => {
 	return (
-		<section className="relative py-32 bg-background overflow-hidden border-t min-h-screen">
+		<section className="relative py-32 bg-background overflow-hidden border-t sm:min-h-[90vh] md:min-h-screen">
 			<div className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none">
 				<span className="text-[15vw] font-black text-neutral-500/10 tracking-tighter">
 					PLUGINS

@@ -46,7 +46,7 @@ export default function Navbar({ className, showOtherLinks }: { className: strin
 
 			<div className="flex items-center gap-6">
 				<NavbarLinks showOtherLinks={showOtherLinks} />
-				<ActivityPanel />
+				{!showOtherLinks && <ActivityPanel />}
 				<ThemeSwitcher className="rounded-full text-sm" />
 
 				<NavbarUser showOtherLinks={showOtherLinks} />

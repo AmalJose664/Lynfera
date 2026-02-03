@@ -114,7 +114,7 @@ const AllDeployments = ({ projectId, subdomain, currentDeployment, repoURL, setT
 			)}
 
 			{filteredDeployments?.length !== 0 && filteredDeployments.map((deployment) => (
-				<div key={deployment._id} className="group border-b last:border-none divide-y rounded-md dark:bg-neutral-900 mt-2 bg-white divide-gray-800 border-neutral-200 dark:border-neutral-800 hover:bg-blue-50/30 dark:hover:bg-neutral-800/30 transition-colors">
+				<div key={deployment._id} className="group border-b last:border-none divide-y rounded-md dark:bg-neutral-900 mt-2 bg-white divide-gray-800 border-neutral-200 dark:border-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-800/30 transition-colors">
 					<Link
 						href={"/deployments/" + deployment._id}
 						className="grid grid-cols-4 md:grid-cols-11 gap-2 md:gap-4 items-center px-4 py-3 hover:no-underline"
@@ -148,12 +148,12 @@ const AllDeployments = ({ projectId, subdomain, currentDeployment, repoURL, setT
 							<code className="text-[10px] w-fit font-mono bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-blue-600">
 								{deployment.commit.id.substring(0, 7)}
 							</code>
-							<span className="text-xs text-neutral-500 truncate">{deployment.commit.msg}</span>
+							<span className="text-xs text-neutral-500 line-clamp-1">{deployment.commit.msg}</span>
 						</div>
 
 						<div className=" hidden md:flex md:col-span-1 text-center items-center md:justify-center gap-1 text-xs text-neutral-500">
 							<IoMdGitBranch size={12} />
-							<div>{(deployment.project as Project).branch}</div>
+							<div className="line-clamp-1">{(deployment.project as Project).branch}</div>
 						</div>
 
 						<div className="md:col-span-2 flex justify-end" onClick={(e) => e.stopPropagation()}>
