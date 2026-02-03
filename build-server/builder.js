@@ -282,7 +282,8 @@ async function fetchProjectData(deploymentId = "") {
 		const deploymentResponse = await axios.get(`${baseUrl}/deployments/${deploymentId}`, {
 			timeout: 24000,
 			headers: {
-				Authorization: `Bearer ${API_SERVER_CONTAINER_API_TOKEN}`
+				Authorization: `Bearer ${process.env.SERVICE_TOKEN}`,
+				'X-Static-Token': API_SERVER_CONTAINER_API_TOKEN
 			}
 		})
 
@@ -302,7 +303,8 @@ async function fetchProjectData(deploymentId = "") {
 		const projectResponse = await axios.get(`${baseUrl}/projects/${projectId}`, {
 			timeout: 24000,
 			headers: {
-				Authorization: `Bearer ${API_SERVER_CONTAINER_API_TOKEN}`
+				Authorization: `Bearer ${process.env.SERVICE_TOKEN}`,
+				'X-Static-Token': API_SERVER_CONTAINER_API_TOKEN
 			}
 		})
 
