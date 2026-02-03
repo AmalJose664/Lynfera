@@ -35,12 +35,12 @@ interface platformDistTypes {
 		uaOs: string;
 		users: number;
 		percentage: number;
-	}[],
+	}[];
 	browserStats: {
 		uaBrowser: string;
 		users: number;
 		percentage: number;
-	}[]
+	}[];
 }
 
 export class AnalyticsMapper {
@@ -144,8 +144,8 @@ export class AnalyticsMapper {
 		data: platformDistTypes;
 		meta: meta;
 	} {
-		const { osStats, browserStats } = data
-		console.log({ browserStats, osStats })
+		const { osStats, browserStats } = data;
+		console.log({ browserStats, osStats });
 		return {
 			projectId,
 			data: {
@@ -158,7 +158,7 @@ export class AnalyticsMapper {
 					uaBrowser: d.ua_browser,
 					users: Number(d.users),
 					percentage: Number(d.percentage),
-				}))
+				})),
 			},
 
 			meta: { ...meta, totals: { osStat: osStats.length, browserStat: browserStats.length } } as unknown as meta,

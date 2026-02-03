@@ -6,15 +6,15 @@ import { generateTokenContainerAccessToken } from "./generateToken.js";
 const buildDispatchUrl = ENVS.BUILD_DISPATCH_URL || "";
 const buildDispatchEventType = "run-build";
 export async function dispatchBuild(deploymentId: string, projectId: string): Promise<void> {
-	const token = generateTokenContainerAccessToken(projectId, deploymentId)
+	const token = generateTokenContainerAccessToken(projectId, deploymentId);
 	const payload = {
 		event_type: buildDispatchEventType,
 		client_payload: {
 			projectId: projectId,
 			deploymentId: deploymentId,
-			serviceToken: token
+			serviceToken: token,
 		},
-	}
+	};
 	const result = await fetch(buildDispatchUrl, {
 		method: "POST",
 		body: JSON.stringify(payload),

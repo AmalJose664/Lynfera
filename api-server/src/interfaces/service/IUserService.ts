@@ -5,8 +5,8 @@ import { Profile } from "passport";
 export interface IUserSerivce {
 	createUser(userData: Partial<IUser>): Promise<IUser>;
 
-	googleLoginStrategy(Profile: Profile): Promise<{ user: IUser, newUser: boolean }>;
-	githubLoginStrategy(profile: Profile): Promise<{ user: IUser, newUser: boolean }>;
+	googleLoginStrategy(Profile: Profile): Promise<{ user: IUser; newUser: boolean }>;
+	githubLoginStrategy(profile: Profile): Promise<{ user: IUser; newUser: boolean }>;
 	updateUser?(userId: string, updateData: Partial<IUser>): Promise<IUser | null>;
 	updateUserProfile?(userId: string): Promise<IUser | null>;
 

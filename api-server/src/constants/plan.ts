@@ -7,10 +7,10 @@ type EachPlanFields = {
 	maxDailyDeployments: number;
 	totalBandwidthGB: number;
 	features?: string[];
-}
+};
 export interface IPlans {
 	FREE: EachPlanFields;
-	PRO: EachPlanFields
+	PRO: EachPlanFields;
 }
 export const PLANS: IPlans = {
 	FREE: {
@@ -21,7 +21,7 @@ export const PLANS: IPlans = {
 		concurrentBuilds: 1,
 		maxDailyDeployments: 18,
 		totalBandwidthGB: 15,
-		features: [] // call as function
+		features: [], // call as function
 	},
 	PRO: {
 		name: "PRO",
@@ -31,6 +31,6 @@ export const PLANS: IPlans = {
 		concurrentBuilds: 3,
 		maxDailyDeployments: 40,
 		totalBandwidthGB: 80,
-		features: [] // call as function
+		features: [], // call as function
 	},
 } as const;

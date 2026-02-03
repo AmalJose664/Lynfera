@@ -19,7 +19,7 @@ const projectRouter = Router();
 
 projectRouter.get("/", authenticateToken, validateQuery(ProjectQuerySchema), projectController.getAllProjects.bind(projectController));
 projectRouter.post("/", authenticateToken, validateBody(CreateProjectSchema), projectController.createProject.bind(projectController));
-projectRouter.get("/total-usage", authenticateToken, projectController.totalUsage.bind(projectController))
+projectRouter.get("/total-usage", authenticateToken, projectController.totalUsage.bind(projectController));
 projectRouter.get(
 	"/subdomain/check",
 	authenticateToken,

@@ -152,7 +152,7 @@ async function getClickhouseData() {
 	// 	query: "TRUNCATE analytics"
 	// })
 }
-getClickhouseData().then(() => process.exit(0))
+getClickhouseData().then(() => process.exit(0));
 async function idChecker() {
 	const obj = new Set();
 	const id = "";

@@ -2,7 +2,6 @@ import { CreateProjectDTO, QueryProjectDTO } from "@/dtos/project.dto.js";
 import { IProject } from "@/models/Projects.js";
 import { DailyDeployments, ProjectUsageResults } from "../repository/IDeploymentRepository.js";
 
-
 export type options = {
 	updateStatusOnlyIfNoCurrentDeployment?: boolean;
 };
@@ -32,10 +31,13 @@ export interface IProjectService {
 		bandwidth: number;
 	}>;
 
-	findTotalUsage(userId: string, months: number): Promise<{
-		projectRslts: ProjectUsageResults[],
-		deploys: DailyDeployments[]
-	}>
+	findTotalUsage(
+		userId: string,
+		months: number,
+	): Promise<{
+		projectRslts: ProjectUsageResults[];
+		deploys: DailyDeployments[];
+	}>;
 
 	__getProjectById(id: string): Promise<IProject | null>;
 	__updateProjectById(projectId: string, updateData: Partial<IProject>, options?: options): Promise<IProject | null>;

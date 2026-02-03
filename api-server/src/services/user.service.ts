@@ -28,7 +28,7 @@ class UserService implements IUserSerivce {
 		return await this.userRepository.createUser(userData);
 	}
 
-	private async oauthLoginStrategy(profile: Profile, provider: AuthProvidersList): Promise<{ user: IUser, newUser: boolean }> {
+	private async oauthLoginStrategy(profile: Profile, provider: AuthProvidersList): Promise<{ user: IUser; newUser: boolean }> {
 		console.log(`${provider} login`);
 
 		const { emails } = profile;
@@ -63,11 +63,11 @@ class UserService implements IUserSerivce {
 		return { user: user as IUser, newUser: false };
 	}
 
-	async googleLoginStrategy(profile: Profile): Promise<{ user: IUser, newUser: boolean }> {
+	async googleLoginStrategy(profile: Profile): Promise<{ user: IUser; newUser: boolean }> {
 		return this.oauthLoginStrategy(profile, AuthProvidersList.GOOGLE);
 	}
 
-	async githubLoginStrategy(profile: Profile): Promise<{ user: IUser, newUser: boolean }> {
+	async githubLoginStrategy(profile: Profile): Promise<{ user: IUser; newUser: boolean }> {
 		return this.oauthLoginStrategy(profile, AuthProvidersList.GITHUB);
 	}
 
@@ -143,29 +143,30 @@ class UserService implements IUserSerivce {
 			throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.BAD_REQUEST);
 		}
 		if (user.lockedUntil && user.lockedUntil > new Date()) {
-			throw new AppError(USER_ERRORS.ACCOUNT_LOCKED, STATUS_CODES.TOO_MANY_REQUESTS)
+			throw new AppError(USER_ERRORS.ACCOUNT_LOCKED, STATUS_CODES.TOO_MANY_REQUESTS);
 		}
-		const password = user.password
+		const password = user.password;
 
 		if (!password) {
-			throw new AppError("Please login via " + Object.values(AuthProvidersList).join(" or "), STATUS_CODES.BAD_REQUEST)
+			throw new AppError("Please login via " + Object.values(AuthProvidersList).join(" or "), STATUS_CODES.BAD_REQUEST);
 		}
 		const isMatch = await compare(data.password, password);
 		if (!isMatch) {
-			const newFailedLogins = (user.lockedUntil && user.lockedUntil.getTime() <= new Date().getTime() && user.failedLogins >= this.maxFailedLoginAttempts)
-				? 1
-				: user.failedLogins + 1;
+			const newFailedLogins =
+				user.lockedUntil && user.lockedUntil.getTime() <= new Date().getTime() && user.failedLogins >= this.maxFailedLoginAttempts
+					? 1
+					: user.failedLogins + 1;
 
 			await this.userRepository.updateUser(user._id, {
 				failedLogins: newFailedLogins,
 				...(newFailedLogins >= this.maxFailedLoginAttempts && {
-					lockedUntil: new Date(Date.now() + 6 * 60 * 1000)
-				})
-			})
+					lockedUntil: new Date(Date.now() + 6 * 60 * 1000),
+				}),
+			});
 			throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.BAD_REQUEST);
 		}
 		if (user.failedLogins > 0) {
-			await this.userRepository.updateUser(user._id, { failedLogins: 0, lockedUntil: null })
+			await this.userRepository.updateUser(user._id, { failedLogins: 0, lockedUntil: null });
 		}
 		if (!user.isVerified) {
 			try {

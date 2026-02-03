@@ -53,8 +53,6 @@ const envSchema = z.object({
 	EMAIL_SENDER_EMAIL: z.email(),
 
 	NOTIFY_EVENTS_API_KEY: z.string(),
-
-
 });
 function validateEnv() {
 	try {

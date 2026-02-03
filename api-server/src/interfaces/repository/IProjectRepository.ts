@@ -10,7 +10,7 @@ export interface IProjectRepository {
 	findProjectsBySubdomain(subdomain: string): Promise<IProject[]>;
 	deleteProject(projectId: string, userId: string): Promise<IProject | null>;
 
-	checkProjectExistBySubdomain(subdomain: string): Promise<{ _id: string } | null>
+	checkProjectExistBySubdomain(subdomain: string): Promise<{ _id: string } | null>;
 
 	updateProject(projectId: string, userId: string, updateData: Partial<IProject>): Promise<IProject | null>;
 	pushToDeployments(prjectId: string, userId: string, newDeployment: string | Types.ObjectId): Promise<IProject | null>;

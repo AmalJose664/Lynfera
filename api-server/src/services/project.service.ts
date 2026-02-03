@@ -19,7 +19,6 @@ import { DeploymentStatus } from "@/models/Deployment.js";
 import { DEPLOYMENT_ERRORS, PROJECT_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 import { ADDITIONAL_RESERVED_SUBDOMAINS, BRAND_PROTECTION_REGEX, RESERVED_SUBDOMAINS } from "@/constants/subdomain.js";
 
-
 class ProjectService implements IProjectService {
 	private projectRepository: IProjectRepository;
 	private deploymentRepository: IDeploymentRepository;
@@ -162,15 +161,15 @@ class ProjectService implements IProjectService {
 		return await this.projectBandwidthRepo.getUserTotalBandwidth(userId);
 	}
 	async checkSubdomainAvaiable(newSubdomain: string): Promise<boolean> {
-		const word = newSubdomain.toLowerCase().trim()
+		const word = newSubdomain.toLowerCase().trim();
 		if (word.includes("--")) {
-			return false
+			return false;
 		}
 		if (BRAND_PROTECTION_REGEX.test(word)) {
-			return false
+			return false;
 		}
 		if (RESERVED_SUBDOMAINS.has(newSubdomain) || ADDITIONAL_RESERVED_SUBDOMAINS.has(newSubdomain)) {
-			return false
+			return false;
 		}
 
 		const anyProjectId = await this.projectRepository.checkProjectExistBySubdomain(newSubdomain);
@@ -271,19 +270,18 @@ class ProjectService implements IProjectService {
 		};
 	}
 
-
-
-
-	async findTotalUsage(userId: string, months: number): Promise<{
-		projectRslts: ProjectUsageResults[],
-		deploys: DailyDeployments[]
+	async findTotalUsage(
+		userId: string,
+		months: number,
+	): Promise<{
+		projectRslts: ProjectUsageResults[];
+		deploys: DailyDeployments[];
 	}> {
 		const [projectsWithResults, deploys] = await Promise.all([
 			this.deploymentRepository.getTotalBuildTime(userId),
-			this.deploymentRepository.getDailyDeployments(userId, Number(months))
-		])
-		return { projectRslts: projectsWithResults, deploys }
-
+			this.deploymentRepository.getDailyDeployments(userId, Number(months)),
+		]);
+		return { projectRslts: projectsWithResults, deploys };
 	}
 
 	async __getProjectById(id: string): Promise<IProject | null> {

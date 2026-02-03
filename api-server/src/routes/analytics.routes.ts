@@ -6,11 +6,12 @@ import { validateQuery } from "@/middlewares/validateRequest.js";
 import { Router } from "express";
 
 const analyticsRouter = Router();
-analyticsRouter.post("/:projectId/clear-data",
+analyticsRouter.post(
+	"/:projectId/clear-data",
 	authenticateToken,
 	validateObjectId("projectId"),
 	analyticsController.clearAnalytics.bind(analyticsController),
-)
+);
 analyticsRouter.get(
 	"/:projectId/bandwidth",
 	authenticateToken,
@@ -39,11 +40,12 @@ analyticsRouter.get(
 	validateQuery(AnalyticsQuerySchema),
 	analyticsController.topPages.bind(analyticsController),
 );
-analyticsRouter.get("/:projectId/platform-stats/",
+analyticsRouter.get(
+	"/:projectId/platform-stats/",
 	authenticateToken,
 	validateObjectId("projectId"),
 	validateQuery(AnalyticsQuerySchema),
-	analyticsController.platformStats.bind(analyticsController)
+	analyticsController.platformStats.bind(analyticsController),
 );
 
 export default analyticsRouter;

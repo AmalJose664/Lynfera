@@ -110,8 +110,6 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 		return result.deletedCount;
 	}
 
-
-
 	async getTotalBuildTime(userId: string): Promise<ProjectUsageResults[]> {
 		const result = Deployment.aggregate([
 			{ $match: { user: new Types.ObjectId(userId) } },
@@ -121,8 +119,8 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 					from: "projects",
 					localField: "_id",
 					foreignField: "_id",
-					as: "project"
-				}
+					as: "project",
+				},
 			},
 			{ $unwind: "$project" },
 			{ $match: { "project.isDeleted": { $ne: true } } },
@@ -131,8 +129,8 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 					from: "projectbandwidths",
 					localField: "_id",
 					foreignField: "project",
-					as: "bws"
-				}
+					as: "bws",
+				},
 			},
 			{ $unwind: "$bws" },
 			{
@@ -145,11 +143,11 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 					bandwidthMontly: "$bws.bandwidthMonthly",
 					bandwidthTotal: "$bws.bandwidthTotal",
 					month: "$bws.currentMonth",
-					_id: 0
-				}
-			}
-		])
-		return result
+					_id: 0,
+				},
+			},
+		]);
+		return result;
 	}
 	async getDailyDeployments(userId: string, months: number): Promise<DailyDeployments[]> {
 		const startDate = new Date(new Date().setMonth(new Date().getMonth() - months));
@@ -161,16 +159,15 @@ class DeploymentRepository extends BaseRepository<IDeployment> implements IDeplo
 					user: new Types.ObjectId(userId),
 					createdAt: {
 						$gte: startDate,
-						$lte: endDate
-					}
-				}
+						$lte: endDate,
+					},
+				},
 			},
 			{ $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } },
-			{ $sort: { _id: 1 } }
-		])
-		return result
+			{ $sort: { _id: 1 } },
+		]);
+		return result;
 	}
-
 
 	async __updateDeployment(projectId: string, deploymentId: string, updateData: Partial<IDeployment>): Promise<IDeployment | null> {
 		return await Deployment.findOneAndUpdate({ project: projectId, _id: deploymentId }, { $set: updateData }, { new: true });

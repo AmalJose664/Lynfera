@@ -18,7 +18,7 @@ class DeploymentEventHandler {
 				...log,
 			});
 		}
-		process.stdout.write(" L ")
+		process.stdout.write(" L ");
 
 		await logsService.__insertLog(log.message, projectId, deploymentId, new Date(log.timestamp), log.level, log.sequence);
 		//stream
@@ -28,7 +28,7 @@ class DeploymentEventHandler {
 		//service call
 		const { data } = event;
 		const { updates, deploymentId, projectId } = data;
-		process.stdout.write(" U ")
+		process.stdout.write(" U ");
 		if (!isRetry) {
 			deploymentEmitter.emitUpdates(deploymentId, {
 				...updates,
@@ -46,8 +46,8 @@ class DeploymentEventHandler {
 					}),
 					projectService.__updateProjectById(projectId, {
 						status: updates.status as unknown as ProjectStatus,
-					})
-				])
+					}),
+				]);
 				break;
 			}
 			case UpdateTypes.END: {
@@ -73,14 +73,14 @@ class DeploymentEventHandler {
 						status: updates.status as unknown as ProjectStatus,
 						techStack: updates.techStack,
 						tempDeployment: null,
-						...((updates.status === "READY" && !updates.preventAutoPromoteDeployment) && { currentDeployment: deploymentId }),
-					})
-				])
+						...(updates.status === "READY" && !updates.preventAutoPromoteDeployment && { currentDeployment: deploymentId }),
+					}),
+				]);
 				break;
 			}
 			case UpdateTypes.ERROR: {
 				await Promise.all([
-					deploymentService.decrementRunningDeplymnts(projectId, updates.user || ''),
+					deploymentService.decrementRunningDeplymnts(projectId, updates.user || ""),
 					deploymentService.__updateDeployment(projectId, deploymentId, {
 						status: updates.status,
 						error_message: updates.error_message,
@@ -93,12 +93,12 @@ class DeploymentEventHandler {
 							tempDeployment: null,
 						},
 						{ updateStatusOnlyIfNoCurrentDeployment: true },
-					)
-				])
+					),
+				]);
 				break;
 			}
 			case UpdateTypes.CUSTOM: {
-				updates
+				updates;
 				await Promise.all([
 					deploymentService.__updateDeployment(projectId, deploymentId, {
 						status: updates.status,

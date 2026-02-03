@@ -68,21 +68,23 @@ export const fillEmptyQueries = (range?: string, interval?: string) => {
 };
 
 export function validateFreeAnalyticsParams(params: QueryOptions, range: string | undefined, interval?: string | undefined) {
-	const allowed = !params.interval ? true : FREE_ALLOWED_COMBINATIONS.some(
-		(rule) =>
-			rule.interval === params.interval &&
-			rule.intervalUnit === params.intervalUnit &&
-			rule.range === params.range &&
-			rule.rangeUnit === params.rangeUnit,
-	);
+	const allowed = !params.interval
+		? true
+		: FREE_ALLOWED_COMBINATIONS.some(
+				(rule) =>
+					rule.interval === params.interval &&
+					rule.intervalUnit === params.intervalUnit &&
+					rule.range === params.range &&
+					rule.rangeUnit === params.rangeUnit,
+			);
 	if (params.range === 1 && params.rangeUnit === "MONTH") {
-		throw new AppError(`More interval and range requires Pro plan  => [Range = ${range}] ${interval ? ', [Interval = ${interval}]' : ''}`, 400);
+		throw new AppError(`More interval and range requires Pro plan  => [Range = ${range}] ${interval ? ", [Interval = ${interval}]" : ""}`, 400);
 	}
 	if ((params.range === 7 || params.range === 30) && params.rangeUnit === "DAY") {
-		throw new AppError(`More interval and range requires Pro plan  => [Range = ${range}] ${interval ? ', [Interval = ${interval}]' : ''}`, 400);
+		throw new AppError(`More interval and range requires Pro plan  => [Range = ${range}] ${interval ? ", [Interval = ${interval}]" : ""}`, 400);
 	}
 
 	if (!allowed) {
-		throw new AppError(`Advanced analytics require Pro plan  => [Range = ${range}], ${interval ? ', [Interval = ${interval}]' : ''}`, 400);
+		throw new AppError(`Advanced analytics require Pro plan  => [Range = ${range}], ${interval ? ", [Interval = ${interval}]" : ""}`, 400);
 	}
 }

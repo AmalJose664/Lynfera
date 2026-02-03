@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import { Profile, VerifyCallback } from "passport-google-oauth20";
 import jwt from "jsonwebtoken";
 
-
 import { ENVS } from "@/config/env.config.js";
 import AppError from "@/utils/AppError.js";
 import { issueAuthAccessCookies, issueAuthRefreshCookies } from "@/utils/authUtils.js";
@@ -18,7 +17,6 @@ import { notify } from "@/utils/notifyOnSignup.js";
 
 const OTP_COOKIE = "otp_Cookie";
 
-
 export const oAuthLoginCallback = (req: Request, res: Response, next: NextFunction) => {
 	try {
 		if (!req.user) {
@@ -29,7 +27,11 @@ export const oAuthLoginCallback = (req: Request, res: Response, next: NextFuncti
 		const frontend = ENVS.FRONTEND_URL + FRONTEND_REDIRECT_PATH + ((req.user as any).newUser ? "?newuser=true" : "");
 		// console.log({ frontend, user: req.user })
 		if ((req.user as any).newUser) {
-			notify((req.user as any).nameString.split("%-%")[0], (req.user as any).nameString.split("%-%")[1], req.socket.remoteAddress || req.ip || "")
+			notify(
+				(req.user as any).nameString.split("%-%")[0],
+				(req.user as any).nameString.split("%-%")[1],
+				req.socket.remoteAddress || req.ip || "",
+			);
 		}
 		res.redirect(frontend);
 	} catch (error) {
@@ -44,7 +46,8 @@ export const googleLoginStrategy = async (accessToken: string, refreshToken: str
 		const doneUser = {
 			id: user._id,
 			plan: user.plan,
-			newUser, nameString: `${user.name}%-%${user.email}`
+			newUser,
+			nameString: `${user.name}%-%${user.email}`,
 		};
 		done(null, doneUser);
 	} catch (error) {
@@ -59,7 +62,7 @@ export const githubLoginStrategy = async (accessToken: string, refreshToken: str
 		const doneUser = {
 			id: user._id,
 			plan: user.plan,
-			newUser
+			newUser,
 		};
 		done(null, doneUser);
 	} catch (error) {
@@ -88,24 +91,27 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 		const hoursLeft = (expiresAt - now) / (1000 * 60 * 60);
 
 		if (hoursLeft < 6 && hoursLeft > 0) {
-			console.log("refreshing refresh token also")
-			issueAuthRefreshCookies(res, { id: user._id, plan: user.plan }, { currentRefresh: decoded.crntRfrshCount + 1, originalIssuedAt: decoded.oIAT })
+			console.log("refreshing refresh token also");
+			issueAuthRefreshCookies(
+				res,
+				{ id: user._id, plan: user.plan },
+				{ currentRefresh: decoded.crntRfrshCount + 1, originalIssuedAt: decoded.oIAT },
+			);
 		}
 		issueAuthAccessCookies(res, { id: user._id, plan: user.plan });
 		return res.status(STATUS_CODES.OK).json({ ok: true });
-
 	} catch (error) {
 		if (error instanceof AppError) {
-			next(error)
-			return
+			next(error);
+			return;
 		}
 		if (error instanceof Error) {
-			if (error.name === 'TokenExpiredError') {
+			if (error.name === "TokenExpiredError") {
 				next(new AppError(USER_ERRORS.REFRESH_TOKEN_EXPIRED, STATUS_CODES.UNAUTHORIZED, error));
 				return;
 			}
 
-			if (error.name === 'JsonWebTokenError') {
+			if (error.name === "JsonWebTokenError") {
 				next(new AppError(USER_ERRORS.INVALID_TOKEN, STATUS_CODES.UNAUTHORIZED, error));
 				return;
 			}
@@ -202,10 +208,14 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
 			if (user) {
 				const response = UserMapper.toUserResponse(user);
 				issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan });
-				issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan }, { currentRefresh: 0, originalIssuedAt: Date.now() });
+				issueAuthRefreshCookies(
+					res,
+					{ id: response.user._id, plan: response.user.plan },
+					{ currentRefresh: 0, originalIssuedAt: Date.now() },
+				);
 				res.clearCookie(OTP_COOKIE);
 				res.status(STATUS_CODES.OK).json({ message: "OTP Verified succesfully", user: response.user });
-				notify(user.name, user.email, req.socket.remoteAddress || req.ip || "")
+				notify(user.name, user.email, req.socket.remoteAddress || req.ip || "");
 				return;
 			}
 		}

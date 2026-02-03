@@ -3,17 +3,17 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { ENVS } from "@/config/env.config.js";
 import AppError from "./AppError.js";
 export interface RefreshTokenOptions {
-	currentRefresh?: number,
-	originalIssuedAt: number,
+	currentRefresh?: number;
+	originalIssuedAt: number;
 }
 export type TokenType = JwtPayload & {
-	id: string,
-	plan: string,
-}
+	id: string;
+	plan: string;
+};
 export type RefresheTokenType = TokenType & {
-	crntRfrshCount: number,
-	oIAT: number
-}
+	crntRfrshCount: number;
+	oIAT: number;
+};
 export const generateAccessToken = (user: Express.User | undefined) => {
 	if (!user) {
 		throw new Error("Error creating token");
@@ -41,7 +41,7 @@ export const generateRefreshToken = (user: Express.User | undefined, refreshToke
 			id: user?.id,
 			plan: user?.plan,
 			crntRfrshCount: refreshTokenOptions.currentRefresh,
-			oIAT: refreshTokenOptions.originalIssuedAt
+			oIAT: refreshTokenOptions.originalIssuedAt,
 		},
 		ENVS.REFRESH_TOKEN_SECRET as string,
 		{ expiresIn: "1d" },
@@ -64,18 +64,17 @@ export const generateOtpToken = (userId: string) => {
 	return token;
 };
 
-
 export function generateTokenContainerAccessToken(projectId: string, deploymentId: string) {
 	return jwt.sign(
 		{
 			sub: "build-container",
 			pId: projectId,
-			dId: deploymentId
+			dId: deploymentId,
 		},
 		ENVS.SERVICE_JWT_SECRET,
 		{
 			algorithm: "HS256",
-			expiresIn: "8m"
-		}
+			expiresIn: "8m",
+		},
 	);
 }

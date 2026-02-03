@@ -39,7 +39,7 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 		return await Project.find({ subdomain, isDeleted: false }); //
 	}
 	async checkProjectExistBySubdomain(subdomain: string): Promise<{ _id: string } | null> {
-		return Project.exists({ subdomain, isDeleted: false });  //
+		return Project.exists({ subdomain, isDeleted: false }); //
 	}
 
 	async getAllProjects(userId: string, options: QueryProjectDTO & { fields?: string[] }): Promise<{ projects: IProject[]; total: number }> {
@@ -70,11 +70,10 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 		return await Project.findOneAndUpdate({ _id: projectId, user: userId, isDeleted: false }, { isDeleted: true }, { new: true });
 	}
 	async updateProject(projectId: string, userId: string, updateData: Partial<IProject>): Promise<IProject | null> {
-		return await Project.findOneAndUpdate(
-			{ _id: projectId, user: userId },
-			{ $set: { ...updateData } },
-			{ new: true, },
-		).select([...projectUpdateFieldsString, "subdomain"]);
+		return await Project.findOneAndUpdate({ _id: projectId, user: userId }, { $set: { ...updateData } }, { new: true }).select([
+			...projectUpdateFieldsString,
+			"subdomain",
+		]);
 	}
 
 	async pushToDeployments(projectId: string, userId: string, newDeployment: string | Types.ObjectId): Promise<IProject | null> {
@@ -87,7 +86,7 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 				status: ProjectStatus.QUEUED,
 				$addToSet: { deployments: newDeployment },
 			},
-			{ new: true, },
+			{ new: true },
 		).select(projectUpdateFieldsString);
 	}
 
@@ -103,7 +102,7 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 				currentDeployment: backUpDeployment,
 				$pull: { deployments: deployment },
 			},
-			{ new: true, }
+			{ new: true },
 		).select(projectUpdateFieldsString);
 	}
 
@@ -113,7 +112,7 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 	}
 	async __updateProject(projectId: string, updateData: Partial<IProject>): Promise<IProject | null> {
 		// container
-		return await Project.findOneAndUpdate({ _id: projectId }, { $set: { ...updateData } }, { new: true, }).select(projectUpdateFieldsString);
+		return await Project.findOneAndUpdate({ _id: projectId }, { $set: { ...updateData } }, { new: true }).select(projectUpdateFieldsString);
 	}
 }
 export default ProjectRepository;

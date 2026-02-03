@@ -59,7 +59,6 @@ class PaymentService implements IPaymentService {
 			throw new AppError(PAYMENT_ERRORS.NOT_FOUND, STATUS_CODES.CONFLICT);
 		}
 		const result = await stripe.subscriptions.cancel(user.payment?.subscriptionId as string);
-
 	}
 	async retriveSession(
 		userId: string,
@@ -70,9 +69,9 @@ class PaymentService implements IPaymentService {
 		currency: string | null;
 		amountPaid?: number;
 		paymentStatus: string;
-		user: IUser | null
+		user: IUser | null;
 	}> {
-		const [session, user] = await Promise.all([stripe.checkout.sessions.retrieve(sessionId), this.userRepo.findByUserId(userId)])
+		const [session, user] = await Promise.all([stripe.checkout.sessions.retrieve(sessionId), this.userRepo.findByUserId(userId)]);
 
 		return {
 			valid: session.payment_status === "paid",
@@ -80,7 +79,7 @@ class PaymentService implements IPaymentService {
 			...(session.amount_total && { amountPaid: session.amount_total / 100 }),
 			currency: session.currency,
 			paymentStatus: session.payment_status,
-			user
+			user,
 		};
 	}
 

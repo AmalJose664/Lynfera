@@ -36,8 +36,8 @@ class DeploymentService implements IDeploymentService {
 	private redisCache: IRedisCache;
 	private logsService: ILogsService;
 
-	private USER_CONCURRENCY_KEY_PREFIX = "build:cncrncy"
-	private USER_CONCURRENCY_TTL_SECONDS = 60 * 10
+	private USER_CONCURRENCY_KEY_PREFIX = "build:cncrncy";
+	private USER_CONCURRENCY_TTL_SECONDS = 60 * 10;
 
 	constructor(
 		deploymentRepo: IDeploymentRepository,
@@ -280,30 +280,29 @@ class DeploymentService implements IDeploymentService {
 			await this.redisCache.setRemove(this.DEPLOYMENTS_SET_KEY, projectId);
 			throw new AppError(DEPLOYMENT_ERRORS.BUSY_RUNNERS, STATUS_CODES.SERVICE_UNAVAILABLE);
 		}
-		const key = `${this.USER_CONCURRENCY_KEY_PREFIX}:${userId}`
-		const current = await this.redisCache.incrementKey(key)
+		const key = `${this.USER_CONCURRENCY_KEY_PREFIX}:${userId}`;
+		const current = await this.redisCache.incrementKey(key);
 
 		if (current === 1) {
 			await this.redisCache.setKeyExpiry(key, this.USER_CONCURRENCY_TTL_SECONDS);
 		}
-		if (Number(current) > PLANS[userPlan as IUser['plan']].concurrentBuilds) {
-			await this.redisCache.decrementKey(key)
+		if (Number(current) > PLANS[userPlan as IUser["plan"]].concurrentBuilds) {
+			await this.redisCache.decrementKey(key);
 			throw new AppError(DEPLOYMENT_ERRORS.CONCURRENT_LIMIT, STATUS_CODES.SERVICE_UNAVAILABLE);
 		}
 	}
 	async decrementRunningDeplymnts(projectId: string, userId?: string): Promise<void> {
-		let project = null
+		let project = null;
 		if (!userId) {
-			project = await this.projectRepository.__findProject(projectId)
+			project = await this.projectRepository.__findProject(projectId);
 		}
-		const fetchedUserId = project?.user.toString()
+		const fetchedUserId = project?.user.toString();
 		await Promise.all([
 			this.redisCache.setRemove(this.DEPLOYMENTS_SET_KEY, projectId),
 			...(userId
 				? [this.redisCache.decrementKey(`${this.USER_CONCURRENCY_KEY_PREFIX}:${userId}`)]
-				: [this.redisCache.decrementKey(`${this.USER_CONCURRENCY_KEY_PREFIX}:${fetchedUserId}`)]
-			)
-		])
+				: [this.redisCache.decrementKey(`${this.USER_CONCURRENCY_KEY_PREFIX}:${fetchedUserId}`)]),
+		]);
 	}
 
 	async __getDeploymentById(id: string): Promise<IDeployment | null> {

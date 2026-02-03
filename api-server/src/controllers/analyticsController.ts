@@ -14,10 +14,10 @@ class AnalyticsController implements IAnalyticsController {
 	async clearAnalytics(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const { projectId } = req.params;
-			await this.analyticsService.clearAnalytics(projectId)
-			res.status(STATUS_CODES.NO_CONTENT).json({ ok: true })
+			await this.analyticsService.clearAnalytics(projectId);
+			res.status(STATUS_CODES.NO_CONTENT).json({ ok: true });
 		} catch (error) {
-			next(error)
+			next(error);
 		}
 	}
 	async bandWidth(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -26,7 +26,10 @@ class AnalyticsController implements IAnalyticsController {
 		const userPlan = req.user?.plan as string;
 
 		try {
-			const [data, queryOptions] = await this.analyticsService.getBandwidthData(projectId, userPlan, { range: range as string, interval: interval as string });
+			const [data, queryOptions] = await this.analyticsService.getBandwidthData(projectId, userPlan, {
+				range: range as string,
+				interval: interval as string,
+			});
 			const response = AnalyticsMapper.bandwidthResponseDTO(data, projectId, queryOptions);
 
 			res.json(response);
@@ -40,7 +43,10 @@ class AnalyticsController implements IAnalyticsController {
 		const { range, interval } = req.validatedQuery as AnalyticsQueryDTO;
 		const userPlan = req.user?.plan as string;
 		try {
-			const [data, queryOptions] = await this.analyticsService.getOverView(projectId, userPlan, { range: range as string, interval: interval as string, });
+			const [data, queryOptions] = await this.analyticsService.getOverView(projectId, userPlan, {
+				range: range as string,
+				interval: interval as string,
+			});
 			const response = AnalyticsMapper.overviewResponse(data, projectId, queryOptions);
 
 			res.json(response);
@@ -68,7 +74,10 @@ class AnalyticsController implements IAnalyticsController {
 		const { range, limit } = req.validatedQuery as AnalyticsQueryDTO;
 		const userPlan = req.user?.plan as string;
 		try {
-			const [data, queryOptions] = await this.analyticsService.getTopPages(projectId, userPlan, { range: range as string, limit: Number(limit || 30) });
+			const [data, queryOptions] = await this.analyticsService.getTopPages(projectId, userPlan, {
+				range: range as string,
+				limit: Number(limit || 30),
+			});
 			const response = AnalyticsMapper.topPagesResponse(data, projectId, queryOptions);
 
 			res.json(response);
@@ -83,7 +92,10 @@ class AnalyticsController implements IAnalyticsController {
 		const userPlan = req.user?.plan as string;
 
 		try {
-			const [data, queryOptions] = await this.analyticsService.getPlatformStats(projectId, userPlan, { range: range as string, limit: Number(limit || 30) });
+			const [data, queryOptions] = await this.analyticsService.getPlatformStats(projectId, userPlan, {
+				range: range as string,
+				limit: Number(limit || 30),
+			});
 			const response = AnalyticsMapper.platformResponse(data, projectId, queryOptions);
 
 			res.json(response);

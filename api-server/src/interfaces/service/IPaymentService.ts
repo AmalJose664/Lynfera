@@ -18,7 +18,7 @@ export interface IPaymentService {
 		currency: string | null;
 		amountPaid?: number;
 		paymentStatus: string;
-		user: IUser | null
+		user: IUser | null;
 	}>;
 	handleSubscriptionCreate(event: Stripe.Event): Promise<void>;
 	handleSubscriptionDeleted(event: Stripe.Event): Promise<void>;

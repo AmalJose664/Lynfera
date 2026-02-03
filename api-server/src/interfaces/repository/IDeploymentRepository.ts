@@ -8,12 +8,16 @@ export type DeploymentDbOptions = {
 };
 
 export type ProjectUsageResults = {
-	projectId: string, deploys: number, projectName: string,
-	total_build: number, isDeleted: boolean,
-	bandwidthMontly: number, bandwidthTotal: number,
-	month: string
-}
-export type DailyDeployments = { _id: string, count: number }
+	projectId: string;
+	deploys: number;
+	projectName: string;
+	total_build: number;
+	isDeleted: boolean;
+	bandwidthMontly: number;
+	bandwidthTotal: number;
+	month: string;
+};
+export type DailyDeployments = { _id: string; count: number };
 export interface IDeploymentRepository {
 	createDeployment(deploymentData: Partial<IDeployment>): Promise<IDeployment | null>;
 	findDeploymentById(id: string, userId: string, options?: DeploymentDbOptions): Promise<IDeployment | null>;
@@ -32,8 +36,8 @@ export interface IDeploymentRepository {
 
 	deleteDeployment(projectId: string, deploymentId: string, userId: string): Promise<number>;
 
-	getTotalBuildTime(userId: string): Promise<ProjectUsageResults[]>
-	getDailyDeployments(userId: string, months: number): Promise<DailyDeployments[]>
+	getTotalBuildTime(userId: string): Promise<ProjectUsageResults[]>;
+	getDailyDeployments(userId: string, months: number): Promise<DailyDeployments[]>;
 
 	__findDeployment(id: string): Promise<IDeployment | null>;
 

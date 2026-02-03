@@ -36,6 +36,6 @@ export interface IDeploymentService {
 	deleteLocal(deploymentId: string, projectId: string): Promise<void>;
 	deleteCloud(deploymentId: string, projectId: string): Promise<void>;
 
-	incrementRunningDeplymnts(projectId: string, userId: string, userPlan: string): Promise<void>
-	decrementRunningDeplymnts(projectId: string, userId?: string): Promise<void>
+	incrementRunningDeplymnts(projectId: string, userId: string, userPlan: string): Promise<void>;
+	decrementRunningDeplymnts(projectId: string, userId?: string): Promise<void>;
 }

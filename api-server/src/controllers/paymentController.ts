@@ -40,7 +40,7 @@ class PaymentController implements IPaymentController {
 			const userId = req.user?.id as string;
 			await this.paymentService.handleCancelSubscription(userId);
 			issueAuthAccessCookies(res, { id: userId, plan: PLANS.FREE.name });
-			issueAuthRefreshCookies(res, { id: userId, plan: PLANS.FREE.name }, {originalIssuedAt:Date.now(), currentRefresh: 1});
+			issueAuthRefreshCookies(res, { id: userId, plan: PLANS.FREE.name }, { originalIssuedAt: Date.now(), currentRefresh: 1 });
 			res.status(STATUS_CODES.OK).json({
 				message: PAYMENT_ERRORS.SUBSCRIPTION_CANCELLED,
 				status: true,
@@ -68,9 +68,9 @@ class PaymentController implements IPaymentController {
 			const sessionId = req.query.session_id;
 			const userId = req.user?.id as string;
 			const result = await this.paymentService.retriveSession(userId, sessionId as string);
-			const { user } = result
-			issueAuthAccessCookies(res, { id: userId, plan: user?.plan as string })
-			issueAuthRefreshCookies(res, { id: userId, plan: user?.plan as string }, { originalIssuedAt: Date.now(), currentRefresh: 1 })
+			const { user } = result;
+			issueAuthAccessCookies(res, { id: userId, plan: user?.plan as string });
+			issueAuthRefreshCookies(res, { id: userId, plan: user?.plan as string }, { originalIssuedAt: Date.now(), currentRefresh: 1 });
 			res.status(200).json({
 				valid: result.valid,
 				customerName: result.customerName,
@@ -78,8 +78,6 @@ class PaymentController implements IPaymentController {
 				amountPaid: result.amountPaid,
 				paymentStatus: result.paymentStatus,
 			});
-
-
 		} catch (err) {
 			const error = err as Stripe.errors.StripeError;
 			if (error.type === "StripeInvalidRequestError") {

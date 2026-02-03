@@ -128,9 +128,7 @@ class ProjectController implements IProjectController {
 		try {
 			const userId = req.user?.id as string;
 			const dto = req.validatedBody as UpdateSubdomainDTO;
-			const updatedProject = await this.projectService.changeProjectSubdomain(userId, dto.projectId,
-				dto.newSubdomain.toLowerCase()
-			);
+			const updatedProject = await this.projectService.changeProjectSubdomain(userId, dto.projectId, dto.newSubdomain.toLowerCase());
 			if (!updatedProject) {
 				res.status(STATUS_CODES.NOT_FOUND).json({ project: null });
 				return;
@@ -185,7 +183,6 @@ class ProjectController implements IProjectController {
 
 			const result = await this.projectService.deleteProject(projectId, userId);
 
-
 			res.status(STATUS_CODES.NO_CONTENT).json({ deleted: result });
 		} catch (err) {
 			next(err);
@@ -194,9 +191,9 @@ class ProjectController implements IProjectController {
 	async totalUsage(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const userId = req.user?.id as string;
-			const noOfmonthsData = 1
-			const results = await this.projectService.findTotalUsage(userId, noOfmonthsData)
-			const data = ProjectMapper.toUsageMapper(results.projectRslts, results.deploys, noOfmonthsData)
+			const noOfmonthsData = 1;
+			const results = await this.projectService.findTotalUsage(userId, noOfmonthsData);
+			const data = ProjectMapper.toUsageMapper(results.projectRslts, results.deploys, noOfmonthsData);
 			res.status(STATUS_CODES.OK).json(data);
 		} catch (error) {
 			next(error);

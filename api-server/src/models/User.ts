@@ -25,7 +25,7 @@ export interface IUser extends Document {
 	currentDate: string;
 	stripeCustomerId?: string;
 	lockedUntil: Date | null;
-	failedLogins: number
+	failedLogins: number;
 	payment: {
 		subscriptionId: string | null;
 		subscriptionStatus: SubscriptionStatus;

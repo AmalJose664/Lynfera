@@ -59,11 +59,11 @@ export class ProjectMapper {
 				subdomain: project.subdomain,
 				user: this.isPopulatedObject(project.user, ["profileImage", "email", "name"])
 					? {
-						_id: project.user._id,
-						name: project.user.name,
-						email: project.user.email,
-						profileImage: project.user.profileImage,
-					}
+							_id: project.user._id,
+							name: project.user.name,
+							email: project.user.email,
+							profileImage: project.user.profileImage,
+						}
 					: project.user.toString(),
 				deployments: project.deployments?.map((d) => d.toString()),
 				lastDeployedAt: project.lastDeployedAt,
@@ -82,11 +82,11 @@ export class ProjectMapper {
 				subdomain: project.subdomain,
 				user: this.isPopulatedObject(project.user, ["profileImage", "email", "name"])
 					? {
-						_id: project.user._id,
-						name: project.user.name,
-						email: project.user.email,
-						profileImage: project.user.profileImage,
-					}
+							_id: project.user._id,
+							name: project.user.name,
+							email: project.user.email,
+							profileImage: project.user.profileImage,
+						}
 					: project.user.toString(),
 				buildCommand: project.buildCommand,
 				env: project.env.map((e) => ({ name: e.name, value: e.value })),
@@ -131,11 +131,11 @@ export class ProjectMapper {
 				rewriteNonFilePaths: project.rewriteNonFilePaths,
 				user: this.isPopulatedObject(project.user, ["profileImage", "email", "name"])
 					? {
-						_id: project.user._id,
-						name: project.user.name,
-						email: project.user.email,
-						profileImage: project.user.profileImage,
-					}
+							_id: project.user._id,
+							name: project.user.name,
+							email: project.user.email,
+							profileImage: project.user.profileImage,
+						}
 					: project.user.toString(),
 				deployments: project.deployments?.map((d) => d.toString()),
 				lastDeployedAt: project.lastDeployedAt,
@@ -167,21 +167,27 @@ export class ProjectMapper {
 		};
 	}
 
-	static toUsageMapper(projectData: ProjectUsageResults[], deploys: DailyDeployments[], months: number): {
+	static toUsageMapper(
+		projectData: ProjectUsageResults[],
+		deploys: DailyDeployments[],
+		months: number,
+	): {
 		projects: {
-			projectId: string, deploys: number, projectName: string,
-			total_build: number, bandwidthMontly: number, bandwidthTotal: number,
-			month: string
-		}[],
+			projectId: string;
+			deploys: number;
+			projectName: string;
+			total_build: number;
+			bandwidthMontly: number;
+			bandwidthTotal: number;
+			month: string;
+		}[];
 		deploys: {
-			_id: string,
-			count: number
-		}[]
+			_id: string;
+			count: number;
+		}[];
 	} {
-
-
 		const dataMap = new Map<string, number>(deploys.map((d) => [d._id, d.count]));
-		const result: { _id: string, count: number }[] = [];
+		const result: { _id: string; count: number }[] = [];
 		const days = months * 31;
 		for (let i = days; i >= 0; i--) {
 			const date = new Date();
@@ -190,25 +196,26 @@ export class ProjectMapper {
 
 			result.push({
 				_id: dateStr,
-				count: dataMap.get(dateStr) || 0
-			})
-
+				count: dataMap.get(dateStr) || 0,
+			});
 		}
 		return {
-			projects: projectData.map((p) => {
-				if (p.isDeleted) return null
-				return {
-					bandwidthMontly: Number(p.bandwidthMontly),
-					bandwidthTotal: Number(p.bandwidthTotal),
-					total_build: Number(p.total_build),
-					projectId: p.projectId.toString(),
-					projectName: p.projectName,
-					deploys: Number(p.deploys),
-					month: p.month
-				}
-			}).filter((p) => !!p),
-			deploys: result
-		}
+			projects: projectData
+				.map((p) => {
+					if (p.isDeleted) return null;
+					return {
+						bandwidthMontly: Number(p.bandwidthMontly),
+						bandwidthTotal: Number(p.bandwidthTotal),
+						total_build: Number(p.total_build),
+						projectId: p.projectId.toString(),
+						projectName: p.projectName,
+						deploys: Number(p.deploys),
+						month: p.month,
+					};
+				})
+				.filter((p) => !!p),
+			deploys: result,
+		};
 	}
 	static isPopulatedObject(object: any, fields: string[]): boolean {
 		return object && fields.every((f) => f in object);

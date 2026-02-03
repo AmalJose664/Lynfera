@@ -30,8 +30,8 @@ class AnalyticsRepository implements IAnalyticsRepository {
 	async clearProjectAnalytics(projectId: string): Promise<void> {
 		await this.client.query({
 			query: `ALTER TABLE analytics DELETE WHERE project_id = {projectId:String}`,
-			query_params: { projectId }
-		})
+			query_params: { projectId },
+		});
 	}
 	async getBandwidth(projectId: string, queryOptions: QueryOptions): Promise<unknown[]> {
 		const result = await this.client.query({
