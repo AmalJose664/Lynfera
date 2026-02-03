@@ -16,7 +16,7 @@ RUN npm ci --only=production
 
 COPY --from=builder /app/dist ./dist
 
-qEXPOSE 8000
+EXPOSE 8000
 CMD ["node", "dist/server.js"]
 
 
