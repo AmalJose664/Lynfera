@@ -63,3 +63,19 @@ export const generateOtpToken = (userId: string) => {
 	);
 	return token;
 };
+
+
+export function generateTokenContainerAccessToken(projectId: string, deploymentId: string) {
+	return jwt.sign(
+		{
+			sub: "build-container",
+			pId: projectId,
+			dId: deploymentId
+		},
+		ENVS.SERVICE_JWT_SECRET,
+		{
+			algorithm: "HS256",
+			expiresIn: "8m"
+		}
+	);
+}
