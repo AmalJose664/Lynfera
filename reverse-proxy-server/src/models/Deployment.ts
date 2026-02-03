@@ -22,7 +22,6 @@ enum EnvsAvailable {
 }
 
 export interface IDeployment extends Document {
-	_id: string;
 	project: Types.ObjectId;
 	commit_hash: string;
 	publicId: string;

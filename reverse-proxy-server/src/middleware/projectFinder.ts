@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express";
-import { IProject } from "../models/Project.js";
 import { projectService } from "../service/project.service.js";
 import AppError from "../utils/AppError.js";
 import { breaker } from "../utils/CircuitBreaker.js";
@@ -8,13 +7,14 @@ import path from "path";
 import { deploymentService } from "../service/deployment.service.js";
 import { ownDomain, subdomainDelimeter } from "../constants/paths.js";
 import { cookieOptions } from "../constants/cookieContanst.js";
+import { ProjectRefined } from "../interfaces/service/IProjectService.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 declare global {
 	namespace Express {
 		interface Request {
-			project?: IProject;
+			project?: ProjectRefined;
 			startTime?: number;
 			isManualDeployment: boolean;
 			manualDeploymentId?: string
@@ -22,7 +22,7 @@ declare global {
 	}
 }
 export type RequestWithProject = Request & {
-	project?: IProject;
+	project?: ProjectRefined;
 	startTime?: number
 }
 

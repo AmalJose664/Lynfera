@@ -1,6 +1,6 @@
 import NodeCache from "node-cache";
 import { IProjectRepo } from "../interfaces/repository/IProjectRepo.js";
-import { IProjectService } from "../interfaces/service/IProjectService.js";
+import { IProjectService, ProjectRefined } from "../interfaces/service/IProjectService.js";
 import { IProject, ProjectStatus, User } from "../models/Project.js";
 import { projectRepo } from "../repository/project.repo.js";
 import AppError from "../utils/AppError.js";
@@ -9,6 +9,7 @@ import { projectBandwidthRepo } from "../repository/projectBandwidth.repo.js";
 import { IPlans, PLANS } from "../constants/plan.js";
 import { redisService } from "../cache/redis.js";
 import { IRedisCache } from "../interfaces/cache/IRedis.js";
+
 
 // ←
 class ProjectService implements IProjectService {
@@ -23,11 +24,11 @@ class ProjectService implements IProjectService {
 		this.redisCache = redisCache
 	}
 
-	async findProjectBySlug(slug: string): Promise<IProject | null> {
-		const dataFromCache = this.projectCache.get(slug) || null
+	async findProjectBySlug(slug: string): Promise<ProjectRefined | null> {
+		const dataFromCache = this.projectCache.get<ProjectRefined>(slug) || null
 
 		if (dataFromCache) {
-			return dataFromCache as IProject
+			return dataFromCache
 		}
 		const project = await this.projectRepository.getProjectBySlugWithUser(slug)
 		if (!project) {
@@ -40,7 +41,7 @@ class ProjectService implements IProjectService {
 			throw new AppError("Limit exceed on bandwidth", 403)
 		}
 
-		const projectRefined = {
+		const projectRefined: ProjectRefined = {
 			_id: project._id.toString(),
 			subdomain: project.subdomain,
 			currentDeployment: project?.currentDeployment,
@@ -51,10 +52,10 @@ class ProjectService implements IProjectService {
 		}
 		if ((project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED) && project.tempDeployment) {
 			this.projectCache.set(slug, projectRefined, 50)
-			return projectRefined as IProject
+			return projectRefined;
 		}
 		this.projectCache.set(slug, projectRefined)
-		return projectRefined as IProject
+		return projectRefined;
 	}
 	invalidateSlug(slug: string): boolean {
 		return Boolean(this.projectCache.del(slug))

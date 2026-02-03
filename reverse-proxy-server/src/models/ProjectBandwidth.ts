@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface IProjectBandwiths extends Document {
-	_id: string;
 	user: Types.ObjectId;
 	project: Types.ObjectId;
 	currentMonth: string;

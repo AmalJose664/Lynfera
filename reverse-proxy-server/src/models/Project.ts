@@ -13,7 +13,6 @@ export enum ProjectStatus {
 	CANCELED = "CANCELLED",
 }
 export interface IProject extends Document {
-	_id: string;
 	user: Types.ObjectId;
 	name: string;
 	repoURL: string;
@@ -78,7 +77,6 @@ export const Project = mongoose.model<IProject>("Project", projectSchema);
 
 
 export interface IUser extends Document {
-	_id: string;
 	name: string;
 	email: string;
 	profileImage: string;
