@@ -55,6 +55,7 @@
 		"@types/passport-jwt": "^4.0.1",
 		"@types/pg": "^8.15.5",
 		"prettier": "^3.6.2",
+		"tsc-alias": "^1.8.16",
 		"typescript": "^5.9.3"
 	}
 }
