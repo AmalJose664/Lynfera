@@ -14,6 +14,7 @@ import { generateOtpToken, RefresheTokenType } from "@/utils/generateToken.js";
 import { accessCookieConfig } from "@/config/cookie.config.js";
 import { COMMON_ERRORS, OTP_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 import { FRONTEND_REDIRECT_PATH } from "@/constants/paths.js";
+import { notify } from "@/utils/notifyOnSignup.js";
 
 const OTP_COOKIE = "otp_Cookie";
 
@@ -27,6 +28,9 @@ export const oAuthLoginCallback = (req: Request, res: Response, next: NextFuncti
 		issueAuthRefreshCookies(res, { id: req.user.id, plan: req.user.plan }, { currentRefresh: 0, originalIssuedAt: Date.now() });
 		const frontend = ENVS.FRONTEND_URL + FRONTEND_REDIRECT_PATH + ((req.user as any).newUser ? "?newuser=true" : "");
 		// console.log({ frontend, user: req.user })
+		if ((req.user as any).newUser) {
+			notify((req.user as any).nameString.split("%-%")[0], (req.user as any).nameString.split("%-%")[1], req.socket.remoteAddress || req.ip || "")
+		}
 		res.redirect(frontend);
 	} catch (error) {
 		next(new AppError(USER_ERRORS.CALLBACK_ERROR, STATUS_CODES.INTERNAL_SERVER_ERROR, error));
@@ -40,7 +44,7 @@ export const googleLoginStrategy = async (accessToken: string, refreshToken: str
 		const doneUser = {
 			id: user._id,
 			plan: user.plan,
-			newUser
+			newUser, nameString: `${user.name}%-%${user.email}`
 		};
 		done(null, doneUser);
 	} catch (error) {
@@ -201,6 +205,7 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
 				issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan }, { currentRefresh: 0, originalIssuedAt: Date.now() });
 				res.clearCookie(OTP_COOKIE);
 				res.status(STATUS_CODES.OK).json({ message: "OTP Verified succesfully", user: response.user });
+				notify(user.name, user.email, req.socket.remoteAddress || req.ip || "")
 				return;
 			}
 		}
