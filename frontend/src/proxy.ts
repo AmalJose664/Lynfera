@@ -5,17 +5,26 @@ import type { NextRequest } from "next/server"
 const protectedRoutes = ["/projects", "/login/success", "/deployments", "/resources", "/user", "/new", "/user/plan", "/payment-success"]
 const exemptAfterAuthRoutes = ["/login", "/signup"]
 
+function extractCookieValue(cookieHeader: string, name: string): string | undefined {
+	const match = cookieHeader.match(new RegExp(`(^| )${name}=([^;]+)`))
+	return match ? match[2] : undefined
+}
 export async function proxy(req: NextRequest) {
 	const path = req.nextUrl.pathname
 	const cookies = req.cookies
 	const accessToken = cookies.get("access_token")?.value
 	const refreshToken = cookies.get("refresh_token")?.value
 
-	console.log("API Endpoint:", process.env.NEXT_PUBLIC_API_SERVER_ENDPOINT)
-	console.log("Path:", path)
-	console.log("Access Token exists:", !!accessToken)
-	console.log("Refresh Token exists:", !!refreshToken)
+	const cookieHeader = req.headers.get('cookie') || ''
+	const accessTokenL = req.cookies.get("access_token")?.value ||
+		extractCookieValue(cookieHeader, "access_token")
+	const refreshTokenL = req.cookies.get("refresh_token")?.value ||
+		extractCookieValue(cookieHeader, "refresh_token")
 
+
+	console.log("Cookie header:", cookieHeader)
+	console.log("Access token:", accessTokenL ? "EXISTS" : "MISSING")
+	console.log("Refresh token:", refreshTokenL ? "EXISTS" : "MISSING")
 	if (exemptAfterAuthRoutes.includes(path)) {
 		if (accessToken && refreshToken) {
 			return NextResponse.redirect(new URL("/", req.url))
