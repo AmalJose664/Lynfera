@@ -11,6 +11,11 @@ export async function proxy(req: NextRequest) {
 	const accessToken = cookies.get("access_token")?.value
 	const refreshToken = cookies.get("refresh_token")?.value
 
+	console.log("API Endpoint:", process.env.NEXT_PUBLIC_API_SERVER_ENDPOINT)
+	console.log("Path:", path)
+	console.log("Access Token exists:", !!accessToken)
+	console.log("Refresh Token exists:", !!refreshToken)
+
 	if (exemptAfterAuthRoutes.includes(path)) {
 		if (accessToken && refreshToken) {
 			return NextResponse.redirect(new URL("/", req.url))
