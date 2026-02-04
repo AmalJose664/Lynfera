@@ -11,13 +11,15 @@ RUN npm run build
 FROM node:18-alpine
 WORKDIR /app
 
+
 COPY package*.json ./
-RUN npm ci --only=production
+ENV NODE_ENV=production
+RUN npm ci --omit=dev
 
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 8000
-CMD ["node", "dist/server.js"]
+CMD ["npm", "run", "start"]
 
 
 
