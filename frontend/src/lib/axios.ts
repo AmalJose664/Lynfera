@@ -1,8 +1,8 @@
 
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 
 const axiosInstance = axios.create({
-	baseURL: process.env.NEXT_PUBLIC_API_SERVER_ENDPOINT,
+	baseURL: "/api", //process.env.NEXT_PUBLIC_API_SERVER_ENDPOINT,
 	timeout: 10000,
 	withCredentials: true,
 });
@@ -28,14 +28,23 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 // 	await new Promise((res) => setTimeout(res, 2000)) // delay for loading animation
 // 	return config
 // })
+export interface RetryConfig extends AxiosRequestConfig {
+	retry: number;
+	retryDelay: number;
+}
 
+export const globalConfig: RetryConfig = {
+	retry: 2,
+	retryDelay: 1000,
+};
 axiosInstance.interceptors.response.use((response) => response,
 	async (error) => {
-		if (!error.response) {
-			return Promise.reject(error)
-		}
+		const status = error.response?.status;
+		const method = (error.config.method || "get").toLowerCase();
+
+		const shouldRetry = method === "get" && (!error.response || status >= 500 || status === 429);
 		const originalRequest = error.config;
-		if (error.response.status === 401 && !originalRequest._retry) {
+		if (status === 401 && !originalRequest._retry) {
 			if (isRefreshing) {
 
 				return new Promise((resolve, reject) => {
@@ -72,6 +81,24 @@ axiosInstance.interceptors.response.use((response) => response,
 				return Promise.reject(refreshError);
 			}
 		}
+		if (!shouldRetry) {
+			return Promise.reject(error);
+		}
+		if (!originalRequest || !originalRequest.retry) {
+			return Promise.reject(error);
+		}
+		console.log("Error, Retrying request " + originalRequest.url)
+
+		let retryAfterMs = originalRequest.retryDelay || 1000;
+
+		originalRequest.retry -= 1
+		const delayRetryRequest = new Promise<void>((resolve) => {
+			setTimeout(() => {
+				console.log("retry the request", originalRequest.url);
+				resolve()
+			}, retryAfterMs)
+		})
+		return delayRetryRequest.then(() => axiosInstance(originalRequest))
 		return Promise.reject(error)
 	}
 )
