@@ -12,7 +12,8 @@ export async function proxy(req: NextRequest) {
 	const refreshToken = cookies.get("refresh_token")?.value
 
 	console.log("API Endpoint:", process.env.NEXT_PUBLIC_API_SERVER_ENDPOINT)
-	console.log("Path:", path)
+	console.log("Path:", path, cookies)
+	console.log("Cookiess =========>>>", cookies)
 	console.log("Access Token exists:", !!accessToken)
 	console.log("Refresh Token exists:", !!refreshToken)
 
