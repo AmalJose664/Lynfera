@@ -193,7 +193,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 				httpOnly: true,
 				secure: true,
 				sameSite: true ? "none" : "lax",
-				maxAge: 2 * 60 * 60 * 1000, domain: "app.lynfera.qzz.io"
+				maxAge: 24 * 60 * 60 * 1000, domain: ".lynfera.qzz.io"
 			});
 			res.status(STATUS_CODES.OK).json({ loginSuccess: true, user: response.user });
 			return;
