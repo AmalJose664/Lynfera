@@ -2,7 +2,7 @@
 import axios, { AxiosRequestConfig } from "axios";
 
 const axiosInstance = axios.create({
-	baseURL: "/api", //process.env.NEXT_PUBLIC_API_SERVER_ENDPOINT,
+	baseURL: process.env.NEXT_PUBLIC_API_SERVER_ENDPOINT,
 	timeout: 10000,
 	withCredentials: true,
 });
