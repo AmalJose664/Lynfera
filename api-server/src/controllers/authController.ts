@@ -189,6 +189,12 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 			}
 			issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan });
 			issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan }, { currentRefresh: 0, originalIssuedAt: Date.now() });
+			res.cookie("is_auth", "true", {
+				httpOnly: true,
+				secure: true,
+				sameSite: true ? "none" : "lax",
+				maxAge: 2 * 60 * 60 * 1000, domain: "app.lynfera.qzz.io"
+			});
 			res.status(STATUS_CODES.OK).json({ loginSuccess: true, user: response.user });
 			return;
 		}
