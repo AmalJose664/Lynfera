@@ -156,10 +156,6 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 		} catch (error: any) {
 			console.log("Error!", error)
 			setError(error.response.data.message)
-			if (error.status === 409) {
-				return showToast.error('Signup failed;', error.response.data.message)
-			}
-			showToast.error('Signup failed', error.response.data.message)
 		}
 	}
 	return (
@@ -178,7 +174,7 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 					<div className="mt-2">
 						<label htmlFor="" className="text-sm">Name</label>
 						<Input {...register("name")} placeholder="Oliver Jhonson" className="mt-1 mb-3" />
-						{errors.email && <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>}
+						{errors.name && <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>}
 					</div>
 
 					<div className="mt-2">
@@ -187,12 +183,6 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 						{errors.email && <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>}
 					</div>
 
-
-					<div className="">
-						{error && <div className="mt-2">
-							<p className="text-sm text-red-400">{error}</p>
-						</div>}
-					</div>
 
 					<div className="mt-2">
 						<label htmlFor="" className="text-sm">Password</label>
@@ -204,6 +194,12 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 							}
 						</div>
 						{errors.password && <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>}
+					</div>
+
+					<div className="">
+						{error && <div className="mt-2">
+							<p className="text-sm text-red-400">{error}</p>
+						</div>}
 					</div>
 
 

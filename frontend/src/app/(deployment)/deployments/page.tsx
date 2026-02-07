@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar"
 import AllDeployments from "./AllDeployments"
 import { SITE_NAME } from "@/config/constants";
+import EnsureAuth from "@/components/EnsureAuth";
 
 export const metadata = {
 	title: "Deployments | " + SITE_NAME,
@@ -12,7 +13,9 @@ const page = () => {
 	return (
 		<div>
 			<Navbar className="" />
-			<AllDeployments />
+			<EnsureAuth>
+				<AllDeployments />
+			</EnsureAuth>
 		</div>
 	)
 }

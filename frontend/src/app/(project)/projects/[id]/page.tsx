@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar"
 import { ProjectPageContainer } from "./ProjectPageContainer"
+import EnsureAuth from "@/components/EnsureAuth";
 
 export default async function Page({
 	params, searchParams
@@ -13,9 +14,11 @@ export default async function Page({
 		<div className="min-h-screen flex flex-col overflow-x-clip">
 
 			<Navbar className="" />
-			<main className="flex-1">
-				<ProjectPageContainer projectId={id as string} tab={filteredTab as string} />
-			</main>
+			<EnsureAuth>
+				<main className="flex-1">
+					<ProjectPageContainer projectId={id as string} tab={filteredTab as string} />
+				</main>
+			</EnsureAuth>
 		</div>
 	)
 }

@@ -80,6 +80,7 @@ const page = () => {
 						<div className="px-4 py-4">
 							<div>
 								<h2 className="text-xl font-semibold">Security Warning</h2>
+								<p className="text-sm mt-4 text-primary"> {SITE_NAME} does not encrypt environment variables, since anything exposed to the frontend can be accessed by anyone.</p>
 								<p className="text-sm mt-4 text-primary ">Never store sensitive secrets (like private Database Passwords or Secret API Keys) in Lynfera environment variables. Because these are bundled into the frontend, <strong>anyone can view them</strong> by inspecting your site's source code in the browser.</p>
 							</div>
 						</div>
@@ -91,7 +92,7 @@ const page = () => {
 						User-Configurable Environment Variables
 					</h2>
 					<p className="mb-6 text-less">
-						{SITE_NAME} allows you to define environment variables that customize how your service is built and deployed.
+						{SITE_NAME} allows you to define environment variables that customize how your code is built and deployed.
 					</p>
 					<p className="mb-6 text-less">
 						These variables are injected into the build container at build time and can be used to control build behavior, feature flags, or environment-specific settings.

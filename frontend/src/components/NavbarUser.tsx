@@ -26,16 +26,19 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet"
 import { avatarBgFromName } from "@/lib/moreUtils/combined"
-
+import { deleteCookie } from "cookies-next/client"
 
 
 
 const NavbarUser = ({ showOtherLinks }: { showOtherLinks?: boolean }) => {
-	const { data: user } = useGetUserQuery()
+
+	const hasCookie = typeof window !== 'undefined' && window.document.cookie.includes('is_Authenticated')
+	const { data: user } = useGetUserQuery(undefined, { skip: !hasCookie })
 	const [logout] = useLogoutMutation()
 	const isDesktop = useIsDesktop();
 	const router = useRouter()
 	const logoutAndRedirect = () => {
+		deleteCookie("Is_Authenticated_Client",)
 		logout()
 		router.push("/login")
 	}
@@ -183,11 +186,15 @@ const NavbarUser = ({ showOtherLinks }: { showOtherLinks?: boolean }) => {
 							<RxExternalLink />
 						</Link>
 					</DropdownMenuItem>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={() => logoutAndRedirect()}>
-						Log out
 
-					</DropdownMenuItem>
+					{user && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem onClick={() => logoutAndRedirect()}>
+								Log out
+							</DropdownMenuItem>
+						</>
+					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
 		</div>

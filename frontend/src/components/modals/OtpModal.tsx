@@ -17,6 +17,7 @@ import axiosInstance from "@/lib/axios"
 
 import { useRouter } from "next/navigation"
 import { showToast } from "../Toasts"
+import { brandingAsciiArt } from "@/config/brandingText"
 const OtpModal = ({ userEmail, setShowOtpForm, showOtpForm }: { userEmail: string, showOtpForm: boolean, setShowOtpForm: Dispatch<SetStateAction<boolean>> }) => {
 	const [otp, setOtp] = useState<string>("");
 	const resentSeconds = 50
@@ -66,6 +67,7 @@ const OtpModal = ({ userEmail, setShowOtpForm, showOtpForm }: { userEmail: strin
 				localStorage.setItem("provider_last_used", "EMAIL")
 				router.push("/auth/success?newuser=true")
 				console.clear()
+				console.log(brandingAsciiArt)
 			}
 		} catch (error: any) {
 			showToast.error("Error ", error.response.data.message)

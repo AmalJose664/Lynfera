@@ -21,7 +21,6 @@ import { FiGithub } from "react-icons/fi";
 
 
 export default function ProjectContent() {
-
 	const router = useRouter()
 	const [projectSeachState, setProjectSearchState] = useState("")
 	const [projectFilter, setProjectsFilter] = useState<{ key: keyof Project, value: string | boolean } | null>(null)

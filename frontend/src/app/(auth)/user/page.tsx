@@ -1,5 +1,6 @@
 import { SITE_NAME } from "@/config/constants";
 import ProfileContent from "./ProfileContent"
+import EnsureAuth from "@/components/EnsureAuth";
 export const metadata = {
 	title: "User | " + SITE_NAME,
 	description:
@@ -7,7 +8,9 @@ export const metadata = {
 };
 const page = () => {
 	return (
-		<ProfileContent />
+		<EnsureAuth >
+			<ProfileContent />
+		</EnsureAuth>
 	)
 }
 export default page

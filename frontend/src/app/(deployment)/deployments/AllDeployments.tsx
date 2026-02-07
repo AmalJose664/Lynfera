@@ -18,6 +18,7 @@ import { LoadingSpinner2, LoadingSpinner3, } from "@/components/LoadingSpinner";
 import { IoClipboardOutline, } from "react-icons/io5"
 import { useGetUserQuery } from "@/store/services/authApi"
 
+
 const RandomAdBoxes = lazy(() => import("@/app/(deployment)/deployments/RandomAdBoxes"));
 
 const AllDeployments = () => {
@@ -61,7 +62,7 @@ const AllDeployments = () => {
 
 
 	return (
-		<div className="min-h-screen bg-linear-to-br from-background to-slate-100 dark:from-background dark:to-neutral-900">
+		<div className="min-h-screen bg-linear-to-br from-background to-slate-100 dark:from-background via-background dark:to-neutral-900">
 			<div className="max-w-[1400px] mx-auto px-6  rounded-md py-4">
 				<h1 className="text-xl font-semibold text-primary flex gap-2 mb-4 items-center">
 					All Deployments  <IoMdCloudDone />

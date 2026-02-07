@@ -4,31 +4,40 @@ import RightFadeComponent from "@/components/RightFadeComponent"
 import axiosInstance from "@/lib/axios"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-
+import { setCookie } from "cookies-next/client"
+import { authApi } from "@/store/services/authApi"
+import { useAppDispatch } from "@/store/store"
 
 const AuthSuccessComp = () => {
 	const router = useRouter()
 	const params = useSearchParams()
 	const [code, setCode] = useState<string | null>("STANDBY")
 	const isNewUser = params.get("newuser") === "true";
+	const dispatch = useAppDispatch()
 	useEffect(() => {
 		const verifyLogin = async () => {
 			try {
 				const codeFromStorage = localStorage.getItem("session_code")
 				if (codeFromStorage) {
-					router.push("/projects")
+					await new Promise((res) => setTimeout(res, 1100))
 					setCode(codeFromStorage)
-
+					await new Promise((res) => setTimeout(res, 1100))
+					router.push("/projects")
 					return
 				} else {
-					setCode(null)
+					setCode("SEARCHING")
 				}
 				await axiosInstance.get("/auth");
-				localStorage.setItem("session_code", Math.random().toString(36).slice(2, 12))
-				await new Promise((res) => setTimeout(res, 1000))
+				localStorage.setItem("session_code", "SESSION_FOUND__" + Math.random().toString(36).slice(2, 12))
+				setCookie("Is_Authenticated_Client", "true", { maxAge: 60 * 60 * 6, httpOnly: false })
+				setCode("ACQUIRED")
+				dispatch(authApi.util.resetApiState())
+				await new Promise((res) => setTimeout(res, 1100))
 				router.push("/projects");
 			} catch (error) {
-				console.error("User not authenticated", error);
+				setCode("NO_AUTH");
+				console.log("User not authenticated", error);
+				await new Promise((res) => setTimeout(res, 1100))
 				router.push("/login");
 			}
 		};
@@ -39,30 +48,40 @@ const AuthSuccessComp = () => {
 			<BackgroundPattern className="opacity-100 absolute top-10/12 " />
 			<div className="flex  flex-col items-center gap-6 text-center absolute top-10/12 mt-60">
 				<LoadingSpinner size="md" className="duration-300" />
-				{code === "STANDBY" && (
+				{(code === "STANDBY" || code === "SEARCHING") && (
 					<h3 className="max-w-prose ">
 						Loading....
 					</h3>
 				)}
-				{(code && code !== "STANDBY") && (
+				{code === "NO_AUTH" && (
+					<RightFadeComponent>
+						<h3 className="max-w-prose ">
+							Not Logged In
+						</h3>
+						<p className="text-base/7 text-less max-w-prose ">
+							Redirecting to /login ...
+						</p>
+					</RightFadeComponent>
+				)}
+				{(code && code.startsWith("SESSION")) && (
 					<RightFadeComponent>
 						<p className="text-base/7 text-less max-w-prose ">
 							Redirecting...
 						</p>
 					</RightFadeComponent>
 				)}
-				{!code && <>
+				{code && code === "ACQUIRED" && (<>
 					<RightFadeComponent>
 						<h1 >Loading your account...</h1>
 						<p className="text-base/7 text-less max-w-prose ">
 							{isNewUser ? "Just a moment while we set things up for you." : "Logging into your account."}
 						</p>
 					</RightFadeComponent>
-				</>
+				</>)
 				}
 
 			</div>
-		</div>
+		</div >
 	)
 }
 

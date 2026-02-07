@@ -43,6 +43,7 @@ import { useRouter } from "next/navigation";
 import { BsArrowUpCircle } from "react-icons/bs";
 import ChangeDeploymentModal from "@/components/modals/ChangeDeployment";
 import DeleteDeploymentModal from "@/components/modals/DeleteDeployment";
+import useAuth from "@/hooks/useAuth";
 
 
 const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => {

@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar"
 import ProjectContent from "./ProjectsPageContent"
 import { SITE_NAME } from "@/config/constants";
+import EnsureAuth from "@/components/EnsureAuth";
 export const metadata = {
 	title: "Projects | " + SITE_NAME,
 	description:
@@ -10,7 +11,9 @@ const page = () => {
 	return (
 		<div>
 			<Navbar className="" />
-			<ProjectContent />
+			<EnsureAuth>
+				<ProjectContent />
+			</EnsureAuth>
 		</div>
 	)
 }

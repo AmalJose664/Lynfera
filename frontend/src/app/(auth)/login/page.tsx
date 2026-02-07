@@ -23,6 +23,7 @@ import axiosInstance from "@/lib/axios";
 import OtpModal from "@/components/modals/OtpModal";
 import { showToast } from "@/components/Toasts";
 import { LinkComponent } from "@/components/docs/HelperComponents";
+import { brandingAsciiArt } from "@/config/brandingText";
 
 
 export default function LoginPage() {
@@ -161,6 +162,7 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 				localStorage.setItem("provider_last_used", "EMAIL")
 				router.push("/auth/success")
 				console.clear()
+				console.log(brandingAsciiArt)
 			}
 
 
@@ -172,10 +174,6 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 				requiredVerification.current = true
 				return
 			}
-			if (error.status === 400) {
-				return showToast.error('Login Failed', ' Invalid input')
-			}
-			showToast.error('Login Failed', 'Error on login')
 		}
 	}
 	return (

@@ -2,6 +2,7 @@
 import { redirect } from "next/navigation";
 
 import PaymentSuccess from "@/app/(marketing)/payment-success/PaymentSuccess";
+import EnsureAuth from "@/components/EnsureAuth";
 export const metadata = {
 	title: "Payment Verfiy",
 	description:
@@ -14,5 +15,7 @@ export default async function SuccessPage({ searchParams }: any) {
 		redirect("/");
 	}
 
-	return <PaymentSuccess sessionId={sessionId} />;
+	return <EnsureAuth>
+		<PaymentSuccess sessionId={sessionId} />
+	</EnsureAuth>
 }

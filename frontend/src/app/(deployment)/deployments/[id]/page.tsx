@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar"
 import DeploymentPageContainer from "./DeploymentPageContainer";
+import EnsureAuth from "@/components/EnsureAuth";
 
 export default async function Page({
 	params, searchParams
@@ -13,9 +14,11 @@ export default async function Page({
 		<div className="min-h-screen flex flex-col">
 
 			<Navbar className="" />
-			<main className="flex-1">
-				<DeploymentPageContainer deploymentId={id} />
-			</main>
+			<EnsureAuth>
+				<main className="flex-1">
+					<DeploymentPageContainer deploymentId={id} />
+				</main>
+			</EnsureAuth>
 		</div>
 	)
 }
