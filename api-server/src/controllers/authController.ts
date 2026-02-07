@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 import { ENVS } from "@/config/env.config.js";
 import AppError from "@/utils/AppError.js";
-import { issueAuthAccessCookies, issueAuthRefreshCookies } from "@/utils/authUtils.js";
+import { issueAuthAccessCookies, issueAuthRefreshCookies, issueOtherCookies } from "@/utils/authUtils.js";
 import { userService } from "@/instances.js";
 import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { UserMapper } from "@/mappers/userMapper.js";
@@ -24,6 +24,7 @@ export const oAuthLoginCallback = (req: Request, res: Response, next: NextFuncti
 		}
 		issueAuthAccessCookies(res, { id: req.user.id, plan: req.user.plan });
 		issueAuthRefreshCookies(res, { id: req.user.id, plan: req.user.plan }, { currentRefresh: 0, originalIssuedAt: Date.now() });
+		issueOtherCookies(res)
 		const frontend = ENVS.FRONTEND_URL + FRONTEND_REDIRECT_PATH + ((req.user as any).newUser ? "?newuser=true" : "");
 		// console.log({ frontend, user: req.user })
 		if ((req.user as any).newUser) {
@@ -99,6 +100,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 			);
 		}
 		issueAuthAccessCookies(res, { id: user._id, plan: user.plan });
+		issueOtherCookies(res)
 		return res.status(STATUS_CODES.OK).json({ ok: true });
 	} catch (error) {
 		if (error instanceof AppError) {
@@ -132,6 +134,7 @@ export const verifyAuth = (req: Request, res: Response) => {
 export const userLogout = (req: Request, res: Response) => {
 	res.clearCookie("refresh_token");
 	res.clearCookie("access_token");
+	res.clearCookie("is_Authenticated");
 	res.status(STATUS_CODES.OK).json({ message: "user logged out" });
 };
 
@@ -189,12 +192,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 			}
 			issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan });
 			issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan }, { currentRefresh: 0, originalIssuedAt: Date.now() });
-			res.cookie("is_auth", "true", {
-				httpOnly: true,
-				secure: true,
-				sameSite: true ? "none" : "lax",
-				maxAge: 24 * 60 * 60 * 1000, domain: ".lynfera.qzz.io"
-			});
+			issueOtherCookies(res)
 			res.status(STATUS_CODES.OK).json({ loginSuccess: true, user: response.user });
 			return;
 		}
@@ -219,6 +217,7 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
 					{ id: response.user._id, plan: response.user.plan },
 					{ currentRefresh: 0, originalIssuedAt: Date.now() },
 				);
+				issueOtherCookies(res)
 				res.clearCookie(OTP_COOKIE);
 				res.status(STATUS_CODES.OK).json({ message: "OTP Verified succesfully", user: response.user });
 				notify(user.name, user.email, req.socket.remoteAddress || req.ip || "");

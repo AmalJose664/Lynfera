@@ -11,3 +11,7 @@ export function issueAuthRefreshCookies(res: Response, user: Request["user"], re
 	const refreshToken = generateRefreshToken(user, refreshTokenOptions);
 	res.cookie("refresh_token", refreshToken, { ...refreshCookieConfig });
 }
+export function issueOtherCookies(res: Response) {
+
+	res.cookie("is_Authenticated", "true", { ...accessCookieConfig, httpOnly: false, maxAge: 6 * 60 * 60 * 1000, });
+}
