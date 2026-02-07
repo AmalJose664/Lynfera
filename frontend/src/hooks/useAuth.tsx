@@ -10,10 +10,12 @@ const useAuth = () => {
 	const { data, isLoading, error, isError } = useGetUserQuery(undefined, { skip: !hasCookie, })
 	useEffect(() => {
 		if (!hasCookie) {
+			console.log("Re directing you no cookie",)
 			router.replace("/login")
 			return
 		}
 		if (!isLoading && (!data)) {
+			console.log("Re directing you no data", !data, !isLoading, error)
 			router.replace("/login")
 		}
 	}, [data, isLoading, error])
