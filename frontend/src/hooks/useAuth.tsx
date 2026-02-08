@@ -5,7 +5,7 @@ import { useEffect } from "react"
 
 const useAuth = () => {
 	const router = useRouter()
-	const hasCookie = typeof window !== 'undefined' && window.document.cookie.includes('is_Authenticated')
+	const hasCookie = typeof window !== 'undefined' && window.document.cookie.includes('Is_Authenticated_Client')
 
 	const { data, isLoading, error, isError } = useGetUserQuery(undefined, { skip: !hasCookie, })
 	useEffect(() => {

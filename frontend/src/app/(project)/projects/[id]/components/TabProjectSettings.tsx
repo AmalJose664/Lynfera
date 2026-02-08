@@ -230,7 +230,7 @@ const Configurations = ({ project, form, isUpdateMode, setIsUpdateMode }: { proj
 								transition={{ duration: 0.3, ease: "easeInOut" }}
 								className="flex gap-2 flex-col p-3">
 								<div className="px-2">
-									<label htmlFor="">Base Directory</label>
+									<label htmlFor="">Root Directory</label>
 									<Input {...register("rootDir")} />
 									{errors.rootDir && <p className="text-sm text-red-500 mt-1">{errors.rootDir.message}</p>}
 								</div>
@@ -257,7 +257,7 @@ const Configurations = ({ project, form, isUpdateMode, setIsUpdateMode }: { proj
 									{errors.buildCommand && <p className="text-sm text-red-500 mt-1">{errors.buildCommand.message}</p>}
 								</div>
 								<div className="px-2">
-									<label htmlFor="">Outputs Directory</label>
+									<label htmlFor="">Output Directory</label>
 									<Input {...register("outputDirectory")} />
 									{errors.outputDirectory && <p className="text-sm text-red-500 mt-1">{errors.outputDirectory.message}</p>}
 								</div>
@@ -276,7 +276,7 @@ const Configurations = ({ project, form, isUpdateMode, setIsUpdateMode }: { proj
 								<div className="w-full overflow-hidden">
 									<div className="bg-white dark:bg-transparent rounded-lg shadow-sm border">
 										<div className="">
-											<DetailRow label="Base Directory" value={rootDir} />
+											<DetailRow label="Root Directory" value={rootDir} />
 											<DetailRow label="Build command" value={buildCommand} />
 											<DetailRow label="Install command" value={installCommand} />
 											{rootDir === "/" ? (<DetailRow label="Outputs Directory" value={outputDirectory} />) : (

@@ -150,7 +150,7 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 		},
 		resolver: zodResolver(LoginSchema)
 	})
-	const { register, handleSubmit, formState: { errors, isSubmitting } } = form
+	const { register, handleSubmit, formState: { errors, isSubmitting, isSubmitSuccessful } } = form
 	const email = form.getValues("email")
 	const router = useRouter()
 	const requiredVerification = useRef(false)
@@ -230,7 +230,7 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 							<MdOutlineEmail className='mr-2 text-primary dark:group-hover:text-black group-hover:text-white' />
 							<span className="text-primary text-sm dark:group-hover:text-black group-hover:text-white"
 							>
-								{isSubmitting ? "Loading..." : "Log In"}</span>
+								{(isSubmitting || isSubmitSuccessful) ? "Loading..." : "Log In"}</span>
 						</button>
 					</div>
 

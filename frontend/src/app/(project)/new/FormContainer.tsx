@@ -48,7 +48,7 @@ function ProjectForm() {
 		watch
 	} = form
 	const { errors,
-		isSubmitting,
+		isSubmitting, isSubmitSuccessful
 	} = formState
 
 	const repoUrl = watch("repoURL")
@@ -126,7 +126,7 @@ function ProjectForm() {
 						<div className="mb-4">
 							<button
 								type="submit"
-								disabled={isSubmitting}
+								disabled={isSubmitting || isSubmitSuccessful}
 								className="disabled:cursor-not-allowed! w-full dark:bg-background bg-white  py-2 hover:bg-neutral-800 hover:text-white hover:dark:bg-neutral-200 hover:dark:text-black rounded font-semibold border !duration-100 transition"
 							>
 								{(isSubmitting || isLoading) ? "Loading..." : "Deploy"}

@@ -32,7 +32,7 @@ import { deleteCookie } from "cookies-next/client"
 
 const NavbarUser = ({ showOtherLinks }: { showOtherLinks?: boolean }) => {
 
-	const hasCookie = typeof window !== 'undefined' && window.document.cookie.includes('is_Authenticated')
+	const hasCookie = typeof window !== 'undefined' && window.document.cookie.includes('Is_Authenticated_Client')
 	const { data: user } = useGetUserQuery(undefined, { skip: !hasCookie })
 	const [logout] = useLogoutMutation()
 	const isDesktop = useIsDesktop();

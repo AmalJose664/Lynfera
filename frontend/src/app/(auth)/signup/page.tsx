@@ -141,7 +141,7 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 		},
 		resolver: zodResolver(SignUpSchema)
 	})
-	const { register, handleSubmit, formState: { errors, isSubmitting } } = form
+	const { register, handleSubmit, formState: { errors, isSubmitting, isSubmitSuccessful } } = form
 	const email = form.getValues("email")
 	const showOtpModalButn = useRef(false)
 	const onSubmit = async (data: SignUpUserType) => {
@@ -222,7 +222,7 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 							<MdOutlineEmail className='mr-2 text-primary dark:group-hover:text-black group-hover:text-white' />
 							<span className="text-primary text-sm dark:group-hover:text-black group-hover:text-white"
 							>
-								{isSubmitting ? "Loading..." : "Sign Up"}</span>
+								{(isSubmitting || isSubmitSuccessful) ? "Loading..." : "Sign Up"}</span>
 						</button>
 					</div>
 				</form>

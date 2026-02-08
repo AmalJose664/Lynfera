@@ -1,5 +1,6 @@
 
 import axios, { AxiosRequestConfig } from "axios";
+import { setCookie } from "cookies-next/client";
 
 const axiosInstance = axios.create({
 	baseURL: process.env.NEXT_PUBLIC_API_SERVER_ENDPOINT,
@@ -64,7 +65,7 @@ axiosInstance.interceptors.response.use((response) => response,
 				const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_SERVER_ENDPOINT}/auth/refresh`,
 					null,
 					{ withCredentials: true })
-
+				setCookie("Is_Authenticated_Client", "true", { maxAge: 60 * 60 * 6, httpOnly: false })
 				processQueue(null, data.accessToken)
 				isRefreshing = false
 
