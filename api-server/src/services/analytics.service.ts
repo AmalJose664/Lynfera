@@ -31,7 +31,7 @@ class AnalyticsService implements IAnalyticsService {
 		}, this.FLUSH_INTERVAL);
 	}
 	async saveBatch(): Promise<void> {
-		console.log("saving ....", this.analyticsBuffer.length);
+		console.log("saving ....", this.analyticsBuffer.length, this.analyticsBuffer[0].project_id, this.analyticsBuffer[0].path);
 		if (this.isFlushing || this.analyticsBuffer.length === 0) {
 			console.log("returning ...");
 			return;
@@ -40,8 +40,7 @@ class AnalyticsService implements IAnalyticsService {
 		this.isFlushing = true;
 		const batch = this.analyticsBuffer.splice(0, this.BATCH_SIZE * 3);
 		try {
-			// await this.analyticsRepo.insertBatch(batch);
-			await new Promise((res) => setTimeout(res, 1000));
+			await this.analyticsRepo.insertBatch(batch);
 			console.log(`Saved ${batch.length} analytics `);
 		} catch (error) {
 			console.error("save analytics error:", error, "Discarding data");

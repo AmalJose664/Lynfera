@@ -15,14 +15,15 @@ export const authenticaContainerToken = (req: Request, res: Response, next: Next
 		}
 
 		const decoded = jwt.verify(serviceToken, ENVS.SERVICE_JWT_SECRET) as { pId: string; dId: string };
-		console.log(decoded);
+		// console.log(decoded);
 		const server_token = ENVS.CONTAINER_API_TOKEN;
 		if (containerToken !== server_token) {
-			console.log("Invalid container token", containerToken, server_token, containerToken === server_token);
+			console.log("Invalid container token");
 			return res.status(STATUS_CODES.UNAUTHORIZED).json({ message: USER_ERRORS.INVALID_TOKEN, resource: "Container token" });
 		}
-	} catch (error) {
-		next(new AppError("Error while verifying token", 401));
+	} catch (error: any) {
+		console.log("JWT decode error")
+		next(new AppError(error.message, 401));
 		return;
 	}
 	next();

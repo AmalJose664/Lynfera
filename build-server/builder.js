@@ -1096,9 +1096,11 @@ async function init() {
 		const installCommand = "install";
 		const buildCommand = projectData.buildCommand || "build";
 
-
+		const relativeOutput = projectData.outputDirectory || "dist";
+		const nestedOutputPath = path.join(projectData.rootDir || "", relativeOutput);
 		const runDirDisplay = path.join(taskDir, projectData.rootDir); // to display in logs
-		const cleanedPaths = validateDirectories(taskDir, projectData.rootDir, projectData.outputDirectory || "dist");
+
+		const cleanedPaths = validateDirectories(taskDir, projectData.rootDir, nestedOutputPath);
 		const outputFilesDirDisplay = projectData.outputDirectory; // to display in logs
 		const runDir = cleanedPaths.sourceDir;
 		const distFolderPath = cleanedPaths.outputDir;
