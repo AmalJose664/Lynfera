@@ -29,10 +29,11 @@ import { showToast } from './Toasts';
 interface LogsComponentProps {
 	deploymentId: string,
 	refetch: () => void,
+	scrollToBottom?: boolean
 	deploymentSpecificLogs?: Log[]
 }
 
-export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComponentProps) {
+export function Logs({ deploymentId, refetch, scrollToBottom, deploymentSpecificLogs }: LogsComponentProps) {
 	const dispatch = useDispatch()
 
 	const logs = useSelector((state: RootState) => state.logs)
@@ -233,6 +234,7 @@ export function Logs({ deploymentId, refetch, deploymentSpecificLogs }: LogsComp
 										rowCount={filteredLogs.length}
 										rowHeight={24}
 										rowRenderer={rowRenderer}
+										scrollToIndex={scrollToBottom ? filteredLogs.length - 1 : 0}
 										overscanRowCount={10} className='logs-container-build'
 									/>
 								)}

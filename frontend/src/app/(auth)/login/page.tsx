@@ -18,12 +18,9 @@ import { LoginSchema, LoginUserType } from "@/lib/schema/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import axiosInstance from "@/lib/axios";
 import OtpModal from "@/components/modals/OtpModal";
-import { showToast } from "@/components/Toasts";
 import { LinkComponent } from "@/components/docs/HelperComponents";
-import { brandingAsciiArt } from "@/config/brandingText";
 
 
 export default function LoginPage() {
@@ -152,7 +149,6 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 	})
 	const { register, handleSubmit, formState: { errors, isSubmitting, isSubmitSuccessful } } = form
 	const email = form.getValues("email")
-	const router = useRouter()
 	const requiredVerification = useRef(false)
 	const onSubmit = async (data: LoginUserType) => {
 		try {
@@ -160,9 +156,7 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 			setError(null)
 			if (result.data.loginSuccess) {
 				localStorage.setItem("provider_last_used", "EMAIL")
-				router.push("/auth/success")
-				console.clear()
-				console.log(brandingAsciiArt)
+				window.location.href = "/auth/success"
 			}
 
 

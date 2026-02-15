@@ -16,6 +16,7 @@ import { useDeleteProjectMutation } from "@/store/services/projectsApi"
 import { useRouter } from "next/navigation"
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { showToast } from "../Toasts"
+import Copybtn from "../Copybtn"
 
 
 export function DeleteProjectDialog({ projectName, projectId }: { projectName: string, projectId: string }) {
@@ -60,12 +61,12 @@ export function DeleteProjectDialog({ projectName, projectId }: { projectName: s
 						To confirm, type delete 'project name' below:
 						<br />
 					</DialogDescription>
-					<div className="flex items-center gap-3 text-sm">
-						{confirmText}
-					</div>
 				</DialogHeader>
 
 				<div className="py-4">
+					<label className="flex items-center gap-3 text-sm mb-2">
+						Type  <strong>'{confirmText}'</strong>  <Copybtn value={confirmText} />
+					</label>
 					<Input
 						placeholder={`Type "${confirmText}"`}
 						value={userConfirmText}

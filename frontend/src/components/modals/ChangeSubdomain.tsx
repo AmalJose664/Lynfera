@@ -87,15 +87,13 @@ export function ChangeProjectSubdomainDialog({ projectName, projectId, currentSu
 					<DialogDescription>
 						To confirm, type the project name and new subdomain slug below:
 					</DialogDescription>
-					<div className="flex items-center gap-3 text-sm">
-						{confirmText} <Copybtn value={confirmText} />
-					</div>
+
 				</DialogHeader>
 
 				<div className="py-4 space-y-4">
 					<div >
-						<label htmlFor="">
-							Name
+						<label className="flex items-center gap-3 text-sm">
+							Type  <strong>'{confirmText}'</strong>  <Copybtn value={confirmText} />
 						</label>
 						<Input
 							placeholder={`Type "${confirmText}"`}

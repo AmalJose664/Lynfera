@@ -65,12 +65,12 @@ export function ClearAnalyticsDialog({ projectName, projectId }: { projectName: 
 						To confirm, type delete analytics 'project name' below:
 						<br />
 					</DialogDescription>
-					<div className="flex items-center gap-3 text-sm">
-						{confirmText} <Copybtn value={confirmText} />
-					</div>
 				</DialogHeader>
 
 				<div className="py-4">
+					<label className="flex items-center gap-3 text-sm mb-2">
+						Type  <strong>'{confirmText}'</strong> <Copybtn value={confirmText} />
+					</label>
 					<Input
 						placeholder={`Type "${confirmText}"`}
 						value={userConfirmText}

@@ -15,9 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import axiosInstance from "@/lib/axios"
 
-import { useRouter } from "next/navigation"
 import { showToast } from "../Toasts"
-import { brandingAsciiArt } from "@/config/brandingText"
 const OtpModal = ({ userEmail, setShowOtpForm, showOtpForm }: { userEmail: string, showOtpForm: boolean, setShowOtpForm: Dispatch<SetStateAction<boolean>> }) => {
 	const [otp, setOtp] = useState<string>("");
 	const resentSeconds = 50
@@ -31,7 +29,6 @@ const OtpModal = ({ userEmail, setShowOtpForm, showOtpForm }: { userEmail: strin
 		return () => clearInterval(timer);
 	}, [resendCountdown, showOtpForm]);
 
-	const router = useRouter()
 	const handleResendOtp = async () => {
 		if (resendCountdown === 0) {
 			try {
@@ -65,9 +62,7 @@ const OtpModal = ({ userEmail, setShowOtpForm, showOtpForm }: { userEmail: strin
 			})
 			if (response.status === 200) {
 				localStorage.setItem("provider_last_used", "EMAIL")
-				router.push("/auth/success?newuser=true")
-				console.clear()
-				console.log(brandingAsciiArt)
+				window.location.href = "/auth/success?newuser=true"
 			}
 		} catch (error: any) {
 			showToast.error("Error ", error.response.data.message)

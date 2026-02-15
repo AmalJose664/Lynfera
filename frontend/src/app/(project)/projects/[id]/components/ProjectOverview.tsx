@@ -21,6 +21,7 @@ import RightFadeComponent from "@/components/RightFadeComponent";
 import { TbHexagonNumber1Filled } from "react-icons/tb";
 import { LinkComponent } from "@/components/docs/HelperComponents";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface ProjectOverviewProps {
 	project: Project,
@@ -46,6 +47,7 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 			setLastFailed(true)
 		}
 	}, [runningDeploymentStatus])
+	const router = useRouter()
 	return (
 		<>
 			<div>
@@ -59,19 +61,12 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 										<h3 className="text-sm font-semibold text-red-700 dark:text-red-400">
 											Last Deployment Failed <LinkComponent href={"/deployments/" + runningDeployment?._id} className="ml-3">View</LinkComponent>
 										</h3>
-										<p className="text-sm text-red-600 dark:text-red-300 mt-1">
-											{runningDeployment?.errorMessage ||
-												"An unknown error occurred during the build process."}
-										</p>
-										<div className="space-y-1">
+										<div className="space-y-1 mt-2">
 											<p className="text-sm text-primary">
 												Deployment ID: {runningDeployment?._id}
 											</p>
 											<p className="text-sm text-primary">
 												Deployment Slug: {runningDeployment?.identifierSlug}
-											</p>
-											<p className="text-xs text-primary">
-												Status: {runningDeployment?.status}
 											</p>
 										</div>
 									</div>
@@ -127,7 +122,8 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 											<span className="text-xs uppercase tracking-wider text-gray-500 font-semibold">Reason</span>
 											<div className="flex items-center gap-2">
 												<StatusIcon status={project.status} />
-												<p className="text-sm font-semibold px-1 text-some-less w-fit bg-red-50 dark:bg-red-900/10  border border-red-200 dark:border-red-900  rounded-md">{deployment?.errorMessage || "Unknown error"}</p>
+												<p onClick={() => router.push("/deployments/" + deployment?._id + "?showlogs=true#logs",)}
+													className="hover:underline cursor-pointer text-sm font-semibold px-1 text-some-less w-fit bg-red-50 dark:bg-red-900/10  border border-red-200 dark:border-red-900  rounded-md">{deployment?.errorMessage || "Unknown error"}</p>
 											</div>
 										</div>
 									)}
@@ -138,7 +134,7 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 											<Link target="_blank"
 												href={projectLink}
 												className='flex gap-2 items-center text-sm font-medium '>
-												{`${window.location.protocol}//${project.subdomain}`}
+												{`${project.subdomain}`}
 												<RxExternalLink />
 											</Link>
 											<div>

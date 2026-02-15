@@ -23,7 +23,7 @@ import { useGetDeploymentLogsQuery } from "@/store/services/logsApi";
 import { Project, ProjectStatus } from "@/types/Project";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FiGitCommit, } from "react-icons/fi";
 import { IoMdGitBranch } from "react-icons/io";
 import { FiAlertCircle } from "react-icons/fi";
@@ -39,11 +39,10 @@ import { Deployment } from "@/types/Deployment";
 import { CiMicrochip } from "react-icons/ci";
 import OptionsComponent from "@/components/OptionsComponent";
 import { IoClipboardOutline, IoTrashOutline } from "react-icons/io5";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { BsArrowUpCircle } from "react-icons/bs";
 import ChangeDeploymentModal from "@/components/modals/ChangeDeployment";
 import DeleteDeploymentModal from "@/components/modals/DeleteDeployment";
-import useAuth from "@/hooks/useAuth";
 
 
 const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => {
@@ -58,8 +57,11 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 		id: deploymentId,
 		params: { include: "project" },
 	});
+	const params = useSearchParams()
+
+	const toggleLogs = params.get("showlogs") === "true"
 	const project = deployment?.project as Project;
-	const [showLogs, setShowLogs] = useState(false);
+	const [showLogs, setShowLogs] = useState(toggleLogs || false);
 	const { data: logs, refetch, } = useGetDeploymentLogsQuery(
 		{ deploymentId: deployment?._id ?? "" },
 		{ skip: !showLogs || !deployment?._id }
@@ -83,7 +85,16 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 	}
 
 	const isFailed = isStatusFailure(deployment?.status);
+	const logsRef = useRef<null | HTMLDivElement>(null)
+	useEffect(() => {
+		if (toggleLogs && logsRef.current) {
+			const timer = setTimeout(() => {
+				logsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+			}, 500)
 
+			return () => clearTimeout(timer)
+		}
+	}, [toggleLogs])
 	return (
 		<div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] text-neutral-900 dark:text-neutral-100">
 			{selectedDeploymentId && <ChangeDeploymentModal refetchDeply={refetchDeply} setSelectedDeploymentId={setSelectedDeploymentId} selectedDeploymentId={selectedDeploymentId} projectId={(deployment?.project as Project)._id} />}
@@ -316,7 +327,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 								</RightFadeComponent>
 								<PerformanceMetrics performance={deployment.performance} />
 							</div>
-							<div className="mt-10 bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 shadow-sm">
+							<div className="mt-10 min-h-1 bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 shadow-sm" ref={logsRef} id="logs">
 								<button
 									onClick={() => setShowLogs(!showLogs)}
 									className="w-full flex items-center justify-between px-6 py-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors rounded-t-lg"
@@ -363,6 +374,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 												<Logs
 													deploymentId={deployment?._id || ""}
 													deploymentSpecificLogs={logs}
+													scrollToBottom={toggleLogs}
 													refetch={refetch}
 												/>
 											</div>

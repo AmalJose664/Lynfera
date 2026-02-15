@@ -7,6 +7,7 @@ import { useEffect, useState } from "react"
 import { setCookie } from "cookies-next/client"
 import { authApi } from "@/store/services/authApi"
 import { useAppDispatch } from "@/store/store"
+import { brandingAsciiArt } from "@/config/brandingText"
 
 const AuthSuccessComp = () => {
 	const router = useRouter()
@@ -41,6 +42,8 @@ const AuthSuccessComp = () => {
 				router.push("/login");
 			}
 		};
+		console.clear()
+		console.log(brandingAsciiArt)
 		verifyLogin();
 	}, [router]);
 	return (
