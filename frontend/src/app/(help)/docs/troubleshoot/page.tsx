@@ -102,7 +102,7 @@ const page = () => {
 					</div>
 				</div>
 			</section>
-			<section id="troubleshoot-others-routing" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 
+			<section id="troubleshoot-others-routing-1" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 
 				bg-white ">
 				<div className="px-4 py-4">
 					<h2 className="mb-4 text-2xl font-bold tracking-tight text-primary">Routing & 404 Errors</h2>
@@ -114,6 +114,38 @@ const page = () => {
 					</p>
 				</div>
 			</section>
+			<section id="troubleshoot-others-routing-2" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 
+				bg-white ">
+				<div className="px-4 py-4">
+					<h2 className="mb-4 text-2xl font-bold tracking-tight text-primary">
+						DNS / Hostname Resolution Errors
+					</h2>
+					<p className="text-sm text-less leading-relaxed">
+						These errors are rare and usually occur when a specific subdomain cannot be
+						resolved or is rejected by the hosting provider. Although they may appear as
+						DNS failures in the browser, they are often caused by hostname routing,
+						SSL, or connection issues rather than DNS itself.
+					</p>
+					<p className="text-sm text-less leading-relaxed mt-2">
+						You may see errors such as:
+					</p>
+					<ul className="px-3 py-1 list-disc space-y-3 mt-3">
+						<li><CodeComponent>ERR_NAME_NOT_RESOLVED</CodeComponent></li>
+						<li><CodeComponent>ERR_CONNECTION_RESET</CodeComponent></li>
+						<li><CodeComponent>ERR_SSL_PROTOCOL_ERROR</CodeComponent></li>
+					</ul>
+					<p className="text-sm text-less mt-3">
+						These typically happen when a subdomain is temporarily unavailable,
+						blocked, not yet propagated, or not recognized by the hosting platform.
+					</p>
+					<p className="text-sm text-less mt-2 font-medium">
+						<strong>Fix:</strong> Try changing your project subdomain or creating a new
+						one. Using a slightly different name usually resolves the issue immediately.
+						If the problem persists, wait a few minutes for DNS propagation and try again.
+					</p>
+				</div>
+			</section>
+
 		</main>
 	)
 

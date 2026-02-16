@@ -1,4 +1,6 @@
 "use client"
+import { HiOutlineTemplate } from "react-icons/hi";
+import { SlBookOpen } from "react-icons/sl";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -38,7 +40,7 @@ const NavbarUser = ({ showOtherLinks }: { showOtherLinks?: boolean }) => {
 	const isDesktop = useIsDesktop();
 	const router = useRouter()
 	const logoutAndRedirect = () => {
-		deleteCookie("Is_Authenticated_Client",)
+		deleteCookie("Is_Authenticated_Client")
 		logout()
 		router.push("/login")
 	}
@@ -110,11 +112,6 @@ const NavbarUser = ({ showOtherLinks }: { showOtherLinks?: boolean }) => {
 						<div className="h-px bg-border my-2" />
 						<div className="flex flex-col gap-2">
 							<SheetClose asChild>
-								<Link href="/docs" className="px-2 py-2 text-sm font-medium hover:bg-accent rounded-md">
-									Docs
-								</Link>
-							</SheetClose>
-							<SheetClose asChild>
 								<Link target="_blank" href={LINKS.REPO} className="flex items-center gap-2 px-2 py-2 text-sm font-medium hover:bg-accent rounded-md">
 									GitHub <RxExternalLink />
 								</Link>
@@ -176,8 +173,15 @@ const NavbarUser = ({ showOtherLinks }: { showOtherLinks?: boolean }) => {
 					</DropdownMenuGroup>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem >
-						<Link target="" className="no-underline" href={"/docs"} >
+						<Link target="" className="flex gap-2 items-center no-underline" href={"/docs"} >
 							Docs
+							<SlBookOpen />
+						</Link>
+					</DropdownMenuItem>
+					<DropdownMenuItem>
+						<Link target="" className="flex gap-2 items-center no-underline" href={"/showcase"} >
+							Showcase
+							<HiOutlineTemplate />
 						</Link>
 					</DropdownMenuItem>
 					<DropdownMenuItem >

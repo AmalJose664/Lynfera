@@ -13,5 +13,5 @@ export const navbarLinks = [
 	{ name: "Product", url: "/product", isOtherLink: true, Icon: '' },
 	{ name: "Resources", url: "/resources", isOtherLink: false, Icon: '' },
 	{ name: "Docs", url: "/docs", isOtherLink: false, Icon: '' },
-
+	{ name: "Showcase", url: "/showcase", isOtherLink: true, hidden: true, Icon: '' },
 ]

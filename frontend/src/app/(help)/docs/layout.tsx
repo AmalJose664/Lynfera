@@ -1,7 +1,6 @@
 import EachLink from "@/components/docs/EachLink";
-import StartsAsk from "@/components/docs/StarAsk";
+import StarsAsk from "@/components/docs/StarAsk";
 import { SITE_NAME } from "@/config/constants";
-import Link from "next/link";
 
 const menuItems = [
 	{ url: 'getting-started', label: 'Getting Started' },
@@ -37,7 +36,7 @@ export default function layout({
 
 				</div>
 			</div>
-			<StartsAsk />
+			<StarsAsk />
 		</div>
 	)
 }

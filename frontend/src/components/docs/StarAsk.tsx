@@ -2,7 +2,7 @@
 import { LINKS } from "@/config/constants"
 import { usePathname } from "next/navigation"
 
-export const StartsAsk = () => {
+export const StarsAsk = () => {
 	const pathName = usePathname()
 	if (pathName === "/docs") return null
 	return (
@@ -22,4 +22,4 @@ export const StartsAsk = () => {
 		</div>
 	)
 }
-export default StartsAsk
+export default StarsAsk

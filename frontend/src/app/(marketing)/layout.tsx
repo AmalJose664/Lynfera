@@ -1,3 +1,4 @@
+import { Footer } from "@/components/GlobalFooter"
 import Navbar from "@/components/Navbar"
 
 export default function BillingLayout({
@@ -8,5 +9,6 @@ export default function BillingLayout({
 	return <div>
 		<Navbar className="" />
 		{children}
+		<Footer />
 	</div>
 }
