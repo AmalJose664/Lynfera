@@ -16,6 +16,7 @@ class ProjectRepository implements IProjectRepo {
 				_id: 1,
 				isDeleted: 1,
 				isDisabled: 1,
+				status: 1,
 				currentDeployment: 1,
 				tempDeployment: 1,
 				rewriteNonFilePaths: 1
@@ -30,6 +31,7 @@ class ProjectRepository implements IProjectRepo {
 				_id: 1,
 				isDeleted: 1,
 				isDisabled: 1,
+				status: 1,
 				currentDeployment: 1,
 				tempDeployment: 1,
 				rewriteNonFilePaths: 1,
