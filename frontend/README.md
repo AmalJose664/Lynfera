@@ -18,22 +18,45 @@ frontend
     │   │   ├───login
     │   │   ├───signup
     │   │   └───user
+    │   │       └───plan
     │   ├───(deployment)
     │   │   └───deployments
     │   │       └───[id]
+    │   ├───(help)
+    │   │   ├───docs
+    │   │   │   ├───build-deploy
+    │   │   │   ├───env-variables
+    │   │   │   ├───getting-started
+    │   │   │   ├───observability
+    │   │   │   ├───support-and-limits
+    │   │   │   └───troubleshoot
+    │   │   └───product
+    │   ├───(marketing)
+    │   │   ├───payment-success
+    │   │   ├───pricing
+    │   │   └───showcase
     │   ├───(project)
     │   │   ├───new
     │   │   └───projects
     │   │       └───[id]
     │   │           └───components
+    │   ├───(resources)
+    │   │   └───resources
+    │   ├───legal
+    │   │   ├───privacy
+    │   │   └───terms-of-use
+    │   ├───providers
     │   └───public
     ├───components
     │   ├───analytics
+    │   ├───docs
+    │   ├───modals
     │   ├───project
     │   └───ui
     ├───config
     ├───hooks
     ├───lib
+    │   ├───moreUtils
     │   └───schema
     ├───store
     │   ├───services
@@ -49,6 +72,8 @@ Create a `.env` file in this directory: frontend
 ```env
 NEXT_PUBLIC_API_SERVER_ENDPOINT=http://localhost:8000/api
 NEXT_PUBLIC_PROXY_SERVER=localhost:7000
+NEXT_PUBLIC_POSTHOG_KEY=     // for analytics
+NEXT_PUBLIC_POSTHOG_HOST=   // for analytics
 ```
 
 <br/>

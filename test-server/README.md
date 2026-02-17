@@ -17,17 +17,21 @@ test-server
 │   ├───tests
 │   └───user-projects
 │
-├───config
-│       kafka.ts
-│
-├───controller
-│       controller.ts
-│       testFunctions.ts
-│
-├───middleware
-│       validate.ts
-└───routes
-        routes.ts
+└───src
+    │   index.ts
+    │
+    ├───config
+    │       env.config.ts
+    │
+    ├───controller
+    │       controller.ts
+    │
+    ├───middleware
+    │       authorizeActions.ts
+    │       validate.ts
+    │
+    └───routes
+            routes.ts
 ```
 
 ## 🔐 Environment Variables

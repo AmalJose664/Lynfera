@@ -67,23 +67,9 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 		{ skip: !showLogs || !deployment?._id }
 	);
 
-	if (error || isError) {
-		return (
-			<ErrorComponent error={error} id={deploymentId} field="Deployment" />
-		);
-	}
+
 	const [selectedDeploymentId, setSelectedDeploymentId] = useState<string | null>(null)
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
-	if (!deployment && !isLoading) {
-		return (
-			<ErrorComponent
-				error={{ message: "Deployment not found" }}
-				id={deploymentId}
-				field="Deployment"
-			/>
-		);
-	}
-
 	const isFailed = isStatusFailure(deployment?.status);
 	const logsRef = useRef<null | HTMLDivElement>(null)
 	useEffect(() => {
@@ -95,6 +81,20 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 			return () => clearTimeout(timer)
 		}
 	}, [toggleLogs])
+	if (!deployment && !isLoading) {
+		return (
+			<ErrorComponent
+				error={{ message: "Deployment not found" }}
+				id={deploymentId}
+				field="Deployment"
+			/>
+		);
+	}
+	if (error || isError) {
+		return (
+			<ErrorComponent error={error} id={deploymentId} field="Deployment" />
+		);
+	}
 	return (
 		<div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] text-neutral-900 dark:text-neutral-100">
 			{selectedDeploymentId && <ChangeDeploymentModal refetchDeply={refetchDeply} setSelectedDeploymentId={setSelectedDeploymentId} selectedDeploymentId={selectedDeploymentId} projectId={(deployment?.project as Project)._id} />}

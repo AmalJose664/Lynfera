@@ -94,7 +94,7 @@ const ProjectShowcaseV2 = () => {
 										</h3>
 										<div className="flex items-center gap-1.5 text-muted-foreground text-sm tracking-wider font-semibold mt-2">
 											<img className='h-5 w-5 rounded-full' src={project.userAvatr} alt="" />
-											<span>{project.createdBy}</span>
+											<span className='font-medium'>{project.createdBy}</span>
 										</div>
 									</div>
 								</div>
