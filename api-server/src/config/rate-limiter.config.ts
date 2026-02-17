@@ -12,17 +12,12 @@ const baseRateLimitConfig: Partial<Options> = {
 	},
 };
 
-export const dashboardLimiter: Partial<Options> = {
+export const defaultLimiter: Partial<Options> = {
 	windowMs: 1 * 60 * 1000,
 	max: 100,
 	...baseRateLimitConfig,
 };
 
-export const authLimiter: Partial<Options> = {
-	windowMs: 15 * 60 * 1000,
-	max: 80,
-	...baseRateLimitConfig,
-};
 
 export const analyticsLimiter: Partial<Options> = {
 	windowMs: 1 * 60 * 1000,
@@ -32,18 +27,6 @@ export const analyticsLimiter: Partial<Options> = {
 
 export const logsLimiter: Partial<Options> = {
 	windowMs: 1 * 60 * 1000,
-	max: 40,
-	...baseRateLimitConfig,
-};
-
-export const deploymentLimiter: Partial<Options> = {
-	windowMs: 10 * 60 * 1000,
-	max: 40,
-	...baseRateLimitConfig,
-};
-
-export const billingLimiter: Partial<Options> = {
-	windowMs: 15 * 60 * 1000,
 	max: 40,
 	...baseRateLimitConfig,
 };

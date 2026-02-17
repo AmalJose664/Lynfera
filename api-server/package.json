@@ -28,6 +28,7 @@
 		"dotenv": "^17.2.3",
 		"express": "^5.1.0",
 		"express-rate-limit": "^8.2.1",
+		"helmet": "^8.1.0",
 		"ioredis": "^5.8.2",
 		"jsonwebtoken": "^9.0.2",
 		"kafkajs": "^2.2.4",
@@ -42,6 +43,7 @@
 		"socket.io": "^4.8.1",
 		"stripe": "^20.0.0",
 		"uuid": "^13.0.0",
+		"winston": "^3.19.0",
 		"zod": "^4.1.11"
 	},
 	"devDependencies": {

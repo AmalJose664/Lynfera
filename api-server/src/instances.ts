@@ -45,6 +45,6 @@ export const paymentService = new PaymentService(userRepo);
 
 export const projectController = new ProjectController(projectService);
 export const deploymentController = new DeploymentController(deploymentService);
-export const logsController = new LogsController(logsService);
+export const logsController = new LogsController(logsService, deploymentService);
 export const analyticsController = new AnalyticsController(analyticsService);
 export const paymentController = new PaymentController(paymentService);

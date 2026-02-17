@@ -48,17 +48,16 @@ async function mongodbData() {
 		// const saved = await OtpModel.find()
 		// console.log(saved)
 		// await Promise.all(dpls.map(async (d) => {
-		// 	return await Deployment.updateMany({ _id: d._id }, { publicId: nanoid(10) })
+		await Deployment.updateMany({ _id: "697dc843d79bd147c535419a" }, { status: "QUEUED" })
+
 		// }))
-		return;
 		console.log(
 			await Project.updateMany(
-				{ _id: "6934502adfa2d8c1c254aabc" },
+				{ _id: "69246647869c614a349015fc" },
 				{
-					status: "NOT_STARTED",
-					deployments: [],
+					status: "QUEUED",
 					lastDeployment: null,
-					tempDeployment: null,
+					tempDeployment: "697dc843d79bd147c535419a",
 					currentDeployment: null,
 				},
 			),
@@ -69,7 +68,7 @@ async function mongodbData() {
 		process.exit(0);
 	}
 }
-// mongodbData().then(async () => await mongoose.disconnect());
+mongodbData().then(async () => await mongoose.disconnect());
 
 async function commitAllMessages() {
 	const kafka = new Kafka({
@@ -152,7 +151,7 @@ async function getClickhouseData() {
 	// 	query: "TRUNCATE analytics"
 	// })
 }
-getClickhouseData().then(() => process.exit(0));
+// getClickhouseData().then(() => process.exit(0));
 async function idChecker() {
 	const obj = new Set();
 	const id = "";

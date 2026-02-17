@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import passport from "passport";
 import morgan from "morgan";
+import helmet from "helmet";
 
 import "./config/passport.js";
 import connectDB from "./config/mongo.config.js";
@@ -20,8 +21,11 @@ const httpServer = createServer(app);
 app.use(cors(corsOptions));
 
 app.use(STRIPE_WEBHOOK_REQ_PATH, express.raw({ type: "application/json" }));
-app.use(express.json());
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+app.use(helmet())
 app.use(passport.initialize());
 app.use(morgan("tiny"));
 

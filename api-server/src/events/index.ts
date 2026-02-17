@@ -1,5 +1,6 @@
 import { kafka } from "@/config/kafka.config.js";
 import KafkaEventConsumer from "@/events/consumers.js";
+import { sseManager } from "./deploymentEmitter.js";
 
 let consumersInstance: KafkaEventConsumer | null = null;
 
@@ -12,4 +13,5 @@ export async function stopKafkaConsumer(): Promise<void> {
 	if (consumersInstance) {
 		await consumersInstance.stop();
 	}
+	sseManager.cleanup()
 }
