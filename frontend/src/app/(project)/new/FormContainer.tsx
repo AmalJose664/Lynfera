@@ -75,6 +75,7 @@ function ProjectForm() {
 		} catch (error: any) {
 			if (error.status === 401) {
 				router.push("/login")
+				return
 			}
 			console.log("Error!", error)
 			if (error.status === 400) {
