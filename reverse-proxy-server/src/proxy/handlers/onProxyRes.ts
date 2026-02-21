@@ -50,7 +50,7 @@ export const onProxyRes = (proxyRes: IncomingMessage, req: RequestWithProject, r
 		uaOs: ua.os,
 		referer: req.headers['referer'] || ""
 	}
-	// console.log(data, "--- --`Levele data")
+	console.log(data.ip, "--- --`Levele data", req.ip, req.ips, req.socket.remoteAddress)
 	analyticsService.sendAnalytics(data)
 	if (proxyRes.statusCode === 404) {
 		res.writeHead(404, { 'Content-Type': 'text/html' });
