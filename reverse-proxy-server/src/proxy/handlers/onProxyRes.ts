@@ -44,20 +44,13 @@ export const onProxyRes = (proxyRes: IncomingMessage, req: RequestWithProject, r
 		path,
 		responseSize,
 		responseTime: parseFloat(responseTime),
-		ip: req.socket.remoteAddress || "0.0.0.0",
+		ip: req.ip || req.ips[0] || "0.0.0.0",
 		statusCode: proxyRes.statusCode || res.statusCode || 404,
 		uaBrowser: ua.browser,
 		uaOs: ua.os,
 		referer: req.headers['referer'] || ""
 	}
 	// console.log(data.ip, "--- --`Levele data", req.ip, req.ips, req.socket.remoteAddress)
-	console.log({
-		ip: req.ip,
-		ips: req.ips,
-		remoteAddress: req.socket.remoteAddress,
-		xForwardedFor: req.headers['x-forwarded-for'],
-		xRealIp: req.headers['x-real-ip']
-	});
 	analyticsService.sendAnalytics(data)
 	if (proxyRes.statusCode === 404) {
 		res.writeHead(404, { 'Content-Type': 'text/html' });
