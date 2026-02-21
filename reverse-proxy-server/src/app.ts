@@ -11,7 +11,7 @@ import { baseRateLimit } from "./config/rate-limiter.config.js"
 const app = express()
 
 app.use(rateLimit(baseRateLimit))
-
+app.set('trust proxy', true);
 app.use("/extras", cors({
 	origin: process.env.FRONTEND_URL,
 }),
