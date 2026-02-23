@@ -11,10 +11,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 		"/signup",
 		"/projects",
 		"/deployments",
+		"/resources",
 		"/showcase",
 		"/user",
 		"/user/plan",
 		"/docs",
+		"/pricing",
 		"/legal/privacy",
 		"/legal/terms-of-use",
 		"/product"
