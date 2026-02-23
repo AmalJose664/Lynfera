@@ -13,16 +13,14 @@ import { Input } from "@/components/ui/input";
 import { IoCloseSharp } from "react-icons/io5";
 import { useForm } from "react-hook-form";
 import { AnimatePresence, motion } from "motion/react";
-import { LoginSchema, LoginUserType, SignUpSchema, SignUpUserType } from "@/lib/schema/auth";
+import { SignUpSchema, SignUpUserType } from "@/lib/schema/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import axiosInstance from "@/lib/axios";
 import { MdOutlineEmail } from 'react-icons/md';
 import { GithubLoginButton } from '../components/GithubLogin';
 import OtpModal from '@/components/modals/OtpModal';
-import { showToast } from '@/components/Toasts';
 import { LinkComponent } from '@/components/docs/HelperComponents';
 
 
