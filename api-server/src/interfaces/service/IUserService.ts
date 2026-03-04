@@ -20,4 +20,7 @@ export interface IUserSerivce {
 
 	userCanDeploy(userId: string): Promise<{ user: IUser | null; limit: number; allowed: boolean; remaining: number }>;
 	incrementDeployment(userId: string): Promise<void>;
+
+	addGithubInstallationId(id: number, userId: string): Promise<IUser | null>
+	removeGithubInstallationId(userId: string): Promise<IUser | null>
 }

@@ -23,6 +23,8 @@ import RedisService from "./cache/redisCache.js";
 import { redisClient } from "./config/redis.config.js";
 import OtpRepository from "./repositories/otpVerify.repository.js";
 import OtpService from "./services/otpVerify.service.js";
+import WebhookController from "./controllers/webhookController.js";
+import WebhookService from "./services/webhook.service.js";
 
 export const userRepo = new UserRepo();
 export const projectRepo = new ProjectRepo();
@@ -42,9 +44,14 @@ export const analyticsService = new AnalyticsService(analyticsRepo, projectBandw
 export const userService = new UserService(userRepo, projectService, otpService);
 export const deploymentService = new DeploymentService(deploymentRepo, projectRepo, userService, logsService, redisCacheService);
 export const paymentService = new PaymentService(userRepo);
+export const webhookService = new WebhookService(userService);
+
+
 
 export const projectController = new ProjectController(projectService);
 export const deploymentController = new DeploymentController(deploymentService);
 export const logsController = new LogsController(logsService, deploymentService);
 export const analyticsController = new AnalyticsController(analyticsService);
 export const paymentController = new PaymentController(paymentService);
+
+export const webhookController = new WebhookController(webhookService);

@@ -9,6 +9,7 @@ import authRouter from "./auth.routes.js";
 import paymentRouter from "./payment.routes.js";
 import rateLimit from "express-rate-limit";
 import internalRoutes from "./container.routes.js";
+import webhookRouter from "./webhook.route.js";
 
 export const apiRouter = express.Router();
 
@@ -18,6 +19,7 @@ apiRouter.use("/deployments", rateLimit(defaultLimiter), deploymentRouter);
 apiRouter.use("/projects", rateLimit(defaultLimiter), projectRouter);
 apiRouter.use("/auth", rateLimit(defaultLimiter), authRouter);
 apiRouter.use("/billing", rateLimit(defaultLimiter), paymentRouter);
+apiRouter.use("/webhook", webhookRouter);
 
 // ------- CONTAINER ROUTES--------------
 

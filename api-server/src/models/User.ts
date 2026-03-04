@@ -30,6 +30,7 @@ export interface IUser extends Document {
 		subscriptionId: string | null;
 		subscriptionStatus: SubscriptionStatus;
 	} | null;
+	gitInstallationId?: number
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -63,6 +64,7 @@ const userSchema = new Schema<IUser>(
 				default: "none",
 			},
 		},
+		gitInstallationId: { type: Number, required: false },
 		currentDate: { type: String, required: true, default: () => new Date().toISOString().slice(0, 10) },
 	},
 	{ timestamps: true },

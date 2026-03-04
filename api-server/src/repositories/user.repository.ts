@@ -69,6 +69,14 @@ class UserRepository extends BaseRepository<IUser> implements IUserRepository {
 	async updateUserPlansWithStripe(stripeId: string, planData: keyof IPlans, paymentData: IUser["payment"]): Promise<IUser | null> {
 		return await User.findOneAndUpdate({ stripeCustomerId: stripeId }, { $set: { plan: planData, payment: paymentData } }, { new: true });
 	}
+
+	async addGithubInstallationId(userId: string, gitInstallationId: number): Promise<IUser | null> {
+		return await User.findOneAndUpdate({ _id: userId }, { $set: { gitInstallationId } }, { new: true });
+	}
+
+	async removeGithubInstallationId(userId: string): Promise<IUser | null> {
+		return await User.findOneAndUpdate({ _id: userId }, { $set: { gitInstallationId: null } }, { new: true });
+	}
 }
 
 export default UserRepository;

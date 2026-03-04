@@ -200,6 +200,13 @@ class UserService implements IUserSerivce {
 	async incrementDeployment(userId: string): Promise<void> {
 		await this.userRepository.incrementDeployment(userId);
 	}
+
+	async addGithubInstallationId(id: number, userId: string): Promise<IUser | null> {
+		return this.userRepository.addGithubInstallationId(userId, id)
+	}
+	async removeGithubInstallationId(userId: string): Promise<IUser | null> {
+		return this.userRepository.removeGithubInstallationId(userId)
+	}
 }
 
 export default UserService;

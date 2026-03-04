@@ -17,4 +17,7 @@ export interface IUserRepository {
 	getOrUpdateDeployments(userId: string): Promise<IUser | null>;
 	findUserByCustomerId(id: string): Promise<IUser | null>;
 	incrementDeployment(userId: string): Promise<void>;
+
+	addGithubInstallationId(userId: string, gitInstallationId: number): Promise<IUser | null>
+	removeGithubInstallationId(userId: string): Promise<IUser | null>
 }
