@@ -1,3 +1,4 @@
+import { GithubIdsOutput } from "@/interfaces/repository/IUserRepository.js";
 import { IUser } from "@/models/User.js";
 
 interface UserResponseDTO {
@@ -5,6 +6,10 @@ interface UserResponseDTO {
 	profileImage: string;
 	_id: string;
 	plan: string;
+}
+interface UserAuthProviderResponseDTO {
+	user: string
+	providers: { id: string, provider: string }[]
 }
 interface UserResponseDetailedDTO {
 	name: string;
@@ -19,6 +24,12 @@ interface UserResponseDetailedDTO {
 	connectedAccounts: string[];
 }
 export class UserMapper {
+	static toUserInstallationResponse(data: GithubIdsOutput, userId: string): { ids: GithubIdsOutput & { _id: string } } {
+		return { ids: { githubAccountId: data.githubAccountId, githubInstallationId: data.githubInstallationId, _id: userId } }
+	}
+	static toUserAuthProviderResponse(providers: IUser['authProviders'], userId: string): UserAuthProviderResponseDTO {
+		return { user: userId, providers: providers.map((p) => ({ id: p.id, provider: p.provider })) }
+	}
 	static toUserResponse(user: IUser): { user: UserResponseDTO } {
 		return {
 			user: {

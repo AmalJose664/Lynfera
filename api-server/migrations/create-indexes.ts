@@ -14,9 +14,11 @@ async function createIndexes() {
 		console.log("Starting index creation...");
 
 		console.log("Creating User indexes...");
-		await User.collection.createIndex({ email: 1 }, { unique: true, name: "email_unique" });
-		await User.collection.createIndex({ stripeCustomerId: 1 }, { sparse: true, name: "stripe_customer_lookup" });
+		// await User.collection.createIndex({ email: 1 }, { unique: true, name: "email_unique" });
+		// await User.collection.createIndex({ stripeCustomerId: 1 }, { sparse: true, name: "stripe_customer_lookup" });
+		await User.collection.createIndex({ githubInstallationId: 1 }, { sparse: true, name: "github_instalation_id" });
 		console.log("✓ User indexes created");
+
 		//-------------------------------------------------------------------------------------------------------------------------------------
 		console.log("Creating User OTP indexes...");
 
@@ -37,18 +39,18 @@ async function createIndexes() {
 		//-------------------------------------------------------------------------------------------------------------------------------------
 
 		console.log("Creating ProjectBandwidth indexes...");
-		// await ProjectBandwidth.collection.createIndex(
-		// 	{ project: 1, currentMonth: 1 },
-		// 	{ unique: true, name: 'project_monthly_bandwidth' }
-		// );
-		// await ProjectBandwidth.collection.createIndex(
-		// 	{ user: 1, currentMonth: 1 },
-		// 	{ name: 'user_monthly_bandwidth' }
-		// );
-		// await ProjectBandwidth.collection.createIndex(
-		// 	{ project: 1 },
-		// 	{ name: 'project_bandwidth_lookup' }
-		// );
+		await ProjectBandwidth.collection.createIndex(
+			{ project: 1, currentMonth: 1 },
+			{ unique: true, name: 'project_monthly_bandwidth' }
+		);
+		await ProjectBandwidth.collection.createIndex(
+			{ user: 1, currentMonth: 1 },
+			{ name: 'user_monthly_bandwidth' }
+		);
+		await ProjectBandwidth.collection.createIndex(
+			{ project: 1 },
+			{ name: 'project_bandwidth_lookup' }
+		);
 		console.log("✓ ProjectBandwidth indexes created");
 		//-------------------------------------------------------------------------------------------------------------------------------------
 		console.log("\n✅ All indexes created successfully!");

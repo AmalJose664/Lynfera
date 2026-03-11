@@ -18,7 +18,7 @@ import { DEPLOYMENT_ID_LENGTH } from "@/constants/subdomain.js";
 import { QueryDeploymentDTO } from "@/dtos/deployment.dto.js";
 import { deploymentBasicFields } from "@/constants/populates/deployment.populate.js";
 import getNessesaryEnvs from "@/utils/getNessesaryEnvs.js";
-import { dispatchBuild } from "@/utils/dispatchBuild.js";
+import dispatchRequestService from "@/utils/dispatchRequest.js";
 import { config, ecsClient, s3Client } from "@/config/cloud.config.js";
 import { ENVS } from "@/config/env.config.js";
 import { S3_OUTPUTS_DIR } from "@/constants/paths.js";
@@ -200,7 +200,7 @@ class DeploymentService implements IDeploymentService {
 			// 	console.error("Failed to start process:", err);
 			// });
 			// return
-			const result = await dispatchBuild(deploymentId, projectId);
+			const result = await dispatchRequestService.dispatchBuild(deploymentId, projectId);
 			console.log(result, " - - - ");
 		} catch (error: any) {
 			console.log("Error on build");

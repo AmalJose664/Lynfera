@@ -2,7 +2,7 @@ import { Profile } from "passport";
 import { compare, hash } from "bcrypt";
 
 import { IUserSerivce } from "@/interfaces/service/IUserService.js";
-import { IUserRepository } from "@/interfaces/repository/IUserRepository.js";
+import { GithubIds, GithubIdsOutput, IUserRepository } from "@/interfaces/repository/IUserRepository.js";
 import { IProjectService } from "@/interfaces/service/IProjectService.js";
 import { IOtpService } from "@/interfaces/service/IOtpService.js";
 import { AuthProvidersList, IUser } from "@/models/User.js";
@@ -12,6 +12,7 @@ import { OtpPurposes } from "@/models/Otp.js";
 import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { PLANS } from "@/constants/plan.js";
 import { OTP_ERRORS, USER_ERRORS } from "@/constants/errors.js";
+
 
 class UserService implements IUserSerivce {
 	private userRepository: IUserRepository;
@@ -201,12 +202,24 @@ class UserService implements IUserSerivce {
 		await this.userRepository.incrementDeployment(userId);
 	}
 
-	async addGithubInstallationId(id: number, userId: string): Promise<IUser | null> {
-		return this.userRepository.addGithubInstallationId(userId, id)
+	async getUserAuthProviders(userId: string): Promise<Partial<IUser> | null> {
+		return this.userRepository.findAuthProviders(userId)
 	}
-	async removeGithubInstallationId(userId: string): Promise<IUser | null> {
-		return this.userRepository.removeGithubInstallationId(userId)
+
+
+
+	async addGithubInstallationInfo(data: GithubIds, userId: string): Promise<GithubIdsOutput | null> {
+		return this.userRepository.addGhbApCreds(userId, data)
 	}
+	async removeGithubInstallationInfo(installationId: number): Promise<void> {
+		return this.userRepository.removeGhbApCreds(installationId)
+	}
+	async getGithubInstallationInfo(userId: string): Promise<GithubIdsOutput | null> {
+		return this.userRepository.findGhbApCreds(userId)
+	}
+
+
+
 }
 
 export default UserService;

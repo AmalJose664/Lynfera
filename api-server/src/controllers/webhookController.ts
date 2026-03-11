@@ -1,5 +1,10 @@
+import { ENVS } from "@/config/env.config.js";
+import { WEBHOOK_ERRORS } from "@/constants/errors.js";
+import { githubAppSlug } from "@/constants/gh.js";
 import { IWebhookController } from "@/interfaces/controller/IWebhookController.js";
 import { IWebhookService } from "@/interfaces/service/IWebhookService.js";
+import { GithubResponseMapper } from "@/mappers/GithubMapper.js";
+import { WebhookError } from "@/utils/AppError.js";
 
 import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { Request, Response, NextFunction } from "express";
@@ -12,12 +17,28 @@ class WebhookController implements IWebhookController {
 	}
 
 
+	async getGithubConnectionUrl(req: Request, res: Response, next: NextFunction): Promise<void> {
+
+		try {
+			const userId = req.user?.id as string
+			const installCompleteRedirectPath = req.get("x-redirect-path")
+			if (!installCompleteRedirectPath) {
+				throw new WebhookError(WEBHOOK_ERRORS.INCOMPLE_DATA, STATUS_CODES.BAD_REQUEST)
+			}
+
+			const token = await this.webhookService.webhookHandleNewRequest(userId, installCompleteRedirectPath)
+			const installUrl = `https://github.com/apps/${githubAppSlug}/installations/new?state=${token}`;
+
+			res.status(STATUS_CODES.OK).json({ message: "Ok", url: installUrl });
+		} catch (error) {
+			next(error)
+		}
+	}
+
 	async githubWebhook(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const { body } = req
 			const eventType = String(req.headers["x-github-event"])
-			console.log("*************************************************",
-				body, req.headers, "*************************************************")
 			switch (eventType) {
 				case "push":
 					// push tasks 
@@ -26,7 +47,7 @@ class WebhookController implements IWebhookController {
 					}
 
 					if (body.deleted) {
-						// deleted branch/tag
+						// deleted branch/tag  65145343
 					}
 
 					break
@@ -34,22 +55,78 @@ class WebhookController implements IWebhookController {
 					const action = body.action
 					switch (action) {
 						case "created":
-							this.webhookService
+							await this.webhookService.webhookInstaltnCreateEvent(body.installation.id, body.installation.account)
 							break
 
 						case "deleted":
-							// remove db entry
+							await this.webhookService.webhookInstaltnDeleteEvent(body.installation.id, body.installation.account)
 							break
 					}
 					break
 			}
 
-
-			res.json({ hai: "hey" })
+			console.log(body)
+			res.json({ status: 200, message: "success" })
 
 
 		} catch (error) {
 			next(error);
+		}
+	}
+
+
+
+
+	async githubAppSetup(req: Request, res: Response, next: NextFunction): Promise<void> {
+
+		const installationId = req.query.installation_id
+		const body = req.body
+
+		let returnMessage = ""
+		let success = true
+
+		try {
+			returnMessage = await this.webhookService.githubSecondaryEvents(String(installationId), body.user)
+		} catch (error: any) {
+			success = false
+			returnMessage = error?.message || "Unknown error"
+			console.error(error)
+
+			try {
+				if (error instanceof WebhookError) {
+					await this.webhookService.removeGhbInstallation(String(installationId), body.user, true)
+				}
+			} catch (e: any) {
+				console.error(e)
+			}
+
+		}
+
+		const urlFromState = body.redirectPath
+		const baseUrl = ENVS.FRONTEND_URL + (urlFromState || "/user/")
+
+		const params = new URLSearchParams({
+			tab: "provider",
+			success: String(success),
+			message: returnMessage
+		})
+
+		res.status(success ? STATUS_CODES.OK : STATUS_CODES.BAD_REQUEST).json({ success, returnMessage })
+		return
+		res.status(success ? STATUS_CODES.OK : STATUS_CODES.BAD_REQUEST).redirect(`${baseUrl}?${params.toString()}`)
+
+	}
+
+	async getUserRepos(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const userId = req.user?.id as string
+			const repos = await this.webhookService.getUserRepos(userId)
+			const response = GithubResponseMapper.toGithubRepoResponse(repos)
+
+			res.json(response)
+
+		} catch (error) {
+			next(error)
 		}
 	}
 }

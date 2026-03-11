@@ -19,6 +19,7 @@ const envSchema = z.object({
 	GITHUB_CLIENT_SECRET: z.string(),
 
 	GITHUB_WEBHOOK_SECRET: z.string(),
+	GITHUB_APP_PRIVATE_KEY: z.string().transform((i) => i.replace(/\\n/g, "\n")),
 
 
 	SERVICE_JWT_SECRET: z.string(),

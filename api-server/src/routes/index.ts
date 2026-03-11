@@ -10,6 +10,7 @@ import paymentRouter from "./payment.routes.js";
 import rateLimit from "express-rate-limit";
 import internalRoutes from "./container.routes.js";
 import webhookRouter from "./webhook.route.js";
+import githubRouter from "./github.router.js";
 
 export const apiRouter = express.Router();
 
@@ -20,6 +21,7 @@ apiRouter.use("/projects", rateLimit(defaultLimiter), projectRouter);
 apiRouter.use("/auth", rateLimit(defaultLimiter), authRouter);
 apiRouter.use("/billing", rateLimit(defaultLimiter), paymentRouter);
 apiRouter.use("/webhook", webhookRouter);
+apiRouter.use("/github", githubRouter);
 
 // ------- CONTAINER ROUTES--------------
 

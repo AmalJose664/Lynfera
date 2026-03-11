@@ -264,3 +264,17 @@ export const getAuthenticatedUserDetails = async (req: Request, res: Response, n
 		next(error);
 	}
 };
+export const getUserGthbInstallationInfo = async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const userId = req.user?.id as string;
+		const result = await userService.getGithubInstallationInfo(userId)
+		if (!result) {
+			res.status(STATUS_CODES.OK).json({ error: COMMON_ERRORS.NOT_FOUND });
+			return
+		}
+		const response = UserMapper.toUserInstallationResponse(result, userId)
+		res.status(STATUS_CODES.OK).json(response);
+	} catch (error) {
+		next(error);
+	}
+};

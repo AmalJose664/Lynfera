@@ -5,7 +5,7 @@ import Link from "next/link";
 import { GoogleLoginButton } from '../components/GoogleLogin';
 
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ThemeSwitcher from '@/components/ThemeIcon';
 import TitleWithLogo from '@/components/TitleWithLogo';
 import { GithubLoginButton } from '../components/GithubLogin';
@@ -26,9 +26,13 @@ import { LinkComponent } from "@/components/docs/HelperComponents";
 export default function LoginPage() {
 	const router = useRouter();
 	const [toggleEmail, setToggleEmail] = useState(false)
+	const [commonErrors, setCommonErrors] = useState('')
 	const [providerLastUsed, setProviderLastUsed] = useState<string | null>(null)
 
+	const queryParams = useSearchParams()
+
 	useEffect(() => {
+		setCommonErrors(queryParams.get("commonError") || "")
 		const verifySessionCode = () => {
 			localStorage.removeItem("session_code")
 		}
@@ -55,6 +59,9 @@ export default function LoginPage() {
 					</h1>
 					<p className="text-primary">
 						Sign in to continue to your account.
+					</p>
+					<p className="text-red-400 mt-2">
+						{commonErrors}
 					</p>
 				</div>
 
@@ -125,7 +132,7 @@ export default function LoginPage() {
 					</div>
 					<div className='flex items-center flex-col mt-4'>
 						<p className='text-some-less text-sm'>No account yet?</p>
-						<Link href={"/signup"} className='m-auto mt-2 text-blue-400 hover:underline'>
+						<Link href={"/signup?commonError=" + commonErrors} className='m-auto mt-2 text-blue-400 hover:underline'>
 							Sign up
 						</Link>
 					</div>

@@ -1,6 +1,7 @@
 import { LoginUserDTO, SignUpUserDTO } from "@/dtos/auth.dto.js";
 import { AuthProvidersList, IUser } from "@/models/User.js";
 import { Profile } from "passport";
+import { GithubIds, GithubIdsOutput } from "../repository/IUserRepository.js";
 
 export interface IUserSerivce {
 	createUser(userData: Partial<IUser>): Promise<IUser>;
@@ -21,6 +22,11 @@ export interface IUserSerivce {
 	userCanDeploy(userId: string): Promise<{ user: IUser | null; limit: number; allowed: boolean; remaining: number }>;
 	incrementDeployment(userId: string): Promise<void>;
 
-	addGithubInstallationId(id: number, userId: string): Promise<IUser | null>
-	removeGithubInstallationId(userId: string): Promise<IUser | null>
+	getUserAuthProviders(userId: string): Promise<Partial<IUser> | null>
+
+
+	addGithubInstallationInfo(data: GithubIds, userId: string): Promise<GithubIdsOutput | null>
+	removeGithubInstallationInfo(installationId: number): Promise<void>
+	getGithubInstallationInfo(userId: string): Promise<GithubIdsOutput | null>
+
 }

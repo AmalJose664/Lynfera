@@ -1,8 +1,10 @@
 import { Document, Types } from "mongoose";
 import { BaseRepository } from "./base/base.repository.js";
 import { IUser, User } from "@/models/User.js";
-import { IUserRepository, SimpleOptions } from "@/interfaces/repository/IUserRepository.js";
+import { GithubIds, GithubIdsOutput, IUserRepository, SimpleOptions } from "@/interfaces/repository/IUserRepository.js";
 import { IPlans } from "@/constants/plan.js";
+
+
 
 class UserRepository extends BaseRepository<IUser> implements IUserRepository {
 	constructor() {
@@ -70,12 +72,24 @@ class UserRepository extends BaseRepository<IUser> implements IUserRepository {
 		return await User.findOneAndUpdate({ stripeCustomerId: stripeId }, { $set: { plan: planData, payment: paymentData } }, { new: true });
 	}
 
-	async addGithubInstallationId(userId: string, gitInstallationId: number): Promise<IUser | null> {
-		return await User.findOneAndUpdate({ _id: userId }, { $set: { gitInstallationId } }, { new: true });
+
+	async findAuthProviders(userId: string): Promise<Partial<IUser> | null> {
+		return await User.findOne({ _id: userId }, { authProviders: 1 }) as Partial<IUser>;
 	}
 
-	async removeGithubInstallationId(userId: string): Promise<IUser | null> {
-		return await User.findOneAndUpdate({ _id: userId }, { $set: { gitInstallationId: null } }, { new: true });
+
+	async removeGhbApCreds(installationId: number,): Promise<void> {
+		await User.findOneAndUpdate({ githubInstallationId: installationId }, { $set: { githubInstallationId: null, githubAccountId: null } });
+	}
+
+	async addGhbApCreds(userId: string, updateData: GithubIds): Promise<GithubIdsOutput | null> {
+		const { installId, loginId } = updateData
+		return User.findOneAndUpdate({ _id: userId }, { $set: { githubInstallationId: installId, githubAccountId: loginId } }, { new: true, })
+			.select("githubInstallationId githubAccountId");
+	}
+
+	async findGhbApCreds(userId: string): Promise<GithubIdsOutput | null> {
+		return await User.findOne({ _id: userId }, { githubAccountId: 1, githubInstallationId: 1 });
 	}
 }
 

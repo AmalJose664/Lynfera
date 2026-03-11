@@ -5,6 +5,7 @@ import {
 	checkAuth,
 	getAuthenticatedUser,
 	getAuthenticatedUserDetails,
+	getUserGthbInstallationInfo,
 	loginUser,
 	oAuthLoginCallback,
 	refresh,
@@ -39,5 +40,6 @@ authRouter.post("/resend-otp", resendOtp);
 
 authRouter.get("/me", authenticateToken, getAuthenticatedUser);
 authRouter.get("/me/full", authenticateToken, getAuthenticatedUserDetails);
+authRouter.get("/me/installation", authenticateToken, getUserGthbInstallationInfo);
 
 export default authRouter;

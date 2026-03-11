@@ -12,6 +12,7 @@ import { FiMoreHorizontal } from "react-icons/fi"
 
 interface OptionsComponentProps {
 	parentClassName?: string,
+	iconSize?: number,
 	options: {
 		title: string,
 		Svg?: React.ComponentType,
@@ -20,13 +21,13 @@ interface OptionsComponentProps {
 		isDisabled?: boolean
 	}[]
 }
-const OptionsComponent = ({ options, parentClassName }: OptionsComponentProps) => {
+const OptionsComponent = ({ options, parentClassName, iconSize }: OptionsComponentProps) => {
 	return (
 		<div className="mr-4">
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<button className="p-2 hover:bg-secondary rounded-lg transition-colors border !duration-150">
-						<FiMoreHorizontal size={20} />
+						<FiMoreHorizontal size={iconSize || 20} />
 					</button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent className={cn("", parentClassName)} align="start"

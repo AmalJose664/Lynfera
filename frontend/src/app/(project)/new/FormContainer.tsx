@@ -30,6 +30,7 @@ function ProjectForm() {
 			name: '',
 			repoURL: '',
 			branch: "",
+			isPrivate: false,
 			installCommand: "install",
 			buildCommand: "build",
 			rootDir: "/",
@@ -54,7 +55,7 @@ function ProjectForm() {
 	const repoUrl = watch("repoURL")
 
 	useEffect(() => {
-		getBranches(form.getValues("repoURL"), setBranches)
+		getBranches(form.getValues("repoURL"), setBranches, form.getValues("isPrivate"))
 	}, [repoUrl])
 
 

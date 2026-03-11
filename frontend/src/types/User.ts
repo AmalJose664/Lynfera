@@ -18,3 +18,16 @@ export interface UserDetailed {
 	_id: string
 	connectedAccounts: string[]
 }
+export type GithubIdsOutput = { githubInstallationId: number, githubAccountId: number }
+
+
+export interface GithubRepoResponse {
+	id: number;
+	node_id: string;
+	name: string;
+	full_name: string;
+	private: boolean;
+	description: string | null;
+	html_url: string;
+	pushAt: string
+}

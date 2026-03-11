@@ -24,7 +24,7 @@ export const ProjectFormSchema = z.object({
 			"Invalid repository URL (GitHub, GitLab, Bitbucket supported)")
 	,
 	branch: z.string().min(1, "Branch cannot be empty").default("main").optional(),
-
+	isPrivate: z.boolean(),
 	buildCommand: z
 		.string()
 		.trim()

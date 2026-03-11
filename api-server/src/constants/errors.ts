@@ -71,3 +71,18 @@ export const COMMON_ERRORS = {
 	TOKEN_VALIDATION: "Error during token valiadation",
 	NOT_FOUND: "Not found",
 };
+
+
+export const WEBHOOK_ERRORS = {
+	USER_NOT_FOUND: "Requested user not found ",
+	INCOMPLETE_DATA: "Can't find user data from Github ",
+	UNINSTALL_ERROR: "Error on uninstalling Github App due ",
+	INCOMPLE_DATA: "Incomplete data for installation request ",
+	SIGNATURE_INVALID: "Invalid Secret or Signature",
+	SIGNATURE_DECODE_ERROR: "Error while parsing signature",
+	SIGNATURE_NOT_FOUND: "Signature not found",
+	ALREDY_CONNECTED: "Already connected to an account. Please remove it first",
+	ACCESS_TOKEN_CREATE_ERROR: "Error while creating access token",
+	REPO_FETCH: "Error fetching repositories",
+	NOT_CONNECTED: "Github app not connected"
+}

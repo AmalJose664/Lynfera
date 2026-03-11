@@ -3,10 +3,10 @@ import { ProjectStatus } from "@/types/Project";
 import { parseRepoUrl } from "./form";
 
 
-export const formatDate = (date: Date | undefined) => { //chat gpt code
+export const formatDate = (date: Date | undefined, shortMonth?: boolean) => { //chat gpt code
 	return new Date(date || 0).toLocaleDateString('en-US', {
 		year: 'numeric',
-		month: 'long',
+		month: shortMonth ? 'short' : 'long',
 		day: 'numeric'
 	});
 };

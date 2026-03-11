@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../axiosBaseQuery";
-import { User, UserDetailed } from "@/types/User";
+import { GithubIdsOutput, GithubRepoResponse, User, UserDetailed } from "@/types/User";
 import { authApi as api } from "@/store/services/authApi";
 
 export const authApi = createApi({
@@ -41,7 +41,26 @@ export const authApi = createApi({
 			},
 			invalidatesTags: [{ type: "Auth" }],
 		}),
+		getUserGthbInstalions: builder.query<GithubIdsOutput, void>({
+			query: () => ({ url: "/auth/me/installation", method: 'get' }),
+			keepUnusedDataFor: 7 * 60,
+
+			transformResponse: (data: any) => {
+				return data.ids
+			},
+			providesTags: (result, error,) => [{ type: 'Auth', id: "user_gthb_installation" }]
+		}),
+		getUserGthbRepos: builder.query<GithubRepoResponse[], void>({
+			query: () => ({ url: "/github/repos", method: 'get' }),
+			keepUnusedDataFor: 7 * 60,
+
+			transformResponse: (data: any) => {
+				console.log(data, 44)
+				return data.repos
+			},
+			providesTags: (result, error,) => [{ type: 'Auth', id: "user_repos" }]
+		}),
 	}),
 })
 
-export const { useGetUserQuery, useGetUserDetailedQuery, useLogoutMutation } = authApi
+export const { useGetUserQuery, useGetUserDetailedQuery, useLogoutMutation, useGetUserGthbInstalionsQuery, useGetUserGthbReposQuery } = authApi

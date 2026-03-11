@@ -5,6 +5,9 @@ import { IPlans } from "@/constants/plan.js";
 export type SimpleOptions = {
 	fillPass: boolean;
 };
+export type GithubIds = { installId: number, loginId: number }
+export type GithubIdsOutput = { githubInstallationId: number, githubAccountId: number }
+
 export interface IUserRepository {
 	createUser(data: Partial<IUser>): Promise<IUser>;
 	findByUserEmail(email: string, options?: SimpleOptions): Promise<IUser | null>;
@@ -18,6 +21,9 @@ export interface IUserRepository {
 	findUserByCustomerId(id: string): Promise<IUser | null>;
 	incrementDeployment(userId: string): Promise<void>;
 
-	addGithubInstallationId(userId: string, gitInstallationId: number): Promise<IUser | null>
-	removeGithubInstallationId(userId: string): Promise<IUser | null>
+	findAuthProviders(userId: string): Promise<Partial<IUser> | null>
+
+	addGhbApCreds(userId: string, updateData: { installId: number, loginId: number }): Promise<GithubIdsOutput | null>
+	removeGhbApCreds(installationId: number): Promise<void>
+	findGhbApCreds(userId: string): Promise<GithubIdsOutput | null>
 }

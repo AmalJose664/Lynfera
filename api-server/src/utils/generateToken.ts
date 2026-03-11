@@ -2,6 +2,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 
 import { ENVS } from "@/config/env.config.js";
 import AppError from "./AppError.js";
+import { githubAppId } from "@/constants/gh.js";
 export interface RefreshTokenOptions {
 	currentRefresh?: number;
 	originalIssuedAt: number;
@@ -75,6 +76,31 @@ export function generateTokenContainerAccessToken(projectId: string, deploymentI
 		{
 			algorithm: "HS256",
 			expiresIn: "8m",
+		},
+	);
+}
+
+export function generateTokenForGithubAppInstallation(userId: string, redirectPath: string) {
+	return jwt.sign(
+		{
+			user: userId,
+			redirectPath
+		},
+		ENVS.GITHUB_CLIENT_ID + ENVS.GITHUB_WEBHOOK_SECRET,
+		{
+			algorithm: "HS256",
+			expiresIn: "72h",
+		},
+	);
+}
+export function generateTokenForGithubAppServer() {
+	return jwt.sign(
+		{
+			iss: githubAppId, iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 550
+		},
+		ENVS.GITHUB_APP_PRIVATE_KEY,
+		{
+			algorithm: "RS256",
 		},
 	);
 }

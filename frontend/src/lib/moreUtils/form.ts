@@ -62,8 +62,13 @@ export const repoCheck = async (repoUrl: string): Promise<boolean> => {
 
 export const getBranches = async (
 	repoUrl: string,
-	setFn: (branches: string[]) => void
+	setFn: (branches: string[]) => void,
+	isPrivate: boolean
 ) => {
+	if (isPrivate) {
+		''
+		return
+	}
 	const parsed = parseRepoUrl(repoUrl)
 	if (!parsed) return
 

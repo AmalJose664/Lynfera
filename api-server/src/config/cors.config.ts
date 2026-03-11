@@ -7,7 +7,7 @@ import { ENVS } from "@/config/env.config.js";
 export const corsOptions: CorsOptions = {
 	origin: ENVS.FRONTEND_URL,
 	methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-	allowedHeaders: ["Content-Type", "Authorization"],
+	allowedHeaders: ["Content-Type", "Authorization", "X-redirect-path"],
 	credentials: true,
 	optionsSuccessStatus: 200, // Needed for legacy browsers
 };
