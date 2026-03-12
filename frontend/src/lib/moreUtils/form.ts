@@ -1,5 +1,6 @@
 import { RepoProvider } from "@/types/Others"
 import axios from "axios"
+import axiosInstance from "../axios"
 
 interface ParsedRepo {
 	provider: RepoProvider
@@ -65,16 +66,20 @@ export const getBranches = async (
 	setFn: (branches: string[]) => void,
 	isPrivate: boolean
 ) => {
-	if (isPrivate) {
-		''
-		return
-	}
+	let apiUrl = ""
+	let branchExtractor = (data: any): string[] => []
+
 	const parsed = parseRepoUrl(repoUrl)
 	if (!parsed) return
 
+	if (isPrivate) {
+		const response = await axiosInstance.get(`/github/repos/${parsed.owner}/${parsed.repo}/branches`)
+		const data = response.data
+		branchExtractor = data => data.map((b: any) => b.name)
+		setFn(branchExtractor(data.branches))
+		return
+	}
 	try {
-		let apiUrl = ""
-		let branchExtractor = (data: any): string[] => []
 
 		switch (parsed.provider) {
 			case "github":

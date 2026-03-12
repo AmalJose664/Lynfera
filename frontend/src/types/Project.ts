@@ -41,6 +41,7 @@ export interface Project {
 export type ProjectFormInput = {
 	name: string;
 	isPrivate: boolean;
+	repoId?: number;
 	repoURL: string;
 	buildCommand?: string;
 	installCommand?: string;

@@ -1,5 +1,5 @@
 import { USER_ERRORS, WEBHOOK_ERRORS } from "@/constants/errors.js";
-import { GithubRepoResponse } from "@/constants/types/github.js";
+import { GithubRepoResponse, GithubRepositoryBranch, GithubRepositoryOwner } from "@/constants/types/github.js";
 import { IRedisCache } from "@/interfaces/cache/IRedisCache.js";
 import { IDeploymentService } from "@/interfaces/service/IDeploymentService.js";
 import { IUserSerivce } from "@/interfaces/service/IUserService.js";
@@ -102,6 +102,18 @@ class WebhookService implements IWebhookService {
 
 	}
 
+	async removeGhbInstallationManual(userId: string,): Promise<boolean> {
+
+		const user = await this.userService.getGithubInstallationInfo(userId)
+		if (!user) {
+			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND)
+		}
+		const accessToken = this.createGithubAccessToken()
+		await dispatchRequestService.githubInstallationDelete(user.githubInstallationId, accessToken)
+		await this.userService.removeGithubInstallationInfo(user.githubInstallationId)
+		return true
+	}
+
 	async getUserRepos(userId: string): Promise<GithubRepoResponse[]> {
 		const user = await this.userService.getGithubInstallationInfo(userId)
 		if (!user) {
@@ -115,6 +127,22 @@ class WebhookService implements IWebhookService {
 
 		console.log({ installationAccessToken })
 		const repos = await dispatchRequestService.getUserRepos(installationAccessToken)
+		return repos
+
+	}
+	async getUserRepoBranches(userId: string, owner: string, repo: string): Promise<GithubRepositoryBranch[]> {
+		const user = await this.userService.getGithubInstallationInfo(userId)
+		if (!user) {
+			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND)
+		}
+		if (!user.githubInstallationId) {
+			throw new AppError(WEBHOOK_ERRORS.NOT_CONNECTED, STATUS_CODES.NOT_FOUND)
+		}
+		const token = this.createGithubAccessToken()
+		const installationAccessToken = await this.createInstallationAccessToken(user.githubInstallationId, token)
+
+
+		const repos = await dispatchRequestService.getUserRepoBranches(installationAccessToken, owner, repo)
 		return repos
 
 	}
@@ -135,6 +163,22 @@ class WebhookService implements IWebhookService {
 		return tokenFromCache
 	}
 
+
+
+
+	async getUserAccountData(userId: string,): Promise<GithubRepositoryOwner> {
+		const user = await this.userService.getGithubInstallationInfo(userId)
+		if (!user) {
+			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND)
+		}
+		if (!user.githubInstallationId || !user.githubAccountId) {
+			throw new AppError(WEBHOOK_ERRORS.NOT_CONNECTED, STATUS_CODES.NOT_FOUND)
+		}
+		const token = this.createGithubAccessToken()
+		const account = await dispatchRequestService.getUserAccountConnected(token, user.githubInstallationId)
+		return account
+
+	}
 }
 
 export default WebhookService;

@@ -11,5 +11,6 @@ webhookRouter.post("/github", verifySignature, webhookController.githubWebhook.b
 webhookRouter.get("/connect-github", authenticateToken, webhookController.getGithubConnectionUrl.bind(webhookController))
 
 webhookRouter.get("/setup", decodeGhbStateValue, webhookController.githubAppSetup.bind(webhookController))
+webhookRouter.delete("/remove", authenticateToken, webhookController.removeGithubApp.bind(webhookController))
 
 export default webhookRouter

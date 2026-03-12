@@ -20,6 +20,7 @@ import { IoIosCube } from "react-icons/io";
 import BackButton from "@/components/BackButton";
 import { showToast } from "@/components/Toasts";
 import { LinkComponent } from "@/components/docs/HelperComponents";
+import { useDebounce } from "@/hooks/useDebounce";
 
 
 function ProjectForm() {
@@ -53,10 +54,10 @@ function ProjectForm() {
 	} = formState
 
 	const repoUrl = watch("repoURL")
-
+	const changedRepo = useDebounce(repoUrl, 450)
 	useEffect(() => {
-		getBranches(form.getValues("repoURL"), setBranches, form.getValues("isPrivate"))
-	}, [repoUrl])
+		getBranches(changedRepo, setBranches, form.getValues("isPrivate"))
+	}, [changedRepo])
 
 
 

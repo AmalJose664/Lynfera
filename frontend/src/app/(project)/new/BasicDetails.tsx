@@ -19,10 +19,13 @@ import axiosInstance from "@/lib/axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetUserGthbInstalionsQuery, useGetUserGthbReposQuery } from "@/store/services/authApi";
 import { formatDate } from "@/lib/moreUtils/combined";
-import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 import { GithubRepoResponse } from "@/types/User";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import OptionsComponent from "@/components/OptionsComponent";
+import { FiSettings } from "react-icons/fi";
+import Link from "next/link";
+import { LinkComponent } from "@/components/docs/HelperComponents";
+import { connectGithub } from "@/lib/moreUtils/gh";
 
 
 
@@ -38,34 +41,23 @@ export function BaseSettings({ form, branches }: {
 	const [selectedRepo, setSelectedRepo] = useState(-1)
 
 	const tab = params.get("tab")
-	const { data: ids, error, isLoading } = useGetUserGthbInstalionsQuery()
+	const { data: ids } = useGetUserGthbInstalionsQuery()
 	const { data: repos, error: repoError, isLoading: reposLoading } = useGetUserGthbReposQuery(undefined, { skip: !ids?.githubInstallationId })
-	const connectGithub = async () => {
-		try {
 
-			const response = await axiosInstance.get("/webhook/connect-github", {
-				headers: {
-					"X-redirect-path": "/new"
-				}
-			}) as { data: { url: string } }
-			const data = response.data
-			window.location.href = data.url
-
-		} catch (error: any) {
-			console.log("ERRRORR")
-			if (error.status === 401) {
-				router.push("/login?commonError=Please login/signup via github to add github integration")
-				return
-			}
+	useEffect(() => {
+		if (selectedRepo === -1) {
+			setValue("isPrivate", false)
 		}
+	}, [selectedRepo])
 
-	}
+
 	const selectGhRepo = (repo: GithubRepoResponse, index: number) => {
 		setSelectedRepo(index)
+		setValue("isPrivate", repo.private)
 		setValue("name", repo.name)
 		setValue("repoURL", repo.html_url)
-		setValue("isPrivate", repo.private)
 	}
+	const [manual, setManual] = useState(false)
 	const userAppConnected = !!ids?.githubInstallationId
 	return (
 		<div className="dark:bg-background bg-white border  rounded-md p-6 backdrop-blur-sm space-y-5">
@@ -76,10 +68,10 @@ export function BaseSettings({ form, branches }: {
 				<h2 className="text-lg font-bold">Project Details</h2>
 			</div>
 
-			<div className="mb-3 py-2">
+			<div className="mb-3 px-3 py-2">
 				<Tabs defaultValue={tab || "public-url"} className="w-full">
 					{(selectedRepo !== -1) ? (
-						<div className="mb-3 px-3 py-2">
+						<div className="mb-3 py-2">
 							<label className="flex items-center gap-2 mb-1 font-medium  text-sm" htmlFor="repoURL">
 								<LuGithub /> <span className="text-primary">Repo Selected</span>
 								<button className="ml-auto border px-2 py-1 rounded-md" onClick={() => setSelectedRepo(-1)}>Edit</button>
@@ -90,16 +82,17 @@ export function BaseSettings({ form, branches }: {
 							/>
 						</div>
 					) : (<div>
-						<TabsList className="grid w-full grid-cols-2 mb-4">
+						<TabsList className="grid w-full grid-cols-2">
 							<TabsTrigger value="public-url" className="flex items-center gap-2">
 								<LuLink className="w-4 h-4" /> Public URL
 							</TabsTrigger>
 							<TabsTrigger value="provider" className="flex items-center gap-2">
 								<LuPlug className="w-4 h-4" /> {userAppConnected ? "Provider" : "Connect Provider"}
 							</TabsTrigger>
+
 						</TabsList>
 
-						<TabsContent value="public-url" className="mt-0">
+						<TabsContent value="public-url" className="mt-4">
 							<label className="flex items-center gap-2 mb-1 font-medium text-sm" htmlFor="repoURL">
 								<LuGithub /> <span className="text-primary">Public Git url</span>
 							</label>
@@ -121,6 +114,21 @@ export function BaseSettings({ form, branches }: {
 						</TabsContent>
 
 						<TabsContent value="provider" className="mt-0">
+							{userAppConnected && <div className="flex justify-end mr-8 gap-8 mt-2">
+								<LinkComponent
+									href={`https://github.com/settings/installations/${ids.githubInstallationId}`}
+									newPage
+									className="text-xs  underline underline-offset-4 opacity-80"
+								>
+									Configure App
+								</LinkComponent>
+								<LinkComponent
+									href={"/user#github"}
+									className="text-xs  underline hover:text-red-400! underline-offset-4 opacity-80"
+								>
+									Remove App
+								</LinkComponent>
+							</div>}
 							<div className="w-full max-w-3xl mx-auto">
 								{userAppConnected ? (
 									<div className="flex flex-col border-t max-h-80 overflow-y-scroll [&::-webkit-scrollbar]:w-1.5
@@ -129,6 +137,7 @@ export function BaseSettings({ form, branches }: {
 										[&::-webkit-scrollbar-thumb]:rounded-full
 										hover:[&::-webkit-scrollbar-thumb]:bg-primary/40
 										transition-colors">
+
 										{repos && repos.length > 0 ? (
 											repos.map((repo, i) => (
 												<div
@@ -150,14 +159,13 @@ export function BaseSettings({ form, branches }: {
 
 													<div className="flex items-center gap-6">
 
-														<a
+														<LinkComponent
 															href={repo.html_url}
-															target="_blank"
-															rel="noopener noreferrer"
+															newPage
 															className="text-xs text-primary opacity-40 hover:opacity-100 transition-opacity underline underline-offset-4"
 														>
 															View Repository
-														</a>
+														</LinkComponent>
 
 														<button
 															type="button"
@@ -176,21 +184,21 @@ export function BaseSettings({ form, branches }: {
 										)}
 									</div>
 								) : (
-									<>
+									<div className="flex flex-col justify-around items-center">
 										<p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center">
 											Connect your account to import repositories directly.
 										</p>
 										{serverMessage && <div>
 											<p className="text-red-400 text-sm mt-2">{serverMessage}</p>
 										</div>}
-										<button onClick={connectGithub}
+										<button onClick={() => connectGithub(router)}
 											type="button"
-											className="flex items-center gap-2 bg-black text-white dark:bg-white dark:text-black px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
+											className="flex items-center gap-2 bg-black w-40 text-white dark:bg-white dark:text-black px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
 										>
 											<LuGithub className="w-4 h-4" />
 											Connect GitHub
 										</button>
-									</>
+									</div>
 								)}
 							</div>
 						</TabsContent>
@@ -209,31 +217,44 @@ export function BaseSettings({ form, branches }: {
 			</div>
 
 			<div className="mb-3 px-3 py-2">
-				<label className="flex items-center gap-2  mb-1 font-medium text-sm" htmlFor="">
-					<IoIosGitBranch />{" "}<span className="text-primary">Branch</span>
-				</label>
+				<div className="flex justify-between">
 
-				<Controller
-					control={form.control}
-					name="branch"
-					render={({ field }) => (
-						<Select onValueChange={field.onChange} defaultValue={field.value}>
-							<SelectTrigger className="w-full text-primary dark:placeholder:text-[#474747] placeholder:text-[#bdbdbd]">
-								<SelectValue placeholder="main" />
-							</SelectTrigger>
-							<SelectContent className={branches.length ? "h-96" : "h-20"}>
-								{branches
-									? branches.map((branch, index) => (
-										<SelectItem key={index} value={branch}>
-											{branch}
-										</SelectItem>
-									))
-									: <SelectItem value="main">main</SelectItem>
-								}
-							</SelectContent>
-						</Select>
-					)}
-				/>
+					<label className="flex items-center gap-2  mb-1 font-medium text-sm" htmlFor="">
+						<IoIosGitBranch />{" "}<span className="text-primary">Branch</span>
+					</label>
+					<button type="button"
+						className="border float-end mb-2 px-3 py-2 rounded-md text-xs"
+						onClick={() => setManual(!manual)}
+					>{manual ? "Select branch" : "Enter Branch Manually"}</button>
+				</div>
+				{manual ? (
+					<div>
+						<Input {...register("branch")} placeholder="main" className="text-primary dark:placeholder:text-[#474747] placeholder:text-[#bdbdbd]" />
+					</div>
+				) : (
+
+					<Controller
+						control={form.control}
+						name="branch"
+						render={({ field }) => (
+							<Select onValueChange={field.onChange} defaultValue={field.value}>
+								<SelectTrigger className="w-full text-primary dark:placeholder:text-[#474747] placeholder:text-[#bdbdbd]">
+									<SelectValue placeholder="main" />
+								</SelectTrigger>
+								<SelectContent className={branches.length ? "h-96" : "h-20"}>
+									{branches.length
+										? branches.map((branch, index) => (
+											<SelectItem key={index} value={branch}>
+												{branch}
+											</SelectItem>
+										))
+										: <SelectItem value="main">main</SelectItem>
+									}
+								</SelectContent>
+							</Select>
+						)}
+					/>
+				)}
 				{errors.branch && <p className="text-sm text-red-500 mt-1">{errors.branch.message}</p>}
 			</div>
 		</div>

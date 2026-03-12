@@ -84,5 +84,6 @@ export const WEBHOOK_ERRORS = {
 	ALREDY_CONNECTED: "Already connected to an account. Please remove it first",
 	ACCESS_TOKEN_CREATE_ERROR: "Error while creating access token",
 	REPO_FETCH: "Error fetching repositories",
+	BRANCH_FETCH: "Error fetching repository branches",
 	NOT_CONNECTED: "Github app not connected"
 }

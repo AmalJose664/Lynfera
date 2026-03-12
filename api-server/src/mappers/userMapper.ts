@@ -22,6 +22,9 @@ interface UserResponseDetailedDTO {
 	createdAt: Date;
 	_id: string;
 	connectedAccounts: string[];
+	githubInstallationId?: number
+	githubAccountId?: number
+
 }
 export class UserMapper {
 	static toUserInstallationResponse(data: GithubIdsOutput, userId: string): { ids: GithubIdsOutput & { _id: string } } {
@@ -55,6 +58,8 @@ export class UserMapper {
 				createdAt: user.createdAt,
 				bandwidthMonthly: data.bandwidth,
 				connectedAccounts: user.authProviders.map((p) => p.provider),
+				githubInstallationId: user.githubInstallationId,
+				githubAccountId: user.githubAccountId
 			},
 		};
 	}

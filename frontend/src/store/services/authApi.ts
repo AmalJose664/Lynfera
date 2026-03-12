@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../axiosBaseQuery";
-import { GithubIdsOutput, GithubRepoResponse, User, UserDetailed } from "@/types/User";
+import { GithubAccountResponse, GithubIdsOutput, GithubRepoResponse, User, UserDetailed } from "@/types/User";
 import { authApi as api } from "@/store/services/authApi";
 
 export const authApi = createApi({
@@ -55,12 +55,30 @@ export const authApi = createApi({
 			keepUnusedDataFor: 7 * 60,
 
 			transformResponse: (data: any) => {
-				console.log(data, 44)
 				return data.repos
 			},
 			providesTags: (result, error,) => [{ type: 'Auth', id: "user_repos" }]
 		}),
+		getUserGtbAccount: builder.query<GithubAccountResponse, void>({
+			query: () => ({ url: "/github/account", method: 'get' }),
+			keepUnusedDataFor: 7 * 60,
+
+			transformResponse: (data: any) => {
+				return data.account
+			},
+			providesTags: (result, error,) => [{ type: 'Auth', id: "user_github_account" }]
+		}),
+
+		removeUserGithubApp: builder.mutation<GithubAccountResponse, void>({
+			query: () => ({ url: "/webhook/remove", method: 'delete' }),
+			invalidatesTags: [
+				// { type: 'Auth', id: 'user_github_account' },
+				// { type: 'Auth', id: 'user_data_detailed' },
+			],
+		}),
+
 	}),
 })
 
-export const { useGetUserQuery, useGetUserDetailedQuery, useLogoutMutation, useGetUserGthbInstalionsQuery, useGetUserGthbReposQuery } = authApi
+export const { useGetUserQuery, useGetUserDetailedQuery, useLogoutMutation, useGetUserGtbAccountQuery, useRemoveUserGithubAppMutation,
+	useGetUserGthbInstalionsQuery, useGetUserGthbReposQuery } = authApi

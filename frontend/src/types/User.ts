@@ -16,6 +16,8 @@ export interface UserDetailed {
 	deploymentsToday: number
 	createdAt: Date
 	_id: string
+	githubInstallationId?: number
+	githubAccountId?: number
 	connectedAccounts: string[]
 }
 export type GithubIdsOutput = { githubInstallationId: number, githubAccountId: number }
@@ -30,4 +32,13 @@ export interface GithubRepoResponse {
 	description: string | null;
 	html_url: string;
 	pushAt: string
+}
+export interface GithubAccountResponse {
+	login: string;
+	id: number;
+	nodeId: string;
+	avatarUrl: string;
+	htmlUrl: string;
+	type: "User" | "Organization";
+	siteAdmin: boolean;
 }

@@ -4,7 +4,7 @@ import { githubAppSlug } from "@/constants/gh.js";
 import { IWebhookController } from "@/interfaces/controller/IWebhookController.js";
 import { IWebhookService } from "@/interfaces/service/IWebhookService.js";
 import { GithubResponseMapper } from "@/mappers/GithubMapper.js";
-import { WebhookError } from "@/utils/AppError.js";
+import AppError, { WebhookError } from "@/utils/AppError.js";
 
 import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { Request, Response, NextFunction } from "express";
@@ -111,8 +111,6 @@ class WebhookController implements IWebhookController {
 			message: returnMessage
 		})
 
-		res.status(success ? STATUS_CODES.OK : STATUS_CODES.BAD_REQUEST).json({ success, returnMessage })
-		return
 		res.status(success ? STATUS_CODES.OK : STATUS_CODES.BAD_REQUEST).redirect(`${baseUrl}?${params.toString()}`)
 
 	}
@@ -123,7 +121,45 @@ class WebhookController implements IWebhookController {
 			const repos = await this.webhookService.getUserRepos(userId)
 			const response = GithubResponseMapper.toGithubRepoResponse(repos)
 
-			res.json(response)
+			res.status(STATUS_CODES.OK).json(response)
+
+		} catch (error) {
+			next(error)
+		}
+	}
+	async getUserRepoBranches(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const userId = req.user?.id as string
+			const owner = req.params.owner
+			const repo = req.params.repo
+			const branches = await this.webhookService.getUserRepoBranches(userId, owner, repo)
+			const response = GithubResponseMapper.toGithubRepoBranchResponse(branches)
+
+			res.status(STATUS_CODES.OK).json(response)
+
+		} catch (error) {
+			next(error)
+		}
+	}
+	async getUserAccountData(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const userId = req.user?.id as string
+			const account = await this.webhookService.getUserAccountData(userId,)
+			const response = GithubResponseMapper.toGithubAccountResponse(account)
+
+			res.status(STATUS_CODES.OK).json(response)
+
+		} catch (error) {
+			next(error)
+		}
+	}
+
+	async removeGithubApp(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const userId = req.user?.id as string
+
+			const result = await this.webhookService.removeGhbInstallationManual(userId)
+			res.status(STATUS_CODES.NO_CONTENT).json({ result })
 
 		} catch (error) {
 			next(error)

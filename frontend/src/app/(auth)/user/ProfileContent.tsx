@@ -1,8 +1,8 @@
 "use client"
 import { FiUser, FiMail, FiCalendar, FiClock } from 'react-icons/fi';
-import { useGetUserDetailedQuery, } from "@/store/services/authApi"
+import { useGetUserGtbAccountQuery, useGetUserDetailedQuery, } from "@/store/services/authApi"
 
-import { IoIosCube, IoMdArrowRoundForward, IoMdCloudDone } from 'react-icons/io';
+import { IoIosCube, IoLogoGithub, IoMdArrowRoundForward, IoMdCloudDone } from 'react-icons/io';
 import { avatarBgFromName, formatBytes, formatDate, getElapsedTimeClean, getPercentage } from '@/lib/moreUtils/combined';
 import { MdOutlineStorage } from 'react-icons/md';
 import { PLANS } from '@/config/plan';
@@ -11,20 +11,34 @@ import BackButton from '@/components/BackButton';
 import ErrorComponent from '@/components/ErrorComponent';
 import { VscAccount } from 'react-icons/vsc';
 import { FaGithub, FaGoogle } from 'react-icons/fa';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import RightFadeComponent from '@/components/RightFadeComponent';
 import { SubtleProgressBar } from '@/components/SimpleStatsCompnts';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { RemoveGithubAppDialog } from '@/components/modals/RemoveGithubApp';
+import { LuGithub } from 'react-icons/lu';
+import { connectGithub } from '@/lib/moreUtils/gh';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 
 
 const ProfileContent = () => {
 	const { data: userDetailed, error, isError } = useGetUserDetailedQuery()
+	const { data: userGhAccount, error: ghAccountErr, isError: ghAccountIsErr, isLoading } = useGetUserGtbAccountQuery(undefined, {
+		skip: !userDetailed?.githubInstallationId
+	})
 	const router = useRouter()
 	const plan = userDetailed?.plan || "FREE"
 	const currentPlan = PLANS[plan]
+
 	if (error || isError) {
 		return <ErrorComponent error={error} id={""} field="User" />
 	}
+	const params = useSearchParams()
+	const serverMessage = params.get("message")
+	const status = params.get("success")
+
 	return (
 		<div>
 			<div className="min-h-screen bg-linear-to-br from-background to-slate-100 dark:from-background dark:to-neutral-900">
@@ -134,7 +148,82 @@ const ProfileContent = () => {
 					</div>
 
 
+					<RightFadeComponent delay={.15} className="mb-4 px-6 py-4 dark:bg-neutral-900 bg-white rounded-md border">
+						{(userDetailed && (userDetailed.githubInstallationId)) ?
 
+							<div id='github'>
+								{isLoading ? (
+									<div>
+										<LoadingSpinner />
+									</div>
+								) : (
+
+									<div>
+										<div className='flex items-center gap-6 mb-4'>
+											<h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+												Github App
+											</h3>
+											<IoLogoGithub />
+											<span className="py-1 px-2 border w-fit border-blue-500 rounded-full text-[10px] text-blue-400">
+												Connected
+											</span>
+										</div>
+										<div className='border rounded-md mt-2 flex items-center gap-8'>
+											<img src={userGhAccount?.avatarUrl} alt="User gh avatar" className='size-10 rounded-full my-2 mx-3' />
+											<div className='my-2'>
+												<p className='text-sm text-primary'>{userGhAccount?.type}: {userGhAccount?.login}</p>
+											</div>
+											<div className='my-2'>
+												<Button variant={"outline"} className='text-sm border px-4 py-2 mt-2 text-primary'>
+													<Link href={`https://github.com/settings/installations/${userDetailed.githubInstallationId}`} target='_blank'>Configure</Link>
+												</Button>
+											</div>
+											<div className='my-2'>
+												<RemoveGithubAppDialog projectId={"43242"} projectName={'3421342'} currentSubdomain={"32"} />
+											</div>
+										</div>
+										<div>
+											{status === "true" && (<div>
+												<p className="text-emerald-400 text-sm mt-2">Github connected</p>
+											</div>)}
+											{serverMessage && <div>
+												<p className="text-red-400 text-sm mt-2">Error on connecting Github App</p>
+												<p className="text-red-400 text-sm mt-2">{serverMessage}</p>
+											</div>}
+										</div>
+
+										{ghAccountIsErr && (
+											<div>
+												<div>
+													<p className="text-red-400 text-sm mt-2">Error on loading Github Data</p>
+													<p className="text-red-400 text-sm mt-2">{(ghAccountErr as any).data.message}</p>
+												</div>
+											</div>
+										)}
+									</div>
+								)}
+							</div>
+							: (
+								<div id='github'>
+									<div className='flex items-center gap-6 mb-4'>
+										<h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+											Github App
+										</h3>
+										<IoLogoGithub />
+										<span className="py-1 px-2 border w-fit border-gray-500 rounded-full text-[10px] text-gray-400">
+											Not Connected
+										</span>
+									</div>
+									<div>
+										<Button variant={"outline"} onClick={() => connectGithub(router)}
+											type="button">
+											<LuGithub className="w-4 h-4" />
+											Connect GitHub
+										</Button>
+									</div>
+								</div>
+							)}
+					</RightFadeComponent>
 					<RightFadeComponent delay={.15} className="mb-4 px-6 py-4 dark:bg-neutral-900 bg-white rounded-md border">
 						<div className="p-3 ">
 							<h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
@@ -212,7 +301,7 @@ const ProfileContent = () => {
 						</div>
 					</RightFadeComponent >
 				</div>
-			</div>
+			</div >
 		</div >
 	)
 }
