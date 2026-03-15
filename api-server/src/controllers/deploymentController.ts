@@ -16,8 +16,9 @@ class DeploymentController implements IDeploymentController {
 	async createDeployment(req: Request, res: Response, next: NextFunction): Promise<void> {
 		const userId = req.user?.id as string;
 		const projectId = req.params.projectId;
+		const isRedeploy = req.body.isRedeploy;
 		try {
-			const deployment = await this.deploymentService.newDeployment({}, userId, projectId);
+			const deployment = await this.deploymentService.newDeployment({}, userId, projectId, isRedeploy);
 
 			if (!deployment) {
 				res.status(STATUS_CODES.BAD_REQUEST).json({ deployment: null });

@@ -187,9 +187,9 @@ class UserService implements IUserSerivce {
 		return { user, bandwidth };
 	}
 
-	async userCanDeploy(userId: string): Promise<{ user: IUser | null; limit: number; allowed: boolean; remaining: number }> {
+	async userCanDeploy(userId: string): Promise<{ user: IUser; limit: number; allowed: boolean; remaining: number }> {
 		const user = await this.userRepository.getOrUpdateDeployments(userId);
-		if (!user) throw new AppError(USER_ERRORS.INVALID_CREDENTIALS, STATUS_CODES.NOT_FOUND);
+		if (!user) throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 
 		const limit = PLANS[user.plan].maxDailyDeployments;
 		const allowed = user.deploymentsToday < limit;
@@ -217,6 +217,12 @@ class UserService implements IUserSerivce {
 	async getGithubInstallationInfo(userId: string): Promise<GithubIdsOutput | null> {
 		return this.userRepository.findGhbApCreds(userId)
 	}
+
+
+	async getUserByGithubInstallation(installationId: number, onlyNeededFields: boolean): Promise<IUser | null> {
+		return this.userRepository.findUserByInstallationId(installationId, onlyNeededFields)
+	}
+
 
 
 

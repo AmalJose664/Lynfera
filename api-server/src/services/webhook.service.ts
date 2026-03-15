@@ -1,9 +1,11 @@
-import { USER_ERRORS, WEBHOOK_ERRORS } from "@/constants/errors.js";
-import { GithubRepoResponse, GithubRepositoryBranch, GithubRepositoryOwner } from "@/constants/types/github.js";
+import { PROJECT_ERRORS, USER_ERRORS, WEBHOOK_ERRORS } from "@/constants/errors.js";
+import { GithubCommitType, GithubRepoResponse, GithubRepositoryBranch, GithubRepositoryOwner } from "@/constants/types/github.js";
 import { IRedisCache } from "@/interfaces/cache/IRedisCache.js";
 import { IDeploymentService } from "@/interfaces/service/IDeploymentService.js";
+import { IProjectService } from "@/interfaces/service/IProjectService.js";
 import { IUserSerivce } from "@/interfaces/service/IUserService.js";
 import { IWebhookService } from "@/interfaces/service/IWebhookService.js";
+import { IDeployment } from "@/models/Deployment.js";
 import { IUser } from "@/models/User.js";
 import AppError, { WebhookError } from "@/utils/AppError.js";
 import dispatchRequestService from "@/utils/dispatchRequest.js";
@@ -13,9 +15,13 @@ import { STATUS_CODES } from "@/utils/statusCodes.js";
 class WebhookService implements IWebhookService {
 	private userService: IUserSerivce;
 	private cacheService: IRedisCache;
-	constructor(userSrvice: IUserSerivce, deploymentService: IDeploymentService, cache: IRedisCache) {
+	private deploySvs: IDeploymentService
+	private projectSvcs: IProjectService;
+	constructor(userSrvice: IUserSerivce, projectSvc: IProjectService, deploymentService: IDeploymentService, cache: IRedisCache) {
 		this.userService = userSrvice;
 		this.cacheService = cache;
+		this.deploySvs = deploymentService
+		this.projectSvcs = projectSvc
 	}
 
 	async webhookHandleNewRequest(userId: string, redirectPath: string): Promise<string> {
@@ -32,8 +38,60 @@ class WebhookService implements IWebhookService {
 		await this.userService.removeGithubInstallationInfo(installationId)
 	}
 
-	async webhookCodePushEvent(installationId: number, account: any): Promise<void> {
-		console.log({ installationId, account })
+
+
+	async webhookCodePushEvent(repo: GithubRepoResponse,
+		meta: {
+			sender: GithubRepositoryOwner; installationId: number; ref: string; headCommit: GithubCommitType,
+			allChanges: string[]; deployRequired: boolean;
+		}
+	): Promise<{ status: string, reason: string }> {
+
+		const { ref, installationId, sender, allChanges, deployRequired, headCommit } = meta
+
+
+		const project = await this.projectSvcs.__getProjectByRepository(repo.id)
+
+		console.log({ allChanges })
+
+		if (!project) {
+			console.log("No Project found")
+			return { status: "ignored", reason: PROJECT_ERRORS.NOT_FOUND }
+		}
+		if (project.isDisabled || project.isDeleted) {
+			return { status: "ignored", reason: "project inactive" };
+		}
+		if (!project.autoDeployEnabled) {
+			console.log("Project webhook disabled")
+			return { status: "ignored", reason: "Project auto deploy disabled" }
+		}
+		const branch = ref.replace("refs/heads/", "")
+		if (project.branch !== branch) {
+			console.log("Unrealated branch")
+			return { status: "ignored", reason: "branch mismatch" }
+		}
+
+
+		let shouldDeploy = false
+		let hasChanges = false
+		if (deployRequired) {
+			shouldDeploy = true
+		}
+		else {
+			const pathFound = project.rootDir.startsWith("/") ? project.rootDir.replace(/^\//, "") : project.rootDir
+			hasChanges = !pathFound ? true : allChanges.some((c) => c.startsWith(pathFound))
+		}
+		if (!shouldDeploy && !hasChanges) {
+			return { status: "ignored", reason: "No changes" }
+		}
+
+		const deployData: Partial<IDeployment> = {
+			triggeredBy: `${sender.id}||${sender.login}`,
+			commit_hash: `${headCommit.message}||${headCommit.id}`,
+			branch: project.branch
+		}
+		return await this.deploySvs.newPushDeployment(deployData, project, installationId)
+
 	}
 
 
@@ -164,6 +222,22 @@ class WebhookService implements IWebhookService {
 	}
 
 
+
+
+	async getUserRepo(userId: string, owner: string, repo: string): Promise<GithubRepoResponse> {
+		const user = await this.userService.getGithubInstallationInfo(userId)
+		if (!user) {
+			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND)
+		}
+		if (!user.githubInstallationId) {
+			throw new AppError(WEBHOOK_ERRORS.NOT_CONNECTED, STATUS_CODES.NOT_FOUND)
+		}
+		const token = this.createGithubAccessToken()
+		const installationAccessToken = await this.createInstallationAccessToken(user.githubInstallationId, token)
+
+
+		return dispatchRequestService.getUserRepo(installationAccessToken, owner, repo)
+	}
 
 
 	async getUserAccountData(userId: string,): Promise<GithubRepositoryOwner> {

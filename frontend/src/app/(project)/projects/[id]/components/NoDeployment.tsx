@@ -8,7 +8,7 @@ import { IoMdCloudDone } from "react-icons/io"
 
 
 interface NoDeploymentProps {
-	buttonAction: () => void
+	buttonAction: (arg: boolean) => void
 	titleText: string
 	descriptionText: string
 	buttonState?: boolean;
@@ -32,7 +32,7 @@ const NoDeployment = ({ buttonAction, buttonState, buttonText, descriptionText, 
 				</EmptyHeader>
 				<EmptyContent>
 					<div className="flex gap-2">
-						<Button disabled={buttonState} className="disabled:opacity-50!" onClick={buttonAction}>
+						<Button disabled={buttonState} className="disabled:opacity-50!" onClick={() => buttonAction(false)}>
 							{buttonState ? (
 								<LoadingSpinner3 isLoading={buttonState} />
 							) : (

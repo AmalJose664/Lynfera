@@ -26,7 +26,7 @@ import { useRouter } from "next/navigation";
 interface ProjectOverviewProps {
 	project: Project,
 	deployment?: Deployment
-	reDeploy: () => void
+	reDeploy: (arg: boolean) => void
 	runningDeployment?: Deployment;
 	setShowBuild: (state: boolean) => void;
 	setTabs: (state: string) => void;
@@ -166,7 +166,7 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 								{(isprojectError)
 									&&
 									(isDeplymentError) &&
-									<Button variant={"secondary"} onClick={reDeploy} className='hover:bg-primary! hover:text-secondary! duration-200!
+									<Button variant={"secondary"} onClick={() => reDeploy(true)} className='hover:bg-primary! hover:text-secondary! duration-200!
 								 border rounded-lg text-sm font-medium  transition-colors  flex justify-start gap-3 px-4 py-3'>
 										Re Deploy < GrRotateRight className="text-green-400 group-hover:rotate-z-90 transition-all duration-300" />
 									</Button>

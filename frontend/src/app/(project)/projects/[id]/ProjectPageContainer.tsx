@@ -36,10 +36,10 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 
 	const [createDeployment, { isLoading: createDeploymentLoading }] = useCreateDeploymentMutation()
 	const [showBuild, setShowBuild] = useState(false)
-	const handleCreateDeployment = async () => {
+	const handleCreateDeployment = async (isRedeploy: boolean) => {
 		const t = showToast.message("Deployment", "New Deployment Requested", <IoIosCloud className="w-4 h-4" />)
 		try {
-			await createDeployment(projectId).unwrap()
+			await createDeployment({ projectId, isRedeploy }).unwrap()
 			toast.dismiss(t)
 			showToast.success("Deployment", "New Deployment Started")
 			setShowBuild(true)
@@ -107,13 +107,13 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 
 	useDeploymentSSE(project, refetch, sseActive, setSseActive, tempDeployment)
 
-	const reDeploy = async () => {
+	const reDeploy = async (isRedeploy: boolean) => {
 		if (!project || (!deployment && !lastDeployment)) return
 		if (isStatusProgress(project.status) || isStatusProgress(deployment?.status) || (project.tempDeployment && tempDeployment)) {
 			showToast.error("Project error", `Cannot deploy when the project is in ${ProjectStatus.QUEUED}/${ProjectStatus.BUILDING} state`, <IoIosCube className="size-5" />)
 			return
 		}
-		const goodResponse = await handleCreateDeployment()
+		const goodResponse = await handleCreateDeployment(isRedeploy)
 		if (!goodResponse) {
 			return
 		}

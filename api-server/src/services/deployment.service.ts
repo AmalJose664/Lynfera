@@ -10,7 +10,7 @@ import { IProjectRepository } from "@/interfaces/repository/IProjectRepository.j
 import { IUserSerivce } from "@/interfaces/service/IUserService.js";
 import { IRedisCache } from "@/interfaces/cache/IRedisCache.js";
 import { ILogsService } from "@/interfaces/service/ILogsService.js";
-import { DeploymentStatus, IDeployment } from "@/models/Deployment.js";
+import { DeploymentStatus, DeploymentTriggers, IDeployment } from "@/models/Deployment.js";
 import AppError from "@/utils/AppError.js";
 import { IProject, ProjectStatus } from "@/models/Projects.js";
 import { nanoid } from "@/utils/generateNanoid.js";
@@ -52,7 +52,7 @@ class DeploymentService implements IDeploymentService {
 		this.logsService = logsService;
 		this.redisCache = redisCache;
 	}
-	async newDeployment(deploymentData: Partial<IDeployment>, userId: string, projectId: string): Promise<IDeployment | null> {
+	async newDeployment(deploymentData: Partial<IDeployment>, userId: string, projectId: string, isRedeploy: boolean): Promise<IDeployment | null> {
 		const canDeploy = await this.userService.userCanDeploy(userId);
 		if (!canDeploy.user) {
 			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
@@ -77,6 +77,9 @@ class DeploymentService implements IDeploymentService {
 		if (correspondindProject.isDeleted) {
 			throw new AppError(PROJECT_ERRORS.NOT_FOUND, 404);
 		}
+		if (correspondindProject.isDisabled) {
+			throw new AppError(PROJECT_ERRORS.DISABLED, 400);
+		}
 
 		deploymentData.status = DeploymentStatus.QUEUED;
 		deploymentData.overWrite = false;
@@ -85,6 +88,9 @@ class DeploymentService implements IDeploymentService {
 		deploymentData.identifierSlug = generateSlug(3);
 		deploymentData.project = new Types.ObjectId(correspondindProject._id);
 		deploymentData.user = correspondindProject.user;
+		deploymentData.branch = correspondindProject.branch;
+		deploymentData.triggerEvent = isRedeploy ? DeploymentTriggers.REDEPLOY : DeploymentTriggers.MANUAL;
+
 
 		await this.incrementRunningDeplymnts(correspondindProject._id, canDeploy.user._id, canDeploy.user.plan);
 		try {
@@ -104,6 +110,87 @@ class DeploymentService implements IDeploymentService {
 			throw error;
 		}
 	}
+
+
+
+
+
+
+
+	async createNewFailedDeployment(deployData: Partial<IDeployment>, project: IProject, reason: string): Promise<IDeployment | null> {
+		deployData.timings = { build_ms: 0, upload_ms: 0, duration_ms: 0, install_ms: 0 }
+		deployData.complete_at = new Date()
+		deployData.error_message = reason
+		deployData.status = DeploymentStatus.CANCELED
+		const deployment = await this.deploymentRepository.createDeployment(deployData);
+		await this.projectRepository.pushToDeployments(deployData.id, project.user.toString(), deployment?.id)
+		return deployment
+	}
+
+	async newPushDeployment(deploymentData: Partial<IDeployment>, project: IProject, installationId?: number): Promise<{ status: string, reason: string }> {
+		const canDeploy = await this.userService.userCanDeploy(project.user.toString())
+		const correspondindProject = project
+
+		if (installationId && canDeploy.user.githubInstallationId !== installationId) {
+			return { status: "ignored", reason: "installation mismatch" };
+		}
+		deploymentData.status = DeploymentStatus.QUEUED;
+		deploymentData.overWrite = false;
+		deploymentData.publicId = nanoid(DEPLOYMENT_ID_LENGTH);
+		deploymentData.identifierSlug = generateSlug(3);
+		deploymentData.project = new Types.ObjectId(correspondindProject._id);
+		deploymentData.user = correspondindProject.user;
+		deploymentData.triggerEvent = DeploymentTriggers.GIT_PUSH
+
+
+		if (!canDeploy.allowed) {
+			await this.createNewFailedDeployment(deploymentData, project, "User daily deploy limit reached.")
+			return { status: "cancelled", reason: DEPLOYMENT_ERRORS.DAILY_DEPLOYMENT_LIMIT };
+		}
+
+
+		if (correspondindProject.status === ProjectStatus.BUILDING || correspondindProject.status === ProjectStatus.QUEUED) {
+			await this.createNewFailedDeployment(deploymentData, project, "Deployment cancelled; Project already in progress state.")
+			return { status: "cancelled", reason: PROJECT_ERRORS.PROJECT_IN_PROGRESS };
+
+		}
+
+		if (correspondindProject.tempDeployment !== null || correspondindProject.tempDeployment) {
+			await this.createNewFailedDeployment(deploymentData, project, "Deployment cancelled; Project already in progress state.")
+			return { status: "cancelled", reason: PROJECT_ERRORS.PROJECT_IN_PROGRESS };
+		}
+
+		try {
+			await this.incrementRunningDeplymnts(correspondindProject._id, canDeploy.user._id, canDeploy.user.plan);
+		} catch (error) {
+			if (error instanceof AppError) {
+				await this.createNewFailedDeployment(deploymentData, project, error.message)
+				return { status: "cancelled", reason: error.message };
+			}
+		}
+		try {
+			const deployment = await this.deploymentRepository.createDeployment(deploymentData);
+
+			await Promise.all([
+				this.projectRepository.pushToDeployments(correspondindProject.id, correspondindProject.user.toString(), deployment?.id),
+				this.userService.incrementDeployment(correspondindProject.user.toString()),
+			]);
+
+			if (deployment?._id) {
+				await this.deployLocal(deployment._id, project._id.toString(), canDeploy.user._id);
+			}
+			return { status: "deploy started", reason: "" };
+
+		} catch (error) {
+			await this.decrementRunningDeplymnts(project._id.toString(), canDeploy.user._id);
+			return { status: "deploy error", reason: (error as any).message };
+		}
+	}
+
+
+
+
+
 
 	async getDeploymentById(id: string, userId: string, includes?: string): Promise<IDeployment | null> {
 		return await this.deploymentRepository.findDeploymentById(id, userId, { includes, exclude: ["file_structure"] });
@@ -208,7 +295,6 @@ class DeploymentService implements IDeploymentService {
 				status: DeploymentStatus.FAILED,
 				error_message: DEPLOYMENT_ERRORS.DEPLOY_FAILED,
 			});
-			await this.decrementRunningDeplymnts(projectId, userId);
 			throw error;
 		}
 	}
@@ -255,6 +341,25 @@ class DeploymentService implements IDeploymentService {
 
 	async deleteCloud(deploymentId: string, projectId: string): Promise<void> {
 		const prefix = `${S3_OUTPUTS_DIR}/${projectId}/${deploymentId}/`;
+		const APP_FILES_BUCKET = ENVS.CLOUD_BUCKET;
+		const listCommand = new ListObjectsV2Command({
+			Bucket: APP_FILES_BUCKET,
+			Prefix: prefix,
+		});
+		const listed = await s3Client.send(listCommand);
+		if (!listed.Contents || listed.Contents.length === 0) {
+			return;
+		}
+		const deleteCommand = new DeleteObjectsCommand({
+			Bucket: APP_FILES_BUCKET,
+			Delete: {
+				Objects: listed.Contents.map((obj: _Object) => ({ Key: obj.Key })),
+			},
+		});
+		await s3Client.send(deleteCommand);
+	}
+	async deleteCloudDeploysMultiple(projectId: string): Promise<void> {
+		const prefix = `${S3_OUTPUTS_DIR}/${projectId}/`;
 		const APP_FILES_BUCKET = ENVS.CLOUD_BUCKET;
 		const listCommand = new ListObjectsV2Command({
 			Bucket: APP_FILES_BUCKET,

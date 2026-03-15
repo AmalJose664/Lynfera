@@ -1,4 +1,4 @@
-import { GithubRepoResponse, GithubRepositoryBranch, GithubRepositoryOwner } from "@/constants/types/github.js"
+import { GithubCommitType, GithubRepoResponse, GithubRepositoryBranch, GithubRepositoryOwner } from "@/constants/types/github.js"
 import { IUser } from "@/models/User.js"
 
 export interface IWebhookService {
@@ -6,6 +6,11 @@ export interface IWebhookService {
 
 	webhookInstaltnCreateEvent(installationId: number, account: any): Promise<void>
 	webhookInstaltnDeleteEvent(installationId: number, account: any): Promise<void>
+	webhookCodePushEvent(repo: GithubRepoResponse, meta: {
+		sender: GithubRepositoryOwner,
+		installationId: number, headCommit: GithubCommitType,
+		ref: string, allChanges: string[], deployRequired: boolean
+	}): Promise<{ status: string, reason: string }>
 
 	getUserInfo(userId: string): Promise<IUser>
 
@@ -17,6 +22,7 @@ export interface IWebhookService {
 	createInstallationAccessToken(installationId: number, token: string): Promise<string>
 
 	getUserRepos(userId: string): Promise<GithubRepoResponse[]>
+	getUserRepo(userId: string, owner: string, repo: string): Promise<GithubRepoResponse>
 	getUserRepoBranches(userId: string, owner: string, repo: string): Promise<GithubRepositoryBranch[]>
 	getUserAccountData(userId: string,): Promise<GithubRepositoryOwner>
 }

@@ -33,9 +33,9 @@ interface ProjectContentProps {
 	showBuild: boolean
 	setShowBuild: (state: boolean) => void;
 	tabFromUrl?: string
-	reDeploy: () => Promise<void>;
+	reDeploy: (arg: boolean) => Promise<void>;
 	newDeployment: {
-		onCreateDeployment: () => void;
+		onCreateDeployment: (arg: boolean) => void;
 		createDeploymentLoading: boolean
 	}
 	refetchLogs: () => void
@@ -128,7 +128,7 @@ export function ProjectContent({
 				setShowConfirm={setShowConfirm}
 				handleClick={() => {
 					setTabs("overview")
-					reDeploy()
+					reDeploy(false)
 				}}
 				setTabs={setTabs}
 			/>

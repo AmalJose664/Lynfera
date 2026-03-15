@@ -8,6 +8,7 @@ export interface IWebhookController {
 	getUserAccountData(req: Request, res: Response, next: NextFunction): Promise<void>
 	getUserRepoBranches(req: Request, res: Response, next: NextFunction): Promise<void>
 	getUserRepos(req: Request, res: Response, next: NextFunction): Promise<void>
+	getUserRepo(req: Request, res: Response, next: NextFunction): Promise<void>
 
 	removeGithubApp(req: Request, res: Response, next: NextFunction): Promise<void>
 

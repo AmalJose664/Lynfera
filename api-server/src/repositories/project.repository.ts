@@ -108,7 +108,11 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 
 	async __findProject(projectId: string): Promise<IProject | null> {
 		// container
-		return await Project.findOne({ _id: projectId });
+		return Project.findOne({ _id: projectId });
+	}
+	async __findProjectByRepo(repoId: number): Promise<IProject | null> {
+		// webhook
+		return Project.findOne({ ghRepoId: repoId });
 	}
 	async __updateProject(projectId: string, updateData: Partial<IProject>): Promise<IProject | null> {
 		// container

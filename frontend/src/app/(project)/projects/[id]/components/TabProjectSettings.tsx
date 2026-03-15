@@ -470,15 +470,19 @@ const SaveBar = memo(({ control, handleSubmit, saveAndDeploy }: { control: any, 
 })
 
 
-const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reDeploy: () => Promise<void>, setTabs: (state: string) => void }) => {
+const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reDeploy: (arg: boolean) => Promise<void>, setTabs: (state: string) => void }) => {
 
 	const [branches, setBranches] = useState<string[] | null>(null)
 	const [isUpdateModeDetails, setIsUpdateModeDetails] = useState<boolean>(false)
 	const [isUpdateModeConf, setIsUpdateModeConf] = useState<boolean>(false)
 	const [isUpdateModeEnv, setIsUpdateModeEnv] = useState<boolean>(false)
+
+
 	useEffect(() => {
-		getBranches(project.repoURL, setBranches)
+		getBranches(project.repoURL, setBranches, project.isPrivateGhRepo)
 	}, [project.repoURL])
+
+
 	const form = useForm<ProjectUpdateFormType>({
 		defaultValues: {
 			name: project.name,
@@ -488,13 +492,14 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 			rootDir: project.rootDir,
 			outputDirectory: project.outputDirectory,
 			env: project.env,
-			rewriteNonFilePaths: project.rewriteNonFilePaths
+			rewriteNonFilePaths: project.rewriteNonFilePaths,
+			autoDeployEnabled: project.autoDeployEnabled
 		},
 		resolver: zodResolver(
 			ProjectUpdateFormSchema
 		),
 	});
-	const [updateProject, { isLoading, error, }] = useUpdateProjectMutation()
+	const [updateProject, { isLoading, }] = useUpdateProjectMutation()
 	const { handleSubmit, formState: { dirtyFields }, register } = form
 
 	function getDirtyValues<T extends Record<string, any>>(
@@ -540,7 +545,7 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 
 	const saveAndDeploy = async (data: ProjectUpdateFormType) => {
 		await saveData(data)
-		await reDeploy()
+		await reDeploy(true)
 		setTabs("overview")
 	}
 	return (
@@ -572,10 +577,10 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 						</div>
 					</div>
 					<div
-						id="subdomain"
-						className="dark:bg-neutral-900 bg-white rounded-md py-3 px-5 border mb-3"
+						id="others"
+						className="dark:bg-neutral-900 bg-white rounded-md py-3 px-5 border mb-3 space-y-3"
 					>
-						<h2 className="text-xl mb-3 font-semibold text-primary">Rewrites</h2>
+						<h2 className="text-xl font-semibold text-primary">Others</h2>
 						<div className="flex border items-start justify-between p-4 rounded-md">
 							<div>
 								<p className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -592,6 +597,21 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 							<div className="ml-6 mt-6">
 								<label className="inline-flex items-center cursor-pointer">
 									<input {...(register("rewriteNonFilePaths"))} type="checkbox" className="" />
+								</label>
+							</div>
+						</div>
+						<div className="flex border items-start justify-between p-4 rounded-md">
+							<div>
+								<p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+									Auto Deploy on Github Push
+								</p>
+								<p className="text-xs text-gray-500">
+									Automatically start new deployment on git push (For github connected projects only).
+								</p>
+							</div>
+							<div className="ml-6 mt-6">
+								<label className="inline-flex items-center cursor-pointer">
+									<input {...(register("autoDeployEnabled"))} type="checkbox" className="" />
 								</label>
 							</div>
 						</div>

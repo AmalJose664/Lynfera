@@ -1,10 +1,11 @@
 import { ENVS } from "@/config/env.config.js";
 import { WEBHOOK_ERRORS } from "@/constants/errors.js";
 import { githubAppSlug } from "@/constants/gh.js";
+import { GithubCommitType } from "@/constants/types/github.js";
 import { IWebhookController } from "@/interfaces/controller/IWebhookController.js";
 import { IWebhookService } from "@/interfaces/service/IWebhookService.js";
 import { GithubResponseMapper } from "@/mappers/GithubMapper.js";
-import AppError, { WebhookError } from "@/utils/AppError.js";
+import { WebhookError } from "@/utils/AppError.js";
 
 import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { Request, Response, NextFunction } from "express";
@@ -37,19 +38,31 @@ class WebhookController implements IWebhookController {
 
 	async githubWebhook(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
+			let deployResult = { status: "", reason: "" }
 			const { body } = req
 			const eventType = String(req.headers["x-github-event"])
 			switch (eventType) {
 				case "push":
-					// push tasks 
-					if (body.created) {
-						// new branch/tag
+
+					const repository = body.repository;
+					const sender = body.sender
+					const installationId = body.installation.id
+					const ref = body.ref
+					const allChanges: string[] = []
+					const headCommit = body.head_commit
+					let deployRequired = false
+					for (const commit of body.commits as GithubCommitType[]) {
+						if (allChanges.length > 100) {
+							deployRequired = true
+							break
+						}
+						allChanges.push(...commit.added, ...commit.removed, ...commit.modified)
 					}
 
-					if (body.deleted) {
-						// deleted branch/tag  65145343
-					}
+					const meta = { sender, installationId, ref, allChanges, headCommit, deployRequired }
 
+
+					deployResult = await this.webhookService.webhookCodePushEvent(repository, meta)
 					break
 				case "installation":
 					const action = body.action
@@ -65,8 +78,10 @@ class WebhookController implements IWebhookController {
 					break
 			}
 
-			console.log(body)
-			res.json({ status: 200, message: "success" })
+			// console.log("\n---------------------\n", JSON.stringify(body, null, 2), "\n---------------------\n",
+			// 	req.headers, "\n---------------------\n")
+			console.log({ deployResult })
+			res.json({ status: 200, message: "success", deployResult })
 
 
 		} catch (error) {
@@ -119,8 +134,21 @@ class WebhookController implements IWebhookController {
 		try {
 			const userId = req.user?.id as string
 			const repos = await this.webhookService.getUserRepos(userId)
-			const response = GithubResponseMapper.toGithubRepoResponse(repos)
+			const response = GithubResponseMapper.toGithubReposResponse(repos)
 
+			res.status(STATUS_CODES.OK).json(response)
+
+		} catch (error) {
+			next(error)
+		}
+	}
+	async getUserRepo(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const userId = req.user?.id as string
+			const owner = req.params.owner
+			const repo = req.params.repo
+			const repoResult = await this.webhookService.getUserRepo(userId, owner, repo)
+			const response = GithubResponseMapper.toGithubRepoResponse(repoResult)
 			res.status(STATUS_CODES.OK).json(response)
 
 		} catch (error) {

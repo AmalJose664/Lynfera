@@ -8,10 +8,15 @@ export enum ProjectStatus {
 	FAILED = "FAILED",
 	CANCELED = "CANCELLED",
 }
+export enum ProjectProvider {
+	MANUAL = "MANUAL",
+	GITHUB = "GITHUB"
+}
 export interface Project {
 	_id: string;
 	user: User | string;
 	name: string;
+	provider: ProjectProvider;
 	repoURL: string;
 	subdomain: string;
 	buildCommand: string;
@@ -23,7 +28,9 @@ export interface Project {
 	tempDeployment: string | null;
 	lastDeployment: string | null;
 	isDisabled: boolean;
+	isPrivateGhRepo: boolean;
 	rewriteNonFilePaths: boolean
+	autoDeployEnabled: boolean;
 	techStack: string;
 	env: {
 		name: string
@@ -40,8 +47,9 @@ export interface Project {
 
 export type ProjectFormInput = {
 	name: string;
+	ghRepoId?: number;
+	provider: ProjectProvider;
 	isPrivate: boolean;
-	repoId?: number;
 	repoURL: string;
 	buildCommand?: string;
 	installCommand?: string;

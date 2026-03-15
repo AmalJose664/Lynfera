@@ -22,5 +22,6 @@ export interface IProjectRepository {
 	): Promise<IProject | null>;
 
 	__findProject(projectId: string): Promise<IProject | null>;
+	__findProjectByRepo(repoId: number): Promise<IProject | null>
 	__updateProject(projectId: string, updateData: Partial<IProject>): Promise<IProject | null>;
 }

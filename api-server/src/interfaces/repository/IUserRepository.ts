@@ -26,4 +26,5 @@ export interface IUserRepository {
 	addGhbApCreds(userId: string, updateData: { installId: number, loginId: number }): Promise<GithubIdsOutput | null>
 	removeGhbApCreds(installationId: number): Promise<void>
 	findGhbApCreds(userId: string): Promise<GithubIdsOutput | null>
+	findUserByInstallationId(installationId: number, onlyNeededFields: boolean): Promise<IUser | null>
 }

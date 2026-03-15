@@ -1,7 +1,7 @@
 import z from "zod";
 
 import { mongoIdSchema } from "@/dtos/zodHelpers.js";
-import { ProjectStatus } from "@/models/Projects.js";
+import { ProjectProvider, ProjectStatus } from "@/models/Projects.js";
 import { DEPLOYMENT_ID_LENGTH, DEPLOYMENT_SEPARATOR_LENGTH, MAX_SUBDOMAIN_LENGTH } from "@/constants/subdomain.js";
 
 export const envSchema = z
@@ -16,12 +16,13 @@ export const envSchema = z
 	.strict();
 
 export const CreateProjectSchema = z.object({
+	ghRepoId: z.number().optional(),
+	provider: z.enum(ProjectProvider),
+	isPrivate: z.boolean(),
 	name: z
 		.string()
-		.min(3, "Name should be at least 3 charecters")
 		.min(3, "Name should not exceed 3 charecters")
-		.regex(/^[a-z0-9-]+$/, "Project name can only contain lowercase letters, numbers, and hyphens")
-		.refine((name) => !name.startsWith("-") && !name.endsWith("-"), "Project name cannot start or end with hyphen"),
+		.max(50, "Name max 50 characters"),
 	repoURL: z
 		.string()
 		.regex(
@@ -62,10 +63,7 @@ export const UpdateProjectSchema = z.object({
 	name: z
 		.string()
 		.min(3, "Name should be at least 3 charecters")
-		.min(3, "Name should not exceed 3 charecters")
-		.regex(/^[a-z0-9-]+$/, "Project name can only contain lowercase letters, numbers, and hyphens")
-		.refine((name) => !name.startsWith("-") && !name.endsWith("-"), "Project name cannot start or end with hyphen")
-		.optional(),
+		.max(50, "Name max 50 characters").optional(),
 	branch: z.string().optional(),
 	buildCommand: z
 		.string()
@@ -90,6 +88,7 @@ export const UpdateProjectSchema = z.object({
 		.catch("/")
 		.optional(),
 	rewriteNonFilePaths: z.boolean().optional(),
+	autoDeployEnabled: z.boolean().optional(),
 	outputDirectory: z.string().optional(),
 	env: z.array(envSchema).max(100).optional(),
 	isDisabled: z.boolean().optional(),

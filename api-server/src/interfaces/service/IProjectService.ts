@@ -38,7 +38,7 @@ export interface IProjectService {
 		projectRslts: ProjectUsageResults[];
 		deploys: DailyDeployments[];
 	}>;
-
+	__getProjectByRepository(repoId: number): Promise<IProject | null>
 	__getProjectById(id: string): Promise<IProject | null>;
 	__updateProjectById(projectId: string, updateData: Partial<IProject>, options?: options): Promise<IProject | null>;
 }

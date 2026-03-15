@@ -2,7 +2,7 @@ import { ENVS } from "@/config/env.config.js";
 import AppError, { WebhookError } from "./AppError.js";
 import { STATUS_CODES } from "./statusCodes.js";
 import { generateTokenContainerAccessToken } from "./generateToken.js";
-import { GITHUB_ACCEPT_HEADER, installationIdVerifyUrl as installationIdVerifyUrl, makeRepoBranchUr, newAccessTokensUrl, reposUrl } from "@/constants/gh.js";
+import { GITHUB_ACCEPT_HEADER, installationIdVerifyUrl as installationIdVerifyUrl, makeRepoBranchUr, makeRepoUr, newAccessTokensUrl, reposUrl } from "@/constants/gh.js";
 import { WEBHOOK_ERRORS } from "@/constants/errors.js";
 import { GithubRepoResponse, GithubRepositoryBranch, GithubRepositoryOwner } from "@/constants/types/github.js";
 
@@ -145,6 +145,24 @@ class DispatchRequests {
 			}
 		})
 		const result = await data.json() as unknown as GithubRepositoryBranch[];
+
+		if (!data.ok) {
+			throw new WebhookError(WEBHOOK_ERRORS.BRANCH_FETCH, STATUS_CODES.INTERNAL_SERVER_ERROR);
+		}
+		return result
+
+	}
+	async getUserRepo(token: string, owner: string, repo: string): Promise<GithubRepoResponse> {
+		const requestUrl = makeRepoUr(owner, repo)
+
+		const data = await fetch(requestUrl, {
+			method: "GET",
+			headers: {
+				"Accept": GITHUB_ACCEPT_HEADER,
+				"Authorization": `Bearer ${token}`
+			}
+		})
+		const result = await data.json() as unknown as GithubRepoResponse;
 
 		if (!data.ok) {
 			throw new WebhookError(WEBHOOK_ERRORS.BRANCH_FETCH, STATUS_CODES.INTERNAL_SERVER_ERROR);

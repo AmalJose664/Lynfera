@@ -41,18 +41,23 @@ export class GithubResponseMapper {
 			}
 		}
 	}
-	static toGithubRepoResponse(repos: GithubRepoResponse[]): { repos: toGithubRepoResponse[] } {
+	static toGithubRepoResponse(repo: GithubRepoResponse): { repo: toGithubRepoResponse } {
 		return {
-			repos: repos.map(re => ({
-				description: re.description,
-				id: re.id,
-				node_id: re.node_id,
-				name: re.name,
-				full_name: re.full_name,
-				html_url: re.html_url,
-				private: re.private,
-				pushAt: re.pushed_at
-			}))
+			repo: {
+				description: repo.description,
+				id: repo.id,
+				node_id: repo.node_id,
+				name: repo.name,
+				full_name: repo.full_name,
+				html_url: repo.html_url,
+				private: repo.private,
+				pushAt: repo.pushed_at
+			}
+		}
+	}
+	static toGithubReposResponse(repos: GithubRepoResponse[]): { repos: toGithubRepoResponse[] } {
+		return {
+			repos: repos.map(re => this.toGithubRepoResponse(re).repo)
 		}
 	}
 	static toGithubRepoBranchResponse(branches: GithubRepositoryBranch[]): { branches: toGithubRepoBranchResponse[] } {

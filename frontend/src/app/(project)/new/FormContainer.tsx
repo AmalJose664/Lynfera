@@ -1,6 +1,6 @@
 'use client'
 
-import { ProjectFormInput } from "@/types/Project"
+import { ProjectFormInput, ProjectProvider } from "@/types/Project"
 import { useForm, } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ProjectFormSchema } from "@/lib/schema/project";
@@ -35,7 +35,9 @@ function ProjectForm() {
 			installCommand: "install",
 			buildCommand: "build",
 			rootDir: "/",
-			outputDirectory: 'dist'
+			outputDirectory: 'dist',
+			provider: ProjectProvider.MANUAL,
+			ghRepoId: undefined
 		},
 
 		resolver: zodResolver(ProjectFormSchema)
@@ -62,7 +64,7 @@ function ProjectForm() {
 
 
 	const onSubmit = async (data: ProjectFormInput) => {
-		const repoExists = await repoCheck(data.repoURL)
+		const repoExists = await repoCheck(data.repoURL, data.isPrivate)
 		if (!repoExists) {
 			form.setFocus("repoURL")
 			form.setError("repoURL", { message: "Git repo not found", type: "manual", })
@@ -132,7 +134,7 @@ function ProjectForm() {
 								disabled={isSubmitting || isSubmitSuccessful}
 								className="disabled:cursor-not-allowed! w-full dark:bg-background bg-white  py-2 hover:bg-neutral-800 hover:text-white hover:dark:bg-neutral-200 hover:dark:text-black rounded font-semibold border !duration-100 transition"
 							>
-								{(isSubmitting || isLoading) ? "Loading..." : "Deploy"}
+								{isSubmitSuccessful ? "Redirecting..." : ((isSubmitting || isLoading) ? "Loading..." : "Create Project")}
 							</button>
 						</div>
 						<div>

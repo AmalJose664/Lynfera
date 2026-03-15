@@ -20,7 +20,7 @@ interface TabProjectProps {
 		tempDeployment?: Deployment
 		lastDeployment?: Deployment
 		newDeployment: {
-			onCreateDeployment: () => void;
+			onCreateDeployment: (arg: boolean) => void;
 			createDeploymentLoading: boolean
 		}
 	}
@@ -29,7 +29,7 @@ interface TabProjectProps {
 		setShowBuild: (v: boolean) => void
 	}
 	setTabs: (state: string) => void;
-	reDeploy: () => void;
+	reDeploy: (arg: boolean) => void;
 	refetchLogs: () => void;
 
 }

@@ -12,10 +12,17 @@ export enum ProjectStatus {
 	FAILED = "FAILED",
 	CANCELED = "CANCELLED",
 }
+export enum ProjectProvider {
+	MANUAL = "MANUAL",
+	GITHUB = "GITHUB"
+}
 export interface IProject extends Document {
 	_id: string;
 	user: Types.ObjectId;
 	name: string;
+	ghRepoId?: number;
+	isPrivateGhRepo: boolean;
+	provider: ProjectProvider;
 	repoURL: string;
 	subdomain: string;
 	buildCommand: string;
@@ -34,6 +41,7 @@ export interface IProject extends Document {
 	isDeleted: boolean;
 	isDisabled: boolean;
 	rewriteNonFilePaths: boolean;
+	autoDeployEnabled: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -55,9 +63,18 @@ const projectSchema = new Schema<IProject>(
 		lastDeployment: { type: String, default: null },
 		env: [{ name: String, value: String, _id: false }],
 		lastDeployedAt: { type: Date, default: Date.now() },
+
+		isPrivateGhRepo: { type: Boolean, default: false },
+		provider: { type: String, enum: Object.values(ProjectProvider), required: true, default: ProjectProvider.MANUAL },
+		ghRepoId: { type: Number, sparse: true },
+
 		isDeleted: { type: Boolean, default: false },
 		isDisabled: { type: Boolean, default: false },
 		rewriteNonFilePaths: {
+			type: Boolean,
+			default: false,
+		},
+		autoDeployEnabled: {
 			type: Boolean,
 			default: false,
 		},

@@ -1,10 +1,11 @@
 import { DailyDeployments, ProjectUsageResults } from "@/interfaces/repository/IDeploymentRepository.js";
-import { IProject } from "@/models/Projects.js";
+import { IProject, ProjectProvider } from "@/models/Projects.js";
 
 interface ProjectResponseDTO {
 	project: {
 		_id: string;
 		user: string | { _id: string; name: string; email: string; profileImage: string };
+		provider: ProjectProvider;
 		name: string;
 		repoURL: string;
 		subdomain: string;
@@ -19,7 +20,9 @@ interface ProjectResponseDTO {
 		lastDeployment: string | null;
 		isDisabled: boolean;
 		isDeleted: boolean;
+		isPrivateGhRepo: boolean;
 		rewriteNonFilePaths: boolean;
+		autoDeployEnabled: boolean;
 		env: {
 			name: string;
 			value: string;
@@ -59,11 +62,11 @@ export class ProjectMapper {
 				subdomain: project.subdomain,
 				user: this.isPopulatedObject(project.user, ["profileImage", "email", "name"])
 					? {
-							_id: project.user._id,
-							name: project.user.name,
-							email: project.user.email,
-							profileImage: project.user.profileImage,
-						}
+						_id: project.user._id,
+						name: project.user.name,
+						email: project.user.email,
+						profileImage: project.user.profileImage,
+					}
 					: project.user.toString(),
 				deployments: project.deployments?.map((d) => d.toString()),
 				lastDeployedAt: project.lastDeployedAt,
@@ -82,11 +85,11 @@ export class ProjectMapper {
 				subdomain: project.subdomain,
 				user: this.isPopulatedObject(project.user, ["profileImage", "email", "name"])
 					? {
-							_id: project.user._id,
-							name: project.user.name,
-							email: project.user.email,
-							profileImage: project.user.profileImage,
-						}
+						_id: project.user._id,
+						name: project.user.name,
+						email: project.user.email,
+						profileImage: project.user.profileImage,
+					}
 					: project.user.toString(),
 				buildCommand: project.buildCommand,
 				env: project.env.map((e) => ({ name: e.name, value: e.value })),
@@ -113,6 +116,7 @@ export class ProjectMapper {
 			project: {
 				_id: project._id,
 				name: project.name,
+				provider: project.provider,
 				branch: project.branch,
 				buildCommand: project.buildCommand,
 				env: project.env.map((e) => ({ name: e.name, value: e.value })),
@@ -128,14 +132,16 @@ export class ProjectMapper {
 				subdomain: project.subdomain,
 				isDisabled: project.isDisabled,
 				isDeleted: project.isDeleted,
+				isPrivateGhRepo: project.isPrivateGhRepo,
 				rewriteNonFilePaths: project.rewriteNonFilePaths,
+				autoDeployEnabled: project.autoDeployEnabled,
 				user: this.isPopulatedObject(project.user, ["profileImage", "email", "name"])
 					? {
-							_id: project.user._id,
-							name: project.user.name,
-							email: project.user.email,
-							profileImage: project.user.profileImage,
-						}
+						_id: project.user._id,
+						name: project.user.name,
+						email: project.user.email,
+						profileImage: project.user.profileImage,
+					}
 					: project.user.toString(),
 				deployments: project.deployments?.map((d) => d.toString()),
 				lastDeployedAt: project.lastDeployedAt,

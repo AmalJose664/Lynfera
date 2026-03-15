@@ -9,7 +9,7 @@ import { ILogsService } from "@/interfaces/service/ILogsService.js";
 import { IProjectBandwidthRepository } from "@/interfaces/repository/IProjectBandwidthRepository.js";
 import { IRedisCache } from "@/interfaces/cache/IRedisCache.js";
 import { CreateProjectDTO, QueryProjectDTO } from "@/dtos/project.dto.js";
-import { IProject, ProjectStatus } from "@/models/Projects.js";
+import { IProject, ProjectProvider, ProjectStatus } from "@/models/Projects.js";
 import { nanoid } from "@/utils/generateNanoid.js";
 import AppError from "@/utils/AppError.js";
 import { STATUS_CODES } from "@/utils/statusCodes.js";
@@ -18,6 +18,7 @@ import { projectBasicFields, projectSettingsFields } from "@/constants/populates
 import { DeploymentStatus } from "@/models/Deployment.js";
 import { DEPLOYMENT_ERRORS, PROJECT_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 import { ADDITIONAL_RESERVED_SUBDOMAINS, BRAND_PROTECTION_REGEX, RESERVED_SUBDOMAINS } from "@/constants/subdomain.js";
+import { deploymentService } from "@/instances.js";
 
 class ProjectService implements IProjectService {
 	private projectRepository: IProjectRepository;
@@ -43,7 +44,18 @@ class ProjectService implements IProjectService {
 		this.cacheInvalidator = cacheInvalidator;
 	}
 	async createProject(dto: CreateProjectDTO, userId: string): Promise<IProject | null> {
+		if (
+			!dto.ghRepoId && dto.isPrivate
+			|| dto.provider === ProjectProvider.MANUAL && dto.isPrivate
+			|| dto.provider === ProjectProvider.GITHUB && !dto.ghRepoId
+		) {
+			throw new AppError(PROJECT_ERRORS.INCOMPLETE_DATA, STATUS_CODES.BAD_REQUEST)
+		}
+
 		const projectData: Partial<Omit<IProject, keyof Document>> = {
+			...(dto.ghRepoId && { ghRepoId: dto.ghRepoId }),
+			isPrivateGhRepo: dto.isPrivate,
+			provider: dto.provider,
 			name: dto.name,
 			user: new Types.ObjectId(userId),
 			repoURL: dto.repoURL,
@@ -92,6 +104,7 @@ class ProjectService implements IProjectService {
 		});
 		return project;
 	}
+
 	async getProjectSettings(id: string, userId: string, include?: string): Promise<IProject | null> {
 		const user = await this.userRepository.findByUserId(userId);
 		if (!user) {
@@ -118,6 +131,7 @@ class ProjectService implements IProjectService {
 			...(dto.rootDir && { rootDir: dto.rootDir }),
 			...(dto.outputDirectory && { outputDirectory: dto.outputDirectory }),
 			...(dto.hasOwnProperty("rewriteNonFilePaths") && { rewriteNonFilePaths: dto.rewriteNonFilePaths }),
+			...(dto.hasOwnProperty("autoDeployEnabled") && { autoDeployEnabled: dto.autoDeployEnabled }),
 			...(dto.hasOwnProperty("isDisabled") && { isDisabled: dto.isDisabled }),
 			...(dto.env?.length && { env: dto.env.map((en) => ({ name: en.name, value: en.value })) }),
 		};
@@ -133,18 +147,29 @@ class ProjectService implements IProjectService {
 	}
 
 	async deleteProject(projectId: string, userId: string): Promise<boolean> {
-		const user = await this.userRepository.findByUserId(userId);
+
+		const [user, project] = await Promise.all([this.userRepository.findByUserId(userId),
+		this.projectRepository.__findProject(projectId)
+		]);
 		if (!user) {
 			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
 
+		if (!project) {
+			throw new AppError(PROJECT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
+		}
+		if (project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED) {
+			throw new AppError(PROJECT_ERRORS.PROJECT_IN_PROGRESS, STATUS_CODES.CONFLICT);
+		}
 		const result = await this.projectRepository.deleteProject(projectId, userId);
 		if (!result) {
 			return false;
 		}
+
 		await this.userRepository.decrementProjects(userId);
 		await this.logsService.deleteProjectLogs(projectId);
 		await this.cacheInvalidator.publishInvalidation("project", result.subdomain);
+		await deploymentService.deleteCloudDeploysMultiple(result._id.toString()) // need fix
 		return true;
 	}
 
@@ -286,8 +311,13 @@ class ProjectService implements IProjectService {
 
 	async __getProjectById(id: string): Promise<IProject | null> {
 		//container  or internal only
-		return await this.projectRepository.__findProject(id);
+		return this.projectRepository.__findProject(id);
 	}
+	async __getProjectByRepository(repoId: number): Promise<IProject | null> {
+		// webhook
+		return this.projectRepository.__findProjectByRepo(repoId);
+	}
+
 	async __updateProjectById(projectId: string, updateData: Partial<IProject>, options?: options): Promise<IProject | null> {
 		//container   or internal only
 

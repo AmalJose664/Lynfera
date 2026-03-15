@@ -20,6 +20,11 @@ enum EnvsAvailable {
 	staging = "staging",
 	production = "production",
 }
+export enum DeploymentTriggers {
+	GIT_PUSH = "GIT_PUSH",
+	MANUAL = "MANUAL",
+	REDEPLOY = "REDEPLOY"
+}
 
 export interface IDeployment extends Document {
 	_id: string;
@@ -40,6 +45,9 @@ export interface IDeployment extends Document {
 	complete_at: Date;
 	identifierSlug: string;
 	error_message?: string;
+	branch: string;
+	triggerEvent: DeploymentTriggers;
+	triggeredBy?: String;
 	file_structure: FileStructureType | null;
 	createdAt: Date;
 	updatedAt: Date;
@@ -71,6 +79,9 @@ const deploymentSchema = new Schema<IDeployment>(
 		},
 		overWrite: { type: Boolean, required: true },
 		error_message: { type: String },
+		triggerEvent: { type: String, enum: Object.values(DeploymentTriggers), default: DeploymentTriggers.MANUAL },
+		triggeredBy: { type: String, required: false },
+		branch: { type: String, required: false },
 		file_structure: {
 			type: {
 				totalSize: { type: Number, default: 0 },

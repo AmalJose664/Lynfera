@@ -89,7 +89,14 @@ class UserRepository extends BaseRepository<IUser> implements IUserRepository {
 	}
 
 	async findGhbApCreds(userId: string): Promise<GithubIdsOutput | null> {
-		return await User.findOne({ _id: userId }, { githubAccountId: 1, githubInstallationId: 1 });
+		return User.findOne({ _id: userId }, { githubAccountId: 1, githubInstallationId: 1 });
+	}
+	async findUserByInstallationId(installationId: number, onlyNeededFields: boolean): Promise<IUser | null> {
+		if (onlyNeededFields) {
+			return User.findOne({ githubInstallationId: installationId })
+				.select("_id githubInstallationId githubAccountId projects deploymentsToday")
+		}
+		return User.findOne({ githubInstallationId: installationId });
 	}
 }
 

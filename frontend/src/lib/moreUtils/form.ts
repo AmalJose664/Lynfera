@@ -31,10 +31,18 @@ export const parseRepoUrl = (url: string): ParsedRepo | null => {
 
 	return null
 }
-export const repoCheck = async (repoUrl: string): Promise<boolean> => {
+export const repoCheck = async (repoUrl: string, isPrivate?: boolean, times = 1): Promise<boolean> => {
+	if (times > 3) {
+		return false
+	}
 	const parsed = parseRepoUrl(repoUrl)
 	if (!parsed) return false
-
+	if (isPrivate) {
+		console.log({ times }, " < <")
+		const response = await axiosInstance.get(`/github/repos/${parsed.owner}/${parsed.repo}`)
+		const data = response.data
+		return true
+	}
 	try {
 		let apiUrl = ""
 
@@ -55,8 +63,14 @@ export const repoCheck = async (repoUrl: string): Promise<boolean> => {
 		}
 
 		const res = await axios.get(apiUrl)
-		return res.status === 200
-	} catch {
+		if (res.status === 200) {
+			return true
+		}
+		else { return false }
+	} catch (error: any) {
+		if (error.status === 403) {
+			return await repoCheck(repoUrl, true, times + 1)
+		}
 		return false
 	}
 }
@@ -64,8 +78,12 @@ export const repoCheck = async (repoUrl: string): Promise<boolean> => {
 export const getBranches = async (
 	repoUrl: string,
 	setFn: (branches: string[]) => void,
-	isPrivate: boolean
+	isPrivate: boolean,
+	times = 1
 ) => {
+	if (times > 3) {
+		return false
+	}
 	let apiUrl = ""
 	let branchExtractor = (data: any): string[] => []
 
@@ -73,7 +91,7 @@ export const getBranches = async (
 	if (!parsed) return
 
 	if (isPrivate) {
-		const response = await axiosInstance.get(`/github/repos/${parsed.owner}/${parsed.repo}/branches`)
+		const response = await axiosInstance.get(`/github/repos/${parsed.owner}/${parsed.repo}/branches`,)
 		const data = response.data
 		branchExtractor = data => data.map((b: any) => b.name)
 		setFn(branchExtractor(data.branches))
@@ -101,7 +119,10 @@ export const getBranches = async (
 		}
 		const res = await axios.get(apiUrl)
 		setFn(branchExtractor(res.data))
-	} catch (err) {
+	} catch (error: any) {
+		if (error.status === 403) {
+			await getBranches(repoUrl, setFn, true, times + 1)
+		}
 		console.warn("Invalid or unsupported repository")
 	}
 }

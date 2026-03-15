@@ -19,7 +19,7 @@ export interface IUserSerivce {
 	verifyUserOtp(email: string, otp: number): Promise<{ verifyResult: boolean; user: IUser | null }>;
 	resentOtp(email: string): Promise<boolean>;
 
-	userCanDeploy(userId: string): Promise<{ user: IUser | null; limit: number; allowed: boolean; remaining: number }>;
+	userCanDeploy(userId: string): Promise<{ user: IUser; limit: number; allowed: boolean; remaining: number }>;
 	incrementDeployment(userId: string): Promise<void>;
 
 	getUserAuthProviders(userId: string): Promise<Partial<IUser> | null>
@@ -28,5 +28,7 @@ export interface IUserSerivce {
 	addGithubInstallationInfo(data: GithubIds, userId: string): Promise<GithubIdsOutput | null>
 	removeGithubInstallationInfo(installationId: number): Promise<void>
 	getGithubInstallationInfo(userId: string): Promise<GithubIdsOutput | null>
+
+	getUserByGithubInstallation(installationId: number, onlyNeededFields: boolean): Promise<IUser | null>
 
 }

@@ -2,7 +2,7 @@
 'use client'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Adjust path based on your setup
 import { Input } from "@/components/ui/input"
-import { ProjectFormInput } from "@/types/Project"
+import { ProjectFormInput, ProjectProvider } from "@/types/Project"
 import { Controller, UseFormReturn } from "react-hook-form"
 
 import { LuGithub, LuLink, LuPlug } from "react-icons/lu";
@@ -26,6 +26,7 @@ import { FiSettings } from "react-icons/fi";
 import Link from "next/link";
 import { LinkComponent } from "@/components/docs/HelperComponents";
 import { connectGithub } from "@/lib/moreUtils/gh";
+import { cn } from "@/lib/utils";
 
 
 
@@ -33,31 +34,46 @@ export function BaseSettings({ form, branches }: {
 	form: UseFormReturn<ProjectFormInput>
 	branches: string[]
 }) {
-	const { register, formState: { errors }, setValue } = form
+	const { register, formState: { errors }, setValue, resetField } = form
 	const router = useRouter()
 	const params = useSearchParams()
 	const serverMessage = params.get("message")
 	const status = params.get("success")
 	const [selectedRepo, setSelectedRepo] = useState(-1)
+	const [repoTab, setRepoTab] = useState<string>("public-url")
+	const [manual, setManual] = useState(false)
 
 	const tab = params.get("tab")
 	const { data: ids } = useGetUserGthbInstalionsQuery()
-	const { data: repos, error: repoError, isLoading: reposLoading } = useGetUserGthbReposQuery(undefined, { skip: !ids?.githubInstallationId })
+	const { data: repos, error: repoError, isError, isLoading: reposLoading } = useGetUserGthbReposQuery(undefined, { skip: !ids?.githubInstallationId })
 
 	useEffect(() => {
 		if (selectedRepo === -1) {
 			setValue("isPrivate", false)
+			resetField("ghRepoId")
+			resetField("provider")
 		}
 	}, [selectedRepo])
+
+	useEffect(() => {
+		if (repoTab === "public-url") {
+			console.log("reseting values")
+			setValue("isPrivate", false)
+			setValue("ghRepoId", undefined)
+			setValue("provider", ProjectProvider.MANUAL)
+			console.log("after reset values ", form.getValues("ghRepoId"), form.getValues("provider"))
+		}
+	}, [repoTab])
 
 
 	const selectGhRepo = (repo: GithubRepoResponse, index: number) => {
 		setSelectedRepo(index)
+		setValue("provider", ProjectProvider.GITHUB)
+		setValue("ghRepoId", repo.id)
 		setValue("isPrivate", repo.private)
 		setValue("name", repo.name)
 		setValue("repoURL", repo.html_url)
 	}
-	const [manual, setManual] = useState(false)
 	const userAppConnected = !!ids?.githubInstallationId
 	return (
 		<div className="dark:bg-background bg-white border  rounded-md p-6 backdrop-blur-sm space-y-5">
@@ -69,7 +85,7 @@ export function BaseSettings({ form, branches }: {
 			</div>
 
 			<div className="mb-3 px-3 py-2">
-				<Tabs defaultValue={tab || "public-url"} className="w-full">
+				<Tabs defaultValue={tab || "public-url"} value={repoTab} onValueChange={setRepoTab} className="w-full">
 					{(selectedRepo !== -1) ? (
 						<div className="mb-3 py-2">
 							<label className="flex items-center gap-2 mb-1 font-medium  text-sm" htmlFor="repoURL">
@@ -80,6 +96,9 @@ export function BaseSettings({ form, branches }: {
 								type="url" readOnly {...register("repoURL")}
 								className="text-primary dark:placeholder:text-[#474747] placeholder:text-[#bdbdbd]"
 							/>
+							{errors.repoURL && (
+								<p className="text-sm text-red-500 mt-1">{errors.repoURL.message}</p>
+							)}
 						</div>
 					) : (<div>
 						<TabsList className="grid w-full grid-cols-2">
@@ -178,9 +197,14 @@ export function BaseSettings({ form, branches }: {
 												</div>
 											))
 										) : (
-											<div className="py-12 text-center">
-												<p className="text-sm text-primary opacity-40">{reposLoading ? "Loading.." : "No repositories found"}.</p>
-											</div>
+											<>
+												{isError && <div className="py-12 text-center">
+													<p className="text-sm text-primary opacity-40">{(errors as any)}.</p>
+												</div>}
+												<div className="py-12 text-center">
+													<p className="text-sm text-primary opacity-40">{reposLoading ? "Loading.." : "No repositories found"}.</p>
+												</div>
+											</>
 										)}
 									</div>
 								) : (
@@ -241,7 +265,7 @@ export function BaseSettings({ form, branches }: {
 								<SelectTrigger className="w-full text-primary dark:placeholder:text-[#474747] placeholder:text-[#bdbdbd]">
 									<SelectValue placeholder="main" />
 								</SelectTrigger>
-								<SelectContent className={branches.length ? "h-96" : "h-20"}>
+								<SelectContent className={branches.length ? "h-90" : "h-20"}>
 									{branches.length
 										? branches.map((branch, index) => (
 											<SelectItem key={index} value={branch}>

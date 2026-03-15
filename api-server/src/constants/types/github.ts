@@ -38,7 +38,23 @@ export type GithubRepoResponse = {
 
 	permissions?: GithubRepositoryPermissions;
 }
-
+type commitInnerUser = {
+	name: string;
+	email: string;
+	date: string;
+	username: string;
+}
+export interface GithubCommitType {
+	id: string;
+	message: string;
+	timestamp: string;
+	url: string;
+	author: commitInnerUser;
+	committer: commitInnerUser;
+	added: string[],
+	removed: string[],
+	modified: string[],
+}
 export interface GithubRepositoryOwner {
 	login: string;
 	id: number;

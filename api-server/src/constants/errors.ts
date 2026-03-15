@@ -17,6 +17,7 @@ export const USER_ERRORS = {
 };
 
 export const PROJECT_ERRORS = {
+	INCOMPLETE_DATA: "Submitted data is incomplete",
 	NOT_FOUND: "Project not found",
 	CREATE_FAILED: "Failed to create project",
 	UPDATE_FAILED: "Failed to update project",
@@ -25,6 +26,7 @@ export const PROJECT_ERRORS = {
 	IN_USE: "Cannot delete project while it has active deployments",
 	PROJECT_IN_PROGRESS: "Project deployment in progress",
 	SUBDOMAIN_NOT_AVAILABLE: "Subdomain not available",
+	DISABLED: "Project disabled"
 };
 
 export const DEPLOYMENT_ERRORS = {

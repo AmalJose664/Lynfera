@@ -1,8 +1,9 @@
 import { DeploymentStatus, IDeployment } from "@/models/Deployment.js";
 import { IProject } from "@/models/Projects.js";
+import { IUserSerivce } from "./IUserService.js";
 
 export interface IDeploymentService {
-	newDeployment(deploymentData: Partial<IDeployment>, userId: string, projectId: string): Promise<IDeployment | null>;
+	newDeployment(deploymentData: Partial<IDeployment>, userId: string, projectId: string, isRedeploy: boolean): Promise<IDeployment | null>;
 	getAllDeployments(
 		userId: string,
 		query: {
@@ -35,7 +36,11 @@ export interface IDeploymentService {
 	deployLocal(deploymentId: string, projectId: string, userId: string): Promise<void>;
 	deleteLocal(deploymentId: string, projectId: string): Promise<void>;
 	deleteCloud(deploymentId: string, projectId: string): Promise<void>;
+	deleteCloudDeploysMultiple(projectId: string): Promise<void>
 
 	incrementRunningDeplymnts(projectId: string, userId: string, userPlan: string): Promise<void>;
 	decrementRunningDeplymnts(projectId: string, userId?: string): Promise<void>;
+
+	newPushDeployment(deploymentData: Partial<IDeployment>, project: IProject, installationId?: number): Promise<{ status: string, reason: string }>
+	createNewFailedDeployment(deployData: Partial<IDeployment>, project: IProject, reason: string): Promise<IDeployment | null>
 }

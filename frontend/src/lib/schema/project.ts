@@ -1,4 +1,6 @@
+import { ProjectProvider } from "@/types/Project";
 import { z } from "zod"
+
 export const envSchema = z
 	.object({
 		name: z
@@ -12,19 +14,18 @@ export const envSchema = z
 
 
 export const ProjectFormSchema = z.object({
+	ghRepoId: z.number().optional(),
+	provider: z.enum(ProjectProvider),
+	isPrivate: z.boolean(),
 	name: z
 		.string()
 		.min(3, "Name should be at least 3 charecters")
-		.max(50, "Max 50 characters")
-		.regex(/^[a-z0-9-]+$/, "Project name can only contain lowercase letters, numbers, and hyphens")
-		.refine((name) => !name.startsWith("-") && !name.endsWith("-"), "Project name cannot start or end with hyphen"),
-
+		.max(50, "Name max 50 characters"),
 	repoURL: z.string()
 		.regex(/^(?:https?:\/\/)?(?:www\.)?(github\.com|gitlab\.com|bitbucket\.org)\/[\w.-]+\/[\w.-]+\/?$/,
 			"Invalid repository URL (GitHub, GitLab, Bitbucket supported)")
 	,
 	branch: z.string().min(1, "Branch cannot be empty").default("main").optional(),
-	isPrivate: z.boolean(),
 	buildCommand: z
 		.string()
 		.trim()
@@ -72,6 +73,6 @@ export const ProjectFormSchema = z.object({
 		.default([])
 		.optional(),
 });
-export const ProjectUpdateFormSchema = ProjectFormSchema.omit({ repoURL: true }).extend({ rewriteNonFilePaths: z.boolean() })
+export const ProjectUpdateFormSchema = ProjectFormSchema.omit({ repoURL: true, ghRepoId: true, provider: true, isPrivate: true }).extend({ rewriteNonFilePaths: z.boolean(), autoDeployEnabled: z.boolean() })
 export type ProjectFormType = z.infer<typeof ProjectFormSchema>
 export type ProjectUpdateFormType = z.infer<typeof ProjectUpdateFormSchema>

@@ -44,7 +44,7 @@ export const analyticsService = new AnalyticsService(analyticsRepo, projectBandw
 export const userService = new UserService(userRepo, projectService, otpService);
 export const deploymentService = new DeploymentService(deploymentRepo, projectRepo, userService, logsService, redisCacheService);
 export const paymentService = new PaymentService(userRepo);
-export const webhookService = new WebhookService(userService, deploymentService, redisCacheService);
+export const webhookService = new WebhookService(userService, projectService, deploymentService, redisCacheService);
 
 
 

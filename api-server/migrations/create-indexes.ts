@@ -27,6 +27,11 @@ async function createIndexes() {
 		console.log("✓ User OTP indexes created");
 
 		console.log("Creating Project indexes...");
+		await Project.collection.createIndex({ ghRepoId: 1, user: 1 }, {
+			unique: true,
+			partialFilterExpression: { ghRepoId: { $exists: true } },
+			name: "github_repo_id_user"
+		})
 		await Project.collection.createIndex({ subdomain: 1 }, { unique: true, name: "subdomain_unique" });
 		await Project.collection.createIndex({ user: 1, createdAt: -1 }, { name: "user_projects_by_date" });
 		console.log("✓ Project indexes created");
