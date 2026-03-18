@@ -31,15 +31,21 @@ RUN apt-get update && apt-get remove -y \
 RUN groupadd builder \
  && useradd -m -g builder -s /bin/bash builder
 WORKDIR /app
+RUN chmod 700 /app \
+ && chmod 700 /root \
+ && chmod 711 /home \
+ && chmod 755 /bin /usr /lib /lib64 \
+ && chmod 711 /
+
 RUN chown -R builder:builder /app
 
 USER builder
 COPY package*.json .
 RUN npm ci && npm cache clean --force
 
+# RUN mkdir -p /app/output
+COPY --chmod=755 main.sh builder.js ./
 
-COPY --chmod=755 main.sh script.js ./
 
-
-ENTRYPOINT ["/home/app/main.sh"]
-
+ENTRYPOINT ["/app/main.sh"]
+# CMD ["/bin/bash"]

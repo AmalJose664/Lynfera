@@ -19,4 +19,7 @@ unset KAFKA_PASSWORD
 echo "Starting deployment.."
 # echo $json | node script.js
 printf "%s\n%s\n%s\n%s\n%s\n%s\n" \
-  "$token" "$akey" "$skey" "$endpoint" "$kuser" "$kpass" | node script.js
+  "$token" "$akey" "$skey" "$endpoint" "$kuser" "$kpass" | node /app/builder.js --env-file=.env
+
+# printf "%s\n" \
+#   "no token" | node /app/builder.js

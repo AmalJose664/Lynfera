@@ -67,7 +67,8 @@ const settings = {
 	sendLocalDeploy: !true,       // for sending uploads to non s3
 	localDeploy: !true,           // for non s3 uploads
 	runCommands: true,            // for testing only 
-	cloneRepo: true            // for testing only 
+	cloneRepo: true,            // for testing only 
+	uploadArtifacts: true       // for disabling uploading in dev
 }
 
 console.log(DEPLOYMENT_ID, PROJECT_ID, "<<<<<")
@@ -80,7 +81,8 @@ const userSettings = {
 	maxInstallTries: 3,
 	skipDecorLogs: false,
 	frameworkSetByUser: null,
-	preventAutoPromoteDeployment: false
+	preventAutoPromoteDeployment: false,
+	treatAsGenericProject: false
 }
 
 let logsNumber = 0
@@ -250,13 +252,53 @@ const publishUpdates = async (updateData = {}) => {
 async function cloneGitRepoAndValidate(taskDir, runDir, projectData) {
 
 	if (settings.cloneRepo) {
-		await git.clone(projectData.repoURL, taskDir, [
-			'--filter=blob:none',
-			'--branch', projectData.branch,
-			'--single-branch'
-		], (data) => {
-			console.log("done cloning = >", data)
-		})
+		let cloneUrl = projectData.repoURL
+		if (projectData.provider === 'GITHUB' && projectData.isPrivateGhRepo) {
+			const installAccessToken = process.env.INSTALLATION_ACCESS_TOKEN.replace(/\r$/, "")
+			if (!installAccessToken) {
+				throw new ContainerError("Insufficient Project Data;", "git clone", "Github installation access token not found.")
+			}
+			const url = new URL(cloneUrl)
+			url.username = 'x-access-token'
+			url.password = installAccessToken
+			cloneUrl = url.toString()
+		}
+		try {
+			await git.clone(cloneUrl, taskDir, [
+				'--filter=blob:none',
+				'--branch', projectData.branch,
+				'--single-branch'
+			])
+		} catch (error) {
+			const msg = error.message.toLowerCase()
+			let errorMessageToShow = ""
+			let cause = ""
+			if (msg.includes("authentication failed") || msg.includes("permission denied")) {
+				errorMessageToShow = `Authentication failed for '${projectData.repoURL}'`
+				cause = "Please check your GitHub App or credentials"
+			}
+			else if (msg.includes("repository not found")) {
+				errorMessageToShow = `Repository not found '${projectData.repoURL}'`
+				cause = "Invalid repo URL or private repository"
+			}
+			else if (msg.includes("remote branch") && msg.includes("not found")) {
+				errorMessageToShow = `Branch '${projectData.branch}' not found on repo '${projectData.repoURL}'`
+				cause = "Please check the branch name"
+			}
+			else {
+				errorMessageToShow = `Git clone failed for '${projectData.repoURL}'`
+				cause = "Check network, permissions, and repository URL"
+			}
+
+			throw new ContainerError(
+				"Git clone error: " + errorMessageToShow,
+				"git clone",
+				cause
+			)
+
+		}
+
+
 	} else {
 		console.log("skiping git clone")
 	}
@@ -277,79 +319,122 @@ async function getGitCommitData(taskDir) {
 async function fetchProjectData(deploymentId = "") {
 	const API_ENDPOINT = process.env.API_ENDPOINT
 	const baseUrl = `${API_ENDPOINT}/api/internal`
+	const SERVICE_TOKEN = process.env.SERVICE_TOKEN.replace(/\r$/, "")
 
-	try {
-		const deploymentResponse = await axios.get(`${baseUrl}/deployments/${deploymentId}`, {
-			timeout: 24000,
-			headers: {
-				Authorization: `Bearer ${process.env.SERVICE_TOKEN}`,
-				'X-Static-Token': API_SERVER_CONTAINER_API_TOKEN
+	async function fetchData(times = 0, errorReceived = null,) {
+		if (times >= 4) {
+			if (errorReceived?.isContainerError || errorReceived instanceof ContainerError) {
+				throw errorReceived
 			}
-		})
-
-		const deploymentData = deploymentResponse.data
-
-		if (!deploymentData.deployment) {
-			throw new ContainerError("Deployment data not found", "data fetching", "Invalid project or deployment Id")
-		}
-		if (settings.runnOnlyQueuedDeplymnts && deploymentData.deployment.status !== deploymentStatus.QUEUED) {
-			throw new ContainerError("Invalid Deployment",
-				"data fetching",
-				"Deployment is in invalid state to start the build; Must be in QUEUED state; -> " + deploymentData.deployment.status, true
-			)
-		}
-
-		const projectId = deploymentData.deployment.project
-		const projectResponse = await axios.get(`${baseUrl}/projects/${projectId}`, {
-			timeout: 24000,
-			headers: {
-				Authorization: `Bearer ${process.env.SERVICE_TOKEN}`,
-				'X-Static-Token': API_SERVER_CONTAINER_API_TOKEN
+			if (axios.isAxiosError(errorReceived)) {
+				publishLogs({
+					DEPLOYMENT_ID, PROJECT_ID,
+					level: logValues.ERROR,
+					message: `Error on fetching Project data, ${errorReceived.message}`,
+					stream: "data fetching"
+				});
+				throw new ContainerError("Api server not reachable " + errorReceived.message, "data fetching", "Server Error")
 			}
-		})
-
-		const projectData = projectResponse.data
-		if (!projectData.project) {
-			throw new ContainerError("Project data not found", "data fetching", "Invalid project or deployment Id")
+			throw errorReceived
+			return
 		}
-
-		if (deploymentData.deployment.project !== projectData.project._id) {
-			throw new ContainerError("Project data not found", "data fetching", "Invalid project or deployment Id")
-		}
-		if (!projectData.project.installCommand) {
-			publishLogs({
-				DEPLOYMENT_ID, PROJECT_ID,
-				level: logValues.WARN,
-				message: "install command not found; running with default command", stream: "data error"
+		console.log("Api request No: ", times + 1)
+		try {
+			const deploymentResponse = await axios.get(`${baseUrl}/deployments/${deploymentId}`, {
+				timeout: 24000,
+				headers: {
+					Authorization: `Bearer ${SERVICE_TOKEN}`,
+					'X-Static-Token': API_SERVER_CONTAINER_API_TOKEN
+				}
 			})
-			//logs
 
-		}
-		if (!projectData.project.buildCommand) {
-			publishLogs({
-				DEPLOYMENT_ID, PROJECT_ID,
-				level: logValues.WARN,
-				message: "build command not found; running with default command", stream: "data error"
+			const deploymentData = deploymentResponse.data
+			if (!deploymentData.deployment) {
+				throw new ContainerError("Deployment data not found", "data fetching", "Invalid project or deployment Id")
+			}
+			if (settings.runnOnlyQueuedDeplymnts && deploymentData.deployment.status !== deploymentStatus.QUEUED) {
+				throw new ContainerError("Invalid Deployment",
+					"data fetching",
+					"Deployment is in invalid state to start the build; Must be in QUEUED state; -> " + deploymentData.deployment.status, true
+				)
+			}
+
+			const projectId = deploymentData.deployment.project
+			const projectResponse = await axios.get(`${baseUrl}/projects/${projectId}`, {
+				timeout: 24000,
+				headers: {
+					Authorization: `Bearer ${SERVICE_TOKEN}`,
+					'X-Static-Token': API_SERVER_CONTAINER_API_TOKEN
+				}
 			})
-			//logs
-		}
 
-		return [projectData.project, deploymentData.deployment]
-	} catch (error) {
-		if (error?.isContainerError || error instanceof ContainerError) {
+			const projectData = projectResponse.data
+			if (!projectData.project) {
+				throw new ContainerError("Project data not found", "data fetching", "Invalid project or deployment Id")
+			}
+
+			if (deploymentData.deployment.project !== projectData.project._id) {
+				throw new ContainerError("Project data not found", "data fetching", "Invalid project or deployment Id")
+			}
+			if (!projectData.project.installCommand) {
+				publishLogs({
+					DEPLOYMENT_ID, PROJECT_ID,
+					level: logValues.WARN,
+					message: "install command not found; running with default command", stream: "data error"
+				})
+				//logs
+
+			}
+			if (!projectData.project.buildCommand) {
+				publishLogs({
+					DEPLOYMENT_ID, PROJECT_ID,
+					level: logValues.WARN,
+					message: "build command not found; running with default command", stream: "data error"
+				})
+				//logs
+			}
+
+			return [projectData.project, deploymentData.deployment]
+		} catch (error) { // Currently this retries with data already fetched but that not a big problem for now
+			const isAxiosErr = axios.isAxiosError(error)
+			const status = error?.response?.status
+
+			const retryableCodes = [
+				'ECONNABORTED',
+				'ECONNRESET',
+				'ENOTFOUND',
+				'EAI_AGAIN',
+				'ETIMEDOUT'
+			]
+
+			const shouldRetry = isAxiosErr &&
+				(
+					!error.response || status >= 500 || status === 429 || status === 408 || retryableCodes.includes(error.code)
+				)
+
+			if (shouldRetry) {
+				console.log("Waiting for retry...")
+				await new Promise(res => setTimeout(res, 3500))
+				return fetchData(times + 1, error)
+			}
+			console.log("Cant rety; Exiting...")
+			if (error?.isContainerError || error instanceof ContainerError) {
+				throw error
+			}
+			if (axios.isAxiosError(error)) {
+				publishLogs({
+					DEPLOYMENT_ID, PROJECT_ID,
+					level: logValues.ERROR,
+					message: `Error on fetching Project data, ${error.message}`,
+					stream: "data fetching"
+				});
+				throw new ContainerError("Api server not reachable " + error.message, "data fetching", "Server Error")
+			}
 			throw error
 		}
-		if (axios.isAxiosError(error)) {
-			publishLogs({
-				DEPLOYMENT_ID, PROJECT_ID,
-				level: logValues.ERROR,
-				message: `Error on fetching Project data, ${error.message}`,
-				stream: "data fetching"
-			});
-			throw new ContainerError("Api server not reachable " + error.message, "data fetching", "Server Error")
-		}
-		throw error
 	}
+	return await fetchData()
+
 }
 
 function validateDirectories(taskDir, buildSource = "", buildOutput = "") {
@@ -455,6 +540,7 @@ function applyUserSettingsChanges(env = new Map()) {
 		skipDecorLogs: "LYNFERA_SETTING_SKIP_DECOR_LOGS", //  skip unwanted logs,
 		frameworkSetByUser: "LYNFERA_SETTING_FRAMEWORK",
 		preventAutoPromoteDeployment: "LYNFERA_PREVENT_DEPLOYMENT_AUTO_PROMOTION",
+		treatAsGenericProject: "LYNFERA_SETTING_TREAT_AS_STATIC_SITE"
 	}
 	if (envBool(env.get(settingEnvNames.skipInstall))) {
 		userSettings.skipInstall = true
@@ -464,6 +550,11 @@ function applyUserSettingsChanges(env = new Map()) {
 	}
 	if (envBool(env.get(settingEnvNames.skipDecorLogs))) {
 		userSettings.skipDecorLogs = true
+	}
+	if (envBool(env.get(settingEnvNames.treatAsGenericProject))) {
+		userSettings.treatAsGenericProject = true
+		userSettings.skipBuild = true
+		userSettings.skipInstall = true
 	}
 	if (envBool(env.get(settingEnvNames.preventAutoPromoteDeployment), false)) {
 		userSettings.preventAutoPromoteDeployment = true
@@ -537,8 +628,13 @@ function getBuildServerEnvsWithUserEnvs(envs = [], requiredData = {}) {
 
 async function validatePackageJsonAndGetFramework(dir, rootDir) {
 	const packageJsonPath = path.join(dir, "package.json")
+	if (userSettings.treatAsGenericProject) {
+		return {
+			framework: "static",
+			tool: ""
+		}
+	}
 	if (!existsSync(packageJsonPath)) {
-
 		throw new ContainerError(`package.json not found in ${rootDir}`, "file validation", "", true);
 	}
 
@@ -552,9 +648,9 @@ async function validatePackageJsonAndGetFramework(dir, rootDir) {
 		/exec/,
 		/child_process/
 	]
-	const suspiciousCommands = [
+	const notAllowedCommands = [
 		'curl', 'wget', 'Invoke-WebRequest', 'certutil',
-		'rm -rf', 'rmdir', 'del ', 'format ', 'mkfs', 'chmod', "node", 'chown',
+		'rm -rf', 'rmdir', 'del ', 'format ', 'mkfs', 'chmod', 'chown',
 		'scp', 'ftp', 'base64', 'eval(', 'spawn(', 'exec(', 'shutdown',
 		'sudo', 'dd if=', 'mkfs', 'tar -cf /', 'nc ', 'netcat'
 	];
@@ -569,7 +665,7 @@ async function validatePackageJsonAndGetFramework(dir, rootDir) {
 				throw new ContainerError(`Suspicious script detected: ${name}`, "file validation", "Invalid Package.json file", true);
 			}
 		}
-		for (const command of suspiciousCommands) {
+		for (const command of notAllowedCommands) {
 			if (trimmed.toLowerCase().includes(command.toLowerCase())) {
 
 				throw new ContainerError(`Suspicious script detected: ${name}`, "file validation", "Invalid Package.json file", true);
@@ -802,6 +898,11 @@ async function uploadNonAws(dir, fileName) {
 const EXCLUDE_PATTERNS = [
 	'node_modules',
 	'.git',
+	'.gitignore',
+	'.gitattributes',
+	'tmp',
+	'*.temp',
+	'*.bak',
 	".next/cache",
 	'.env',
 	'.env.local',
@@ -809,13 +910,25 @@ const EXCLUDE_PATTERNS = [
 	'coverage',
 	".turbo",
 	'.cache',
+	'__pycache__',
 	'.vscode',
+	'*.sublime-project',
+	'*.sublime-workspace',
+	'*.code-workspace',
 	'.idea',
 	'*.log',
 	'.DS_Store',
-	'Thumbs.db'
+	'Thumbs.db',
+	'*.log',
+	'coverage',
+	'test-results',
+	'*.lcov',
+	'*.swp',
+	'*.swo',
+	'*.pid',
+	'*.seed',
 ];
-const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30MB per file
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB per file
 const MAX_TOTAL_SIZE = 280 * 1024 * 1024; // 280MB total
 const WARN_MAX_TOTAL_SIZE = 80 * 1024 * 1024; // give warning on this limit
 const MAX_NO_OF_FILES = 1000
@@ -934,6 +1047,7 @@ async function uploadOutputFiles(sourceDir) {
 	const uploadsArray = []
 	const fileStructure = []
 	let totalSize = 0;
+	const skippedArtifacts = []
 	async function processDirectory(currentDir, relativePath = "") {
 		const entries = await readdir(currentDir, { withFileTypes: true })
 		for (const entry of entries) {
@@ -942,6 +1056,7 @@ async function uploadOutputFiles(sourceDir) {
 
 			if (shouldExcludeDir(entry.name, relPath)) {
 				console.log("Skipping ----------- ", relPath)
+				skippedArtifacts.push(relPath)
 				continue;
 			}
 			if (entry.isDirectory()) {
@@ -986,6 +1101,9 @@ async function uploadOutputFiles(sourceDir) {
 						true
 					);
 				}
+				if (!settings.uploadArtifacts) {
+					continue
+				}
 				if (totalSize > MAX_TOTAL_SIZE) {
 					throw new ContainerError(`Total size exceeded ${(MAX_TOTAL_SIZE / 1024 / 1024).toFixed(2)} MB.`, "upload", "Output files Total size exceeded", true)
 				}
@@ -1022,6 +1140,15 @@ async function uploadOutputFiles(sourceDir) {
 	await processDirectory(sourceDir);
 	try {
 		await Promise.all(uploadsArray);
+		if (skippedArtifacts.length) {
+			console.log(`Skipped ${skippedArtifacts.length} items`);
+			publishLogs({
+				DEPLOYMENT_ID, PROJECT_ID,
+				level: logValues.WARN,
+				message: "Items skipped  => \x1b[38;5;220m " + skippedArtifacts.join(", ") + "\x1b[0m",
+				stream: "upload"
+			});
+		}
 	} catch (error) {
 		console.log(error)
 		throw new ContainerError("Error on File upload", "upload",)
@@ -1128,7 +1255,7 @@ async function init() {
 			deployment: deploymentData,
 			gitData: gitCommitData,
 		});
-		// console.log({ finalEnvsBuild, finalEnvsInstall })
+		// console.log({ userSettings })
 
 
 		const framweworkIdentified = await validatePackageJsonAndGetFramework(runDir, projectData.rootDir);
@@ -1427,7 +1554,7 @@ async function init() {
 				complete_at: new Date().toISOString(),
 			})
 		}
-		console.log("Some error happened")
+		console.log("Some error happened ", !(err instanceof ContainerError) ? err : "")
 		console.log("Exiting in 5 seconds")
 	} finally {
 		await sendLogsAsBatch();
