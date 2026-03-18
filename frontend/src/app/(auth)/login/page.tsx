@@ -30,9 +30,9 @@ export default function LoginPage() {
 	const [providerLastUsed, setProviderLastUsed] = useState<string | null>(null)
 
 	const queryParams = useSearchParams()
-
+	const commonErrorParam = queryParams.get("commonError") || "";
 	useEffect(() => {
-		setCommonErrors(queryParams.get("commonError") || "")
+		setCommonErrors(commonErrorParam)
 		const verifySessionCode = () => {
 			localStorage.removeItem("session_code")
 		}

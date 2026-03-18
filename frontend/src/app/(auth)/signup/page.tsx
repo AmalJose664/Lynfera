@@ -30,9 +30,9 @@ export default function SignupPage() {
 	const [toggleEmail, setToggleEmail] = useState(false)
 
 	const queryParams = useSearchParams()
-
+	const commonErrorParam = queryParams.get("commonError") || "";
 	useEffect(() => {
-		setCommonErrors(queryParams.get("commonError") || "")
+		setCommonErrors(commonErrorParam)
 		const verifySessionCode = () => {
 			localStorage.clear()
 		}
