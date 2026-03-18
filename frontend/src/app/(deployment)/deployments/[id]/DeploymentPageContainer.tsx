@@ -21,7 +21,7 @@ import { useGetDeploymentLogsQuery } from "@/store/services/logsApi";
 import { Project, ProjectStatus } from "@/types/Project";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { FiGitCommit, } from "react-icons/fi";
 import { IoMdGitBranch, IoMdRadioButtonOn } from "react-icons/io";
 import { FiAlertCircle } from "react-icons/fi";
@@ -29,7 +29,7 @@ import { MdKeyboardArrowRight, } from "react-icons/md";
 import { IoIosCube, IoMdGlobe } from "react-icons/io";
 import { LuExternalLink } from "react-icons/lu";
 import RightFadeComponent from "@/components/RightFadeComponent";
-import { LoadingSpinner2 } from "@/components/LoadingSpinner";
+import { LoadingSpinner2, LoadingSpinnerPageSuspense } from "@/components/LoadingSpinner";
 import { RiPencilFill } from "react-icons/ri";
 import { PiIdentificationCardLight } from "react-icons/pi";
 import { Deployment } from "@/types/Deployment";
@@ -37,17 +37,23 @@ import { Deployment } from "@/types/Deployment";
 import { CiMicrochip, CiUser } from "react-icons/ci";
 import OptionsComponent from "@/components/OptionsComponent";
 import { IoClipboardOutline, IoTrashOutline } from "react-icons/io5";
-import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BsArrowUpCircle } from "react-icons/bs";
 import ChangeDeploymentModal from "@/components/modals/ChangeDeployment";
 import DeleteDeploymentModal from "@/components/modals/DeleteDeployment";
 import { LinkComponent } from "@/components/docs/HelperComponents";
 import { SiGithub } from "react-icons/si";
-import { TbHandFingerDown } from "react-icons/tb";
 import { AiOutlineRedo } from "react-icons/ai";
 
-
 const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => {
+	return (
+		<Suspense fallback={<LoadingSpinnerPageSuspense />}>
+			<DeploymentPageContent deploymentId={deploymentId} />
+		</Suspense>
+	)
+}
+
+const DeploymentPageContent = ({ deploymentId }: { deploymentId: string }) => {
 	const router = useRouter()
 	const {
 		data: deployment,

@@ -57,4 +57,12 @@ export const LoadingSpinner3 = ({ isLoading, loadingText }: { isLoading: boolean
 
 	)
 }
+export const LoadingSpinnerPageSuspense = () => {
+	return (
+		<div className="min-h-screen w-full justify-around flex items-center"><LoadingSpinner /></div>
+
+	)
+}
 export default LoadingSpinner
+
+

@@ -19,9 +19,16 @@ import Link from 'next/link';
 import { RemoveGithubAppDialog } from '@/components/modals/RemoveGithubApp';
 import { LuGithub } from 'react-icons/lu';
 import { connectGithub } from '@/lib/moreUtils/gh';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import LoadingSpinner, { LoadingSpinnerPageSuspense } from '@/components/LoadingSpinner';
+import { Suspense } from 'react';
 
-
+const ProfileContentPage = () => {
+	return (
+		<Suspense fallback={<LoadingSpinnerPageSuspense />}>
+			<ProfileContent />
+		</Suspense>
+	)
+}
 
 const ProfileContent = () => {
 	const { data: userDetailed, error, isError } = useGetUserDetailedQuery()
@@ -305,4 +312,4 @@ const ProfileContent = () => {
 		</div >
 	)
 }
-export default ProfileContent
+export default ProfileContentPage

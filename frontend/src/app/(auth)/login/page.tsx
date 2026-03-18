@@ -4,7 +4,7 @@ import { FaGithub } from "react-icons/fa";
 import Link from "next/link";
 import { GoogleLoginButton } from '../components/GoogleLogin';
 
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ThemeSwitcher from '@/components/ThemeIcon';
 import TitleWithLogo from '@/components/TitleWithLogo';
@@ -21,9 +21,17 @@ import { cn } from "@/lib/utils";
 import axiosInstance from "@/lib/axios";
 import OtpModal from "@/components/modals/OtpModal";
 import { LinkComponent } from "@/components/docs/HelperComponents";
-
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function LoginPage() {
+	return (
+		<Suspense fallback={<div className="min-h-screen w-full justify-around flex items-center"><LoadingSpinner /></div>}>
+			<LoginPageContent />
+		</Suspense>
+	);
+}
+function LoginPageContent() {
+
 	const router = useRouter();
 	const [toggleEmail, setToggleEmail] = useState(false)
 	const [commonErrors, setCommonErrors] = useState('')

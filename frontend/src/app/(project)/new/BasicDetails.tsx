@@ -15,19 +15,28 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import axiosInstance from "@/lib/axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetUserGthbInstalionsQuery, useGetUserGthbReposQuery } from "@/store/services/authApi";
 import { formatDate } from "@/lib/moreUtils/combined";
 import { GithubRepoResponse } from "@/types/User";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { LinkComponent } from "@/components/docs/HelperComponents";
 import { connectGithub } from "@/lib/moreUtils/gh";
-
-
-
+import { LoadingSpinnerPageSuspense } from "@/components/LoadingSpinner";
 
 export function BaseSettings({ form, branches }: {
+	form: UseFormReturn<ProjectFormInput>
+	branches: string[]
+}) {
+	return (
+		<Suspense fallback={<LoadingSpinnerPageSuspense />}>
+			<BaseSettingsContent form={form} branches={branches} />
+		</Suspense>
+	)
+}
+
+
+function BaseSettingsContent({ form, branches }: {
 	form: UseFormReturn<ProjectFormInput>
 	branches: string[]
 }) {

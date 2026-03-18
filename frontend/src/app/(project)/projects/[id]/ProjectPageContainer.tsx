@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 
 import { projectApis, useGetProjectFullQuery } from "@/store/services/projectsApi"
 import { useCreateDeploymentMutation, useGetDeploymentByIdQuery } from "@/store/services/deploymentApi"
@@ -13,7 +13,7 @@ import { addLogs, clearLogs } from "@/store/slices/logSlice"
 import { ProjectStatus } from "@/types/Project"
 import { useAppDispatch } from "@/store/store"
 import { toast } from "sonner"
-import { LoadingSpinner2 } from "@/components/LoadingSpinner"
+import { LoadingSpinner2, LoadingSpinnerPageSuspense } from "@/components/LoadingSpinner"
 import { isStatusProgress } from "@/lib/moreUtils/combined"
 import { showToast } from "@/components/Toasts"
 import { IoIosCloud, IoIosCube } from "react-icons/io"
@@ -25,6 +25,15 @@ interface ProjectPageContainerProps {
 }
 
 export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerProps) {
+
+	return (
+		<Suspense fallback={<LoadingSpinnerPageSuspense />}>
+			<EachProjectPage projectId={projectId} tab={tab} />
+		</Suspense>
+	)
+}
+
+function EachProjectPage({ projectId, tab }: ProjectPageContainerProps) {
 	const dispatch = useAppDispatch();
 
 	const {

@@ -1,5 +1,5 @@
 "use client"
-import React, { useRef } from 'react';
+import React, { Suspense, useRef } from 'react';
 import { FcGoogle, } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 import Link from 'next/link';
@@ -22,9 +22,16 @@ import { MdOutlineEmail } from 'react-icons/md';
 import { GithubLoginButton } from '../components/GithubLogin';
 import OtpModal from '@/components/modals/OtpModal';
 import { LinkComponent } from '@/components/docs/HelperComponents';
-
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function SignupPage() {
+	return (
+		<Suspense fallback={<div className="min-h-screen w-full justify-around flex items-center"><LoadingSpinner /></div>}>
+			<SignupPageContent />
+		</Suspense>
+	);
+}
+function SignupPageContent() {
 	const router = useRouter();
 	const [commonErrors, setCommonErrors] = useState('')
 	const [toggleEmail, setToggleEmail] = useState(false)
