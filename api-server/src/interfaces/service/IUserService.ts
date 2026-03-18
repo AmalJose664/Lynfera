@@ -22,13 +22,11 @@ export interface IUserSerivce {
 	userCanDeploy(userId: string): Promise<{ user: IUser; limit: number; allowed: boolean; remaining: number }>;
 	incrementDeployment(userId: string): Promise<void>;
 
-	getUserAuthProviders(userId: string): Promise<Partial<IUser> | null>
+	getUserAuthProviders(userId: string): Promise<Partial<IUser> | null>;
 
+	addGithubInstallationInfo(data: GithubIds, userId: string): Promise<GithubIdsOutput | null>;
+	removeGithubInstallationInfo(installationId: number): Promise<void>;
+	getGithubInstallationInfo(userId: string): Promise<GithubIdsOutput | null>;
 
-	addGithubInstallationInfo(data: GithubIds, userId: string): Promise<GithubIdsOutput | null>
-	removeGithubInstallationInfo(installationId: number): Promise<void>
-	getGithubInstallationInfo(userId: string): Promise<GithubIdsOutput | null>
-
-	getUserByGithubInstallation(installationId: number, onlyNeededFields: boolean): Promise<IUser | null>
-
+	getUserByGithubInstallation(installationId: number, onlyNeededFields: boolean): Promise<IUser | null>;
 }

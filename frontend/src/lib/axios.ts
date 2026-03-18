@@ -65,7 +65,7 @@ axiosInstance.interceptors.response.use((response) => response,
 				const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_SERVER_ENDPOINT}/auth/refresh`,
 					null,
 					{ withCredentials: true })
-				setCookie("Is_Authenticated_Client", "true", { maxAge: 60 * 60 * 6, httpOnly: false })
+				setCookie("Is_Authenticated_Client", "true", { maxAge: 60 * 60 * 14, httpOnly: false })
 				processQueue(null, data.accessToken)
 				isRefreshing = false
 

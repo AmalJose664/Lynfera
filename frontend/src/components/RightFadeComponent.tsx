@@ -12,6 +12,7 @@ const RightFadeComponent = ({
 	className,
 	distance = 30,
 	inView,
+	ref,
 	...props
 }: {
 	children: React.ReactNode;
@@ -20,11 +21,13 @@ const RightFadeComponent = ({
 	style?: Record<string, {}>
 	distance?: number;
 	className?: string
-	inView?: boolean
-	left?: boolean
+	inView?: boolean;
+	left?: boolean;
+	ref?: React.Ref<HTMLDivElement | null>
 }) => {
 	return (
 		<motion.div
+			ref={ref}
 			style={style}
 			{...props}
 			initial={{ x: left ? -distance : distance, opacity: 0 }}

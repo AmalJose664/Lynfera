@@ -37,13 +37,13 @@ export type GithubRepoResponse = {
 	disabled: boolean;
 
 	permissions?: GithubRepositoryPermissions;
-}
+};
 type commitInnerUser = {
 	name: string;
 	email: string;
 	date: string;
 	username: string;
-}
+};
 export interface GithubCommitType {
 	id: string;
 	message: string;
@@ -51,9 +51,9 @@ export interface GithubCommitType {
 	url: string;
 	author: commitInnerUser;
 	committer: commitInnerUser;
-	added: string[],
-	removed: string[],
-	modified: string[],
+	added: string[];
+	removed: string[];
+	modified: string[];
 }
 export interface GithubRepositoryOwner {
 	login: string;
@@ -78,6 +78,6 @@ export interface GithubRepositoryBranch {
 	commit: {
 		sha: string;
 		url: string;
-	},
-	protected: boolean
+	};
+	protected: boolean;
 }

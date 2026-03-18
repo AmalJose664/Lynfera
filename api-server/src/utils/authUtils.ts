@@ -12,6 +12,5 @@ export function issueAuthRefreshCookies(res: Response, user: Request["user"], re
 	res.cookie("refresh_token", refreshToken, { ...refreshCookieConfig });
 }
 export function issueOtherCookies(res: Response) {
-
 	res.cookie("is_Authenticated", "true", { ...accessCookieConfig, httpOnly: false, maxAge: 6 * 60 * 60 * 1000, domain: ".lynfera.qzz.io" });
 }

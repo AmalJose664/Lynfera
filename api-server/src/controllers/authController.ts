@@ -24,7 +24,7 @@ export const oAuthLoginCallback = (req: Request, res: Response, next: NextFuncti
 		}
 		issueAuthAccessCookies(res, { id: req.user.id, plan: req.user.plan });
 		issueAuthRefreshCookies(res, { id: req.user.id, plan: req.user.plan }, { currentRefresh: 0, originalIssuedAt: Date.now() });
-		issueOtherCookies(res)
+		issueOtherCookies(res);
 		const frontend = ENVS.FRONTEND_URL + FRONTEND_REDIRECT_PATH + ((req.user as any).newUser ? "?newuser=true" : "");
 		// console.log({ frontend, user: req.user })
 		if ((req.user as any).newUser) {
@@ -100,7 +100,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 			);
 		}
 		issueAuthAccessCookies(res, { id: user._id, plan: user.plan });
-		issueOtherCookies(res)
+		issueOtherCookies(res);
 		return res.status(STATUS_CODES.OK).json({ ok: true });
 	} catch (error) {
 		if (error instanceof AppError) {
@@ -192,7 +192,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 			}
 			issueAuthAccessCookies(res, { id: response.user._id, plan: response.user.plan });
 			issueAuthRefreshCookies(res, { id: response.user._id, plan: response.user.plan }, { currentRefresh: 0, originalIssuedAt: Date.now() });
-			issueOtherCookies(res)
+			issueOtherCookies(res);
 			res.status(STATUS_CODES.OK).json({ loginSuccess: true, user: response.user });
 			return;
 		}
@@ -217,7 +217,7 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
 					{ id: response.user._id, plan: response.user.plan },
 					{ currentRefresh: 0, originalIssuedAt: Date.now() },
 				);
-				issueOtherCookies(res)
+				issueOtherCookies(res);
 				res.clearCookie(OTP_COOKIE);
 				res.status(STATUS_CODES.OK).json({ message: "OTP Verified succesfully", user: response.user });
 				notify(user.name, user.email, req.socket.remoteAddress || req.ip || "");
@@ -267,12 +267,12 @@ export const getAuthenticatedUserDetails = async (req: Request, res: Response, n
 export const getUserGthbInstallationInfo = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const userId = req.user?.id as string;
-		const result = await userService.getGithubInstallationInfo(userId)
+		const result = await userService.getGithubInstallationInfo(userId);
 		if (!result) {
 			res.status(STATUS_CODES.OK).json({ error: COMMON_ERRORS.NOT_FOUND });
-			return
+			return;
 		}
-		const response = UserMapper.toUserInstallationResponse(result, userId)
+		const response = UserMapper.toUserInstallationResponse(result, userId);
 		res.status(STATUS_CODES.OK).json(response);
 	} catch (error) {
 		next(error);

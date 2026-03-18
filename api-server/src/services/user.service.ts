@@ -13,7 +13,6 @@ import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { PLANS } from "@/constants/plan.js";
 import { OTP_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 
-
 class UserService implements IUserSerivce {
 	private userRepository: IUserRepository;
 	private projectService: IProjectService;
@@ -203,29 +202,22 @@ class UserService implements IUserSerivce {
 	}
 
 	async getUserAuthProviders(userId: string): Promise<Partial<IUser> | null> {
-		return this.userRepository.findAuthProviders(userId)
+		return this.userRepository.findAuthProviders(userId);
 	}
-
-
 
 	async addGithubInstallationInfo(data: GithubIds, userId: string): Promise<GithubIdsOutput | null> {
-		return this.userRepository.addGhbApCreds(userId, data)
+		return this.userRepository.addGhbApCreds(userId, data);
 	}
 	async removeGithubInstallationInfo(installationId: number): Promise<void> {
-		return this.userRepository.removeGhbApCreds(installationId)
+		return this.userRepository.removeGhbApCreds(installationId);
 	}
 	async getGithubInstallationInfo(userId: string): Promise<GithubIdsOutput | null> {
-		return this.userRepository.findGhbApCreds(userId)
+		return this.userRepository.findGhbApCreds(userId);
 	}
-
 
 	async getUserByGithubInstallation(installationId: number, onlyNeededFields: boolean): Promise<IUser | null> {
-		return this.userRepository.findUserByInstallationId(installationId, onlyNeededFields)
+		return this.userRepository.findUserByInstallationId(installationId, onlyNeededFields);
 	}
-
-
-
-
 }
 
 export default UserService;

@@ -26,7 +26,7 @@ export const PROJECT_ERRORS = {
 	IN_USE: "Cannot delete project while it has active deployments",
 	PROJECT_IN_PROGRESS: "Project deployment in progress",
 	SUBDOMAIN_NOT_AVAILABLE: "Subdomain not available",
-	DISABLED: "Project disabled"
+	DISABLED: "Project disabled",
 };
 
 export const DEPLOYMENT_ERRORS = {
@@ -74,7 +74,6 @@ export const COMMON_ERRORS = {
 	NOT_FOUND: "Not found",
 };
 
-
 export const WEBHOOK_ERRORS = {
 	USER_NOT_FOUND: "Requested user not found ",
 	INCOMPLETE_DATA: "Can't find user data from Github ",
@@ -87,5 +86,5 @@ export const WEBHOOK_ERRORS = {
 	ACCESS_TOKEN_CREATE_ERROR: "Error while creating access token",
 	REPO_FETCH: "Error fetching repositories",
 	BRANCH_FETCH: "Error fetching repository branches",
-	NOT_CONNECTED: "Github app not connected"
-}
+	NOT_CONNECTED: "Github app not connected",
+};

@@ -64,7 +64,7 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 					setTabs={setTabs}
 				/>
 
-				<div className="border dark:border-neutral-700 mt-6 border-neutral-300 rounded-md">
+				<div className="border dark:border-neutral-700 mt-6 border-neutral-300 rounded-md" id="show-logs">
 					<button
 						className="p-3 md:p-4 w-full"
 						onClick={() => setShowBuild(!showBuild)}

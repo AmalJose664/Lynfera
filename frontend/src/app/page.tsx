@@ -68,7 +68,7 @@ const Hero = () => {
 					</RightFadeComponent>
 					<RightFadeComponent delay={.6} left distance={60} duration={.6}>
 
-						<Link href={"/new"} className="w-full sm:w-auto px-8 py-3.5 dark:bg-white bg-black dark:text-black text-white border rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2">
+						<Link href={"/new?tab=provider"} className="w-full sm:w-auto px-8 py-3.5 dark:bg-white bg-black dark:text-black text-white border rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2">
 							<FaGithub size={20} />
 							Import from GitHub
 						</Link>

@@ -3,12 +3,45 @@ import { ProjectStatus } from "@/types/Project";
 import { parseRepoUrl } from "./form";
 
 
-export const formatDate = (date: Date | undefined, shortMonth?: boolean) => { //chat gpt code
-	return new Date(date || 0).toLocaleDateString('en-US', {
-		year: 'numeric',
-		month: shortMonth ? 'short' : 'long',
-		day: 'numeric'
-	});
+export const formatDate = (
+	date: Date | string | undefined,
+	shortMonth?: boolean,
+	detailed?: boolean
+) => {
+	if (!date) return "";           // CHAT GPT Code
+
+	const d = new Date(date);
+	const now = new Date();
+
+
+	const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	const yesterday = new Date(today);
+	yesterday.setDate(today.getDate() - 1);
+
+	const compareDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+	let prefix = "";
+	if (compareDate.getTime() === today.getTime()) {
+		prefix = "Today";
+	} else if (compareDate.getTime() === yesterday.getTime()) {
+		prefix = "Yesterday";
+	}
+
+	const options: Intl.DateTimeFormatOptions = {
+		year: "numeric",
+		month: shortMonth ? "short" : "long",
+		day: "numeric",
+	};
+
+	if (detailed) {
+		options.hour = "2-digit";
+		options.minute = "2-digit";
+		options.hour12 = false;
+	}
+
+	const formattedDate = d.toLocaleDateString("en-US", options);
+
+	return prefix ? `${prefix}${detailed ? `,  ${d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}` : ""}` : formattedDate;
 };
 
 export const getElapsedTimeClean = (createdAt: Date | undefined) => { //chat gpt code
@@ -230,6 +263,7 @@ export const generateRepoUrls = (
 		tree?: boolean
 	}
 ): { branch?: string, commit?: string, source?: string, tree?: string } => {
+	if (!url) return { branch: "", commit: "" }
 	const parsed = parseRepoUrl(url)!
 	const { provider, owner, repo } = parsed
 	const { branch, commitSha, source, tree } = options

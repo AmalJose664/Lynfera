@@ -2,7 +2,6 @@ import { EventEmitter } from "events";
 import { Response, Request } from "express";
 
 class DeploymentEmitter extends EventEmitter {
-
 	onEvent(eventString: string, callback: (log: any) => void) {
 		this.on(eventString, callback);
 	}
@@ -10,17 +9,15 @@ class DeploymentEmitter extends EventEmitter {
 		this.off(eventString, callback);
 	}
 	emitEvents(eventString: string, log: any, type: string) {
-		const emitData = { type, data: log }
-		this.emit(eventString, emitData)
+		const emitData = { type, data: log };
+		this.emit(eventString, emitData);
 	}
-
 
 	offAllEvents(eventString: string) {
 		this.removeAllListeners(eventString);
 	}
 }
 export const deploymentEmitter = new DeploymentEmitter();
-
 
 interface SSEClient {
 	deploymentId: string;
@@ -32,14 +29,14 @@ interface SSEClient {
 class SSEManager {
 	private emitter: DeploymentEmitter;
 	private clients: Map<string, SSEClient>;
-	private interval: NodeJS.Timeout
+	private interval: NodeJS.Timeout;
 
 	constructor() {
 		this.emitter = deploymentEmitter;
 		this.emitter.setMaxListeners(1000);
 		this.clients = new Map<string, SSEClient>();
 		this.interval = setInterval(() => {
-			const clients = this.clients.entries()
+			const clients = this.clients.entries();
 			for (const [client, data] of clients) {
 				try {
 					data.res.write(`:heartbeat\n\n`);
@@ -48,7 +45,7 @@ class SSEManager {
 					this.removeClient(client);
 				}
 			}
-		}, 30 * 1000)
+		}, 30 * 1000);
 	}
 
 	addClient(clientId: string, deploymentId: string, res: Response, req: Request) {
@@ -80,12 +77,11 @@ class SSEManager {
 
 		this.emitter.onEvent(deploymentId, listener);
 
-
 		this.clients.set(clientId, {
 			deploymentId,
 			res,
 			errors: 0,
-			listener
+			listener,
 		});
 
 		console.log(`Client connected: ${clientId}, Active clients: ${this.clients.size}`);
@@ -113,7 +109,7 @@ class SSEManager {
 	}
 
 	closeClientsByDeployment(deplomentId: string) {
-		this.emitter.offAllEvents(deplomentId)
+		this.emitter.offAllEvents(deplomentId);
 	}
 
 	getClientCount(): number {
@@ -134,11 +130,11 @@ class SSEManager {
 	}
 
 	cleanup() {
-		console.log("Clean up SSE Map")
+		console.log("Clean up SSE Map");
 		for (const [clientId] of this.clients) {
 			this.removeClient(clientId);
 		}
-		clearInterval(this.interval)
+		clearInterval(this.interval);
 	}
 }
 

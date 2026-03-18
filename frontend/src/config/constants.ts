@@ -5,7 +5,7 @@ export const LINKS = {
 }
 export const SITE_NAME = "Lynfera"
 
-
+export const githubAppLink = "https://github.com/apps/lynfera-app"
 export const navbarLinks = [
 	{ name: "Projects", url: "/projects", isOtherLink: false, Icon: IoIosCube },
 	{ name: "Deployments", url: "/deployments", isOtherLink: false, Icon: IoMdCloudDone },

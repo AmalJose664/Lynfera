@@ -2,14 +2,14 @@
 import { IoMdGlobe, IoMdGitBranch } from "react-icons/io";
 import { BsActivity } from "react-icons/bs";
 import { VscLibrary } from "react-icons/vsc";
-import { FiGithub, FiGitCommit, FiAlertCircle, } from "react-icons/fi";
+import { FiGithub, FiGitCommit, FiAlertCircle, FiCheck, } from "react-icons/fi";
 import { GrRotateRight } from "react-icons/gr";
 import { CgUnavailable } from "react-icons/cg";
 import { IoClose, IoSettingsOutline } from "react-icons/io5";
 import { MdAccessTime, MdCreate } from "react-icons/md";
 import { RxExternalLink } from "react-icons/rx";
 import { User } from "@/types/User";
-import { Project, ProjectStatus } from "@/types/Project";
+import { Project, ProjectProvider, ProjectStatus } from "@/types/Project";
 import Link from "next/link";
 import TechStack from "@/components/project/TechStack";
 import { formatDuration, generateRepoUrls, getStatusColor, isStatusFailure, isStatusProgress, parseGitHubRepo, } from "@/lib/moreUtils/combined";
@@ -20,8 +20,11 @@ import { Button } from "@/components/ui/button";
 import RightFadeComponent from "@/components/RightFadeComponent";
 import { TbHexagonNumber1Filled } from "react-icons/tb";
 import { LinkComponent } from "@/components/docs/HelperComponents";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DeploymentDuarionWarning, DeploymentFailedWarning } from "@/components/Banners";
+import { RiGitRepositoryPrivateFill } from "react-icons/ri";
+import { FaLockOpen } from "react-icons/fa";
 
 interface ProjectOverviewProps {
 	project: Project,
@@ -41,41 +44,17 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 	const deploymentRunning = isStatusProgress(runningDeploymentStatus)
 	const repoValues = parseGitHubRepo(project.repoURL)
 	const projectLink = `${window.location.protocol}//${project.subdomain}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`
-	const [lastFailed, setLastFailed] = useState<boolean>(false)
-	useEffect(() => {
-		if (runningDeploymentStatus === ProjectStatus.FAILED || runningDeploymentStatus === ProjectStatus.CANCELED) {
-			setLastFailed(true)
-		}
-	}, [runningDeploymentStatus])
+
 	const router = useRouter()
 	return (
 		<>
 			<div>
+				<div className="">
+					<DeploymentFailedWarning runningDeployment={runningDeployment} />
+					<DeploymentDuarionWarning runningDeployment={runningDeployment} />
+				</div>
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 					<div className="lg:col-span-2 space-y-6">
-						{lastFailed && (
-							<RightFadeComponent className="border   rounded-lg dark:bg-neutral-900  bg-white overflow-hidden relative">
-								<div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900 rounded-lg p-4 flex items-start gap-3">
-									<FiAlertCircle className="text-red-500 mt-0.5 size-5" />
-									<div>
-										<h3 className="text-sm font-semibold text-red-700 dark:text-red-400">
-											Last Deployment Failed <LinkComponent href={"/deployments/" + runningDeployment?._id} className="ml-3">View</LinkComponent>
-										</h3>
-										<div className="space-y-1 mt-2">
-											<p className="text-sm text-primary">
-												Deployment ID: {runningDeployment?._id}
-											</p>
-											<p className="text-sm text-primary">
-												Deployment Slug: {runningDeployment?.identifierSlug}
-											</p>
-										</div>
-									</div>
-								</div>
-								<button className="absolute top-1 right-1" onClick={() => setLastFailed(false)}>
-									<IoClose size={20} className="m-2" />
-								</button>
-							</RightFadeComponent>
-						)}
 						<RightFadeComponent className="border   rounded-lg dark:bg-neutral-900  bg-white overflow-hidden">
 							<div className="px-4 py-3 border-b   flex justify-between items-start">
 								<div>
@@ -160,36 +139,73 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 								</div>
 							</div>
 						</RightFadeComponent>
-						<RightFadeComponent delay={.07} className="border   rounded-lg dark:bg-neutral-900  bg-white px-3 py-2">
-							<h4 className="text-sm font-medium  text-primary mb-4">Options</h4>
-							<div className="rounded-lg dark:bg-neutral-900  bg-white px-4 py-2 flex items-center gap-3">
-								{(isprojectError)
-									&&
-									(isDeplymentError) &&
-									<Button variant={"secondary"} onClick={() => reDeploy(true)} className='hover:bg-primary! hover:text-secondary! duration-200!
+						<div className="flex w-full gap-6 items-center justify-around">
+							<RightFadeComponent delay={.07} className="border w-full rounded-lg dark:bg-neutral-900  bg-white px-3 py-2">
+								<h4 className="text-sm font-medium  text-primary mb-4">Options</h4>
+								<div className="rounded-lg dark:bg-neutral-900  bg-white px-4 py-2 flex items-center gap-3">
+									{(isprojectError)
+										&&
+										(isDeplymentError) &&
+										<Button variant={"secondary"} onClick={() => reDeploy(true)} className='hover:bg-primary! hover:text-secondary! duration-200!
 								 border rounded-lg text-sm font-medium  transition-colors  flex justify-start gap-3 px-4 py-3'>
-										Re Deploy < GrRotateRight className="text-green-400 group-hover:rotate-z-90 transition-all duration-300" />
+											Re Deploy < GrRotateRight className="text-green-400 group-hover:rotate-z-90 transition-all duration-300" />
+										</Button>
+									}
+									<Button variant={"secondary"} onClick={() => setTabs("settings")}
+										className='hover:bg-primary! hover:text-secondary! duration-200! group
+								 border rounded-lg text-sm font-medium  transition-colors  flex justify-start gap-3 px-4 py-3'>
+										Settings <IoSettingsOutline className="group-hover:translate-x-1.5! group-hover:rotate-z-45! transition-all! duration-300!" />
 									</Button>
-								}
-								<Button variant={"secondary"} onClick={() => setTabs("settings")}
-									className='hover:bg-primary! hover:text-secondary! duration-200! group
+									<Button variant={"secondary"} onClick={() => setTabs("monitoring")}
+										className='hover:bg-primary! hover:text-secondary! duration-200!
 								 border rounded-lg text-sm font-medium  transition-colors  flex justify-start gap-3 px-4 py-3'>
-									Settings <IoSettingsOutline className="group-hover:translate-x-1.5! group-hover:rotate-z-45! transition-all! duration-300!" />
-								</Button>
-								<Button variant={"secondary"} onClick={() => setTabs("monitoring")}
-									className='hover:bg-primary! hover:text-secondary! duration-200!
-								 border rounded-lg text-sm font-medium  transition-colors  flex justify-start gap-3 px-4 py-3'>
-									Usage & Analytics <BsActivity size={16} className="text-gray-500" />
-								</Button>
-							</div>
-						</RightFadeComponent>
+										Usage & Analytics <BsActivity size={16} className="text-gray-500" />
+									</Button>
+								</div>
+							</RightFadeComponent>
+							{(project.provider === ProjectProvider.GITHUB || project.provider === ProjectProvider.GITHUB_DISCONNECTED) &&
+								<RightFadeComponent delay={.09} className="border w-full rounded-lg dark:bg-neutral-900  bg-white px-3 py-2">
+									<h4 className="text-sm font-medium  text-primary mb-4">Github</h4>
+									<div className="flex gap-4 py-2">
+										{project.provider === ProjectProvider.GITHUB
+											? (
+												<div className="flex text-sm border rounded-md px-4 py-[7px] w-fit items-center gap-3">
+													<FiGithub />
+													Connected
+												</div>
+											)
+											: (project.provider === ProjectProvider.GITHUB_DISCONNECTED ? (
+												<div className="flex text-sm text-red-400 border rounded-md px-4 py-[7px] w-fit items-center gap-3">
+													<FiGithub />
+													Disconnected
+												</div>
+											) : "")}
+
+										<div className="flex text-sm border rounded-md px-4 py-[7px] w-fit items-center gap-3">
+											{project.isPrivateGhRepo ? (
+												<>
+													<RiGitRepositoryPrivateFill />
+													Private Repo
+												</>
+											) : (
+												<>
+													<FaLockOpen />
+													Public Repo
+												</>
+											)}
+										</div>
+									</div>
+								</RightFadeComponent>
+							}
+
+						</div>
 					</div>
 
 					<div className="space-y-6">
 						<RightFadeComponent delay={.14} className="border   rounded-lg dark:bg-neutral-900  bg-white p-5">
 							<h4 className="text-sm font-medium  text-primary mb-4">Repository</h4>
 							<div className="space-y-4">
-								<div className="flex justify-between items-center py-2 border-b  /50 last:border-0">
+								<div className="flex justify-between items-center py-2 border-b  last:border-0">
 									<div className="flex items-center gap-2">
 										<FiGithub size={14} />
 										<span className="text-xs text-gray-500">Git Repo</span>
@@ -202,7 +218,7 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 										</Link>
 									</div>
 								</div>
-								<div className="flex justify-between items-center py-2 border-b  /50 last:border-0">
+								<div className="flex justify-between items-center py-2 border-b  last:border-0">
 									<div className="flex items-center gap-2">
 										<FiGitCommit size={14} />
 										<span className="text-xs text-gray-500">Commit</span>
@@ -218,7 +234,7 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 										</span>
 									</div>
 								</div>
-								<div className="flex justify-between items-center py-2 border-b  /50 last:border-0">
+								<div className="flex justify-between items-center py-2 border-b  last:border-0">
 									<div className="flex items-center gap-2">
 										<IoMdGitBranch size={14} />
 										<span className="text-xs text-gray-500">Branch</span>
@@ -233,7 +249,7 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 						<RightFadeComponent delay={.21} className="border   rounded-lg dark:bg-neutral-900  bg-white p-5">
 							<h4 className="text-sm font-medium  text-primary mb-4">Project Details</h4>
 							<div className="space-y-4">
-								<div className="flex justify-between items-center py-2 border-b  /50 last:border-0">
+								<div className="flex justify-between items-center py-2 border-b  last:border-0">
 									<div className="flex items-center gap-2">
 										<VscLibrary size={14} />
 										<span className="text-xs text-gray-500">Framework</span>
@@ -245,7 +261,7 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 										<span className="text-sm max-w-40 truncate text-less">{project.techStack}</span>
 									</div>
 								</div>
-								<div className="flex justify-between items-center py-2 border-b  /50 last:border-0">
+								<div className="flex justify-between items-center py-2 border-b  last:border-0">
 									<div className="flex items-center gap-2">
 										<MdCreate size={14} />
 										<span className="text-xs text-gray-500">Created</span>
@@ -254,7 +270,7 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 										<span className="text-sm  text-less">{new Date(project.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
 									</div>
 								</div>
-								<div className="flex justify-between items-center py-2 border-b  /50 last:border-0">
+								<div className="flex justify-between items-center py-2 border-b  last:border-0">
 									<div className="flex items-center gap-2">
 										<MdAccessTime size={14} />
 										<span className="text-xs text-gray-500">Duration</span>
@@ -265,7 +281,7 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 						</RightFadeComponent>
 					</div>
 				</div>
-			</div>
+			</div >
 
 		</>
 	)

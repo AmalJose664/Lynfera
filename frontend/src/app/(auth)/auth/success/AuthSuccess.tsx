@@ -30,7 +30,7 @@ const AuthSuccessComp = () => {
 				}
 				await axiosInstance.get("/auth");
 				localStorage.setItem("session_code", "SESSION_FOUND__" + Math.random().toString(36).slice(2, 12))
-				setCookie("Is_Authenticated_Client", "true", { maxAge: 60 * 60 * 6, httpOnly: false })
+				setCookie("Is_Authenticated_Client", "true", { maxAge: 60 * 60 * 14, httpOnly: false })
 				setCode("ACQUIRED")
 				dispatch(authApi.util.resetApiState())
 				await new Promise((res) => setTimeout(res, 1100))

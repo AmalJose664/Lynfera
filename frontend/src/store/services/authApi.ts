@@ -72,8 +72,8 @@ export const authApi = createApi({
 		removeUserGithubApp: builder.mutation<GithubAccountResponse, void>({
 			query: () => ({ url: "/webhook/remove", method: 'delete' }),
 			invalidatesTags: [
-				// { type: 'Auth', id: 'user_github_account' },
-				// { type: 'Auth', id: 'user_data_detailed' },
+				{ type: 'Auth', id: 'user_github_account' },
+				{ type: 'Auth', id: 'user_data_detailed' },
 			],
 		}),
 

@@ -108,79 +108,83 @@ const AllDeployments = () => {
 						</div>
 					)}
 
-					{filteredDeployments?.length !== 0 && filteredDeployments.map((deployment) => (
-						<div key={deployment._id} className="group border-b last:border-none divide-y rounded-md dark:bg-neutral-900 mt-2 bg-white divide-gray-800 border-neutral-200 dark:border-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-800/30 transition-colors">
-							<Link
-								href={"/deployments/" + deployment._id}
-								className="grid grid-cols-4 md:grid-cols-11 gap-2 md:gap-4 items-center px-4 py-3 hover:no-underline"
-							>
-								<div className="md:col-span-2 flex items-center gap-2">
-									<StatusIcon status={deployment.status} />
-									<span className="text-xs font-medium">{deployment.status}</span>
-								</div>
-								<div className="md:col-span-2 flex flex-col min-w-0">
-									<span className="text-sm truncate text-primary">
-										{(deployment.project as Project).name}
-									</span>
-									<span className="text-[10px] text-neutral-500 font-mono truncate">
-										{deployment._id}
-									</span>
-								</div>
+					{filteredDeployments?.length !== 0 && filteredDeployments.map((deployment) => {
+						const project = deployment.project as Project
+						const isDeletedProject = project._id.startsWith("DELETED")
+						return (
+							<div key={deployment._id} className="group border-b last:border-none divide-y rounded-md dark:bg-neutral-900 mt-2 bg-white divide-gray-800 border-neutral-200 dark:border-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-800/30 transition-colors">
+								<Link
+									href={"/deployments/" + deployment._id}
+									className="grid grid-cols-4 md:grid-cols-11 gap-2 md:gap-4 items-center px-4 py-3 hover:no-underline"
+								>
+									<div className="md:col-span-2 flex items-center gap-2">
+										<StatusIcon status={deployment.status} />
+										<span className="text-xs font-medium">{deployment.status}</span>
+									</div>
+									<div className="md:col-span-2 flex flex-col min-w-0">
+										<span className="text-sm truncate text-primary">
+											{!isDeletedProject ? project.name : "____Deleted project____"}
+										</span>
+										<span className="text-[10px] text-neutral-500 font-mono truncate">
+											{deployment._id}
+										</span>
+									</div>
 
 
-								<div className="hidden md:flex md:col-span-2 flex-col min-w-0">
-									<span className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-1">
-										{deployment.identifierSlug}
-									</span>
-								</div>
+									<div className="hidden md:flex md:col-span-2 flex-col min-w-0">
+										<span className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-1">
+											{deployment.identifierSlug}
+										</span>
+									</div>
 
-								<div className="md:col-span-2 flex flex-col md:items-center gap-2 overflow-hidden">
-									<code className="text-[10px] w-fit font-mono bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-blue-600">
-										{deployment.commit.id.substring(0, 7)}
-									</code>
-									<span className="text-xs text-neutral-500 line-clamp-1">{deployment.commit.msg}</span>
-								</div>
+									<div className="md:col-span-2 flex flex-col md:items-center gap-2 overflow-hidden">
+										<code className="text-[10px] w-fit font-mono bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-blue-600">
+											{deployment.commit.id.substring(0, 7)}
+										</code>
+										<span className="text-xs text-neutral-500 line-clamp-1">{deployment.commit.msg}</span>
+									</div>
 
-								<div className=" hidden md:flex md:col-span-1 text-center items-center md:justify-center gap-1 text-xs text-neutral-500">
-									<IoMdGitBranch size={12} />
-									<div className="line-clamp-1">{(deployment.project as Project).branch}</div>
-								</div>
+									<div className=" hidden md:flex md:col-span-1 text-center items-center md:justify-center gap-1 text-xs text-neutral-500">
+										<IoMdGitBranch size={12} />
+										<div className="line-clamp-1">{!isDeletedProject ? project.branch : "---"}</div>
+									</div>
 
-								<div className="md:col-span-2 flex justify-end" onClick={(e) => e.stopPropagation()}>
-									<OptionsComponent parentClassName="" options={[
-										{
-											title: "Show Project",
-											actionFn: () => router.push("/projects/" + (deployment.project as Project)._id),
-											className: "",
-											Svg: IoIosCube
-										},
-										{
-											title: "Copy Deployment ID",
-											actionFn: () => navigator.clipboard.writeText(deployment._id),
-											className: "",
-											Svg: IoClipboardOutline
-										},
-										{
-											title: "Copy Public ID",
-											actionFn: () => navigator.clipboard.writeText(deployment.publicId),
-											className: "",
-											Svg: IoClipboardOutline
-										},
-										{
-											title: "Inspect",
-											actionFn: () => router.push("/deployments/" + deployment._id),
-											className: "",
-										},
-										{
-											title: "View Files",
-											actionFn: () => router.push("/deployments/" + deployment._id + "#files"),
-											className: "",
-										},
-									]} />
-								</div>
-							</Link>
-						</div>
-					))}
+									<div className="md:col-span-2 flex justify-end" onClick={(e) => e.stopPropagation()}>
+										<OptionsComponent parentClassName="" options={[
+											{
+												title: "Show Project",
+												actionFn: () => router.push("/projects/" + !isDeletedProject ? project._id : "0000"),
+												className: "",
+												Svg: IoIosCube
+											},
+											{
+												title: "Copy Deployment ID",
+												actionFn: () => navigator.clipboard.writeText(deployment._id),
+												className: "",
+												Svg: IoClipboardOutline
+											},
+											{
+												title: "Copy Public ID",
+												actionFn: () => navigator.clipboard.writeText(deployment.publicId),
+												className: "",
+												Svg: IoClipboardOutline
+											},
+											{
+												title: "Inspect",
+												actionFn: () => router.push("/deployments/" + deployment._id),
+												className: "",
+											},
+											{
+												title: "View Files",
+												actionFn: () => router.push("/deployments/" + deployment._id + "#files"),
+												className: "",
+											},
+										]} />
+									</div>
+								</Link>
+							</div>
+						)
+					})}
 					{meta?.totalPages > 1 && <PaginationComponent page={page} setPage={setPage} totalPages={totalPages} />}
 					{(isError && (error as any).status !== 404) && (
 						<div className="flex items-center justify-center px-4">

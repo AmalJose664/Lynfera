@@ -671,7 +671,7 @@ function RenderEnv({ env, index }: { env: Project['env'][number], index: number 
 	return (
 		<div key={index} className="flex gap-2 items-center">
 			<span className="text-[14px]! border  px-3 py-2 rounded-md font-env min-w-40 md:min-w-96 truncate">{env.name}</span>
-			<Input readOnly className="w-auto  text-primary font-env" type={showEnv ? "text" : "password"} value={env.value} />
+			<Input readOnly className="w-auto  text-primary font-env" type={showEnv ? "text" : "password"} value={showEnv ? env.value : "0000000000"} />
 			<button type="button" onClick={() => setShowEnv(!showEnv)}><LuEye className={showEnv ? "opacity-100" : "opacity-50"} /></button>
 			<Copybtn value={env.value} />
 

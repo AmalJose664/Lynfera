@@ -27,11 +27,14 @@ async function createIndexes() {
 		console.log("✓ User OTP indexes created");
 
 		console.log("Creating Project indexes...");
-		await Project.collection.createIndex({ ghRepoId: 1, user: 1 }, {
-			unique: true,
-			partialFilterExpression: { ghRepoId: { $exists: true } },
-			name: "github_repo_id_user"
-		})
+		await Project.collection.createIndex(
+			{ ghRepoId: 1, user: 1 },
+			{
+				unique: true,
+				partialFilterExpression: { ghRepoId: { $exists: true } },
+				name: "github_repo_id_user",
+			},
+		);
 		await Project.collection.createIndex({ subdomain: 1 }, { unique: true, name: "subdomain_unique" });
 		await Project.collection.createIndex({ user: 1, createdAt: -1 }, { name: "user_projects_by_date" });
 		console.log("✓ Project indexes created");
@@ -44,18 +47,9 @@ async function createIndexes() {
 		//-------------------------------------------------------------------------------------------------------------------------------------
 
 		console.log("Creating ProjectBandwidth indexes...");
-		await ProjectBandwidth.collection.createIndex(
-			{ project: 1, currentMonth: 1 },
-			{ unique: true, name: 'project_monthly_bandwidth' }
-		);
-		await ProjectBandwidth.collection.createIndex(
-			{ user: 1, currentMonth: 1 },
-			{ name: 'user_monthly_bandwidth' }
-		);
-		await ProjectBandwidth.collection.createIndex(
-			{ project: 1 },
-			{ name: 'project_bandwidth_lookup' }
-		);
+		await ProjectBandwidth.collection.createIndex({ project: 1, currentMonth: 1 }, { unique: true, name: "project_monthly_bandwidth" });
+		await ProjectBandwidth.collection.createIndex({ user: 1, currentMonth: 1 }, { name: "user_monthly_bandwidth" });
+		await ProjectBandwidth.collection.createIndex({ project: 1 }, { name: "project_bandwidth_lookup" });
 		console.log("✓ ProjectBandwidth indexes created");
 		//-------------------------------------------------------------------------------------------------------------------------------------
 		console.log("\n✅ All indexes created successfully!");

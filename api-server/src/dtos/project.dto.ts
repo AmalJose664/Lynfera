@@ -19,10 +19,7 @@ export const CreateProjectSchema = z.object({
 	ghRepoId: z.number().optional(),
 	provider: z.enum(ProjectProvider),
 	isPrivate: z.boolean(),
-	name: z
-		.string()
-		.min(3, "Name should not exceed 3 charecters")
-		.max(50, "Name max 50 characters"),
+	name: z.string().min(3, "Name should not exceed 3 charecters").max(50, "Name max 50 characters"),
 	repoURL: z
 		.string()
 		.regex(
@@ -60,10 +57,7 @@ export const CreateProjectSchema = z.object({
 });
 
 export const UpdateProjectSchema = z.object({
-	name: z
-		.string()
-		.min(3, "Name should be at least 3 charecters")
-		.max(50, "Name max 50 characters").optional(),
+	name: z.string().min(3, "Name should be at least 3 charecters").max(50, "Name max 50 characters").optional(),
 	branch: z.string().optional(),
 	buildCommand: z
 		.string()

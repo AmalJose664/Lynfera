@@ -14,9 +14,11 @@ import { Input } from "@/components/ui/input"
 import { useRef, useState } from "react"
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import Copybtn from "../Copybtn"
-import { useRemoveUserGithubAppMutation } from "@/store/services/authApi";
+import { authApi, useRemoveUserGithubAppMutation } from "@/store/services/authApi";
+import { useRouter } from "next/navigation";
+import { useAppDispatch } from "@/store/store";
 
-export function RemoveGithubAppDialog({ }: { projectName: string, projectId: string, currentSubdomain: string }) {
+export function RemoveGithubAppDialog() {
 	const [userConfirmText, setUserConfirmText] = useState("")
 
 	const ref = useRef<HTMLButtonElement>(null)
@@ -27,8 +29,10 @@ export function RemoveGithubAppDialog({ }: { projectName: string, projectId: str
 			removeFn().unwrap()
 		} catch (error) {
 			console.log(error)
-		} finally {
 
+		} finally {
+			setUserConfirmText("")
+			ref.current?.click()
 		}
 	}
 

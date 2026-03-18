@@ -62,11 +62,11 @@ export class ProjectMapper {
 				subdomain: project.subdomain,
 				user: this.isPopulatedObject(project.user, ["profileImage", "email", "name"])
 					? {
-						_id: project.user._id,
-						name: project.user.name,
-						email: project.user.email,
-						profileImage: project.user.profileImage,
-					}
+							_id: project.user._id,
+							name: project.user.name,
+							email: project.user.email,
+							profileImage: project.user.profileImage,
+						}
 					: project.user.toString(),
 				deployments: project.deployments?.map((d) => d.toString()),
 				lastDeployedAt: project.lastDeployedAt,
@@ -85,11 +85,11 @@ export class ProjectMapper {
 				subdomain: project.subdomain,
 				user: this.isPopulatedObject(project.user, ["profileImage", "email", "name"])
 					? {
-						_id: project.user._id,
-						name: project.user.name,
-						email: project.user.email,
-						profileImage: project.user.profileImage,
-					}
+							_id: project.user._id,
+							name: project.user.name,
+							email: project.user.email,
+							profileImage: project.user.profileImage,
+						}
 					: project.user.toString(),
 				buildCommand: project.buildCommand,
 				env: project.env.map((e) => ({ name: e.name, value: e.value })),
@@ -137,11 +137,11 @@ export class ProjectMapper {
 				autoDeployEnabled: project.autoDeployEnabled,
 				user: this.isPopulatedObject(project.user, ["profileImage", "email", "name"])
 					? {
-						_id: project.user._id,
-						name: project.user.name,
-						email: project.user.email,
-						profileImage: project.user.profileImage,
-					}
+							_id: project.user._id,
+							name: project.user.name,
+							email: project.user.email,
+							profileImage: project.user.profileImage,
+						}
 					: project.user.toString(),
 				deployments: project.deployments?.map((d) => d.toString()),
 				lastDeployedAt: project.lastDeployedAt,

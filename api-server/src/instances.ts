@@ -25,6 +25,7 @@ import OtpRepository from "./repositories/otpVerify.repository.js";
 import OtpService from "./services/otpVerify.service.js";
 import WebhookController from "./controllers/webhookController.js";
 import WebhookService from "./services/webhook.service.js";
+import GithubService from "./services/github.service.js";
 
 export const userRepo = new UserRepo();
 export const projectRepo = new ProjectRepo();
@@ -42,11 +43,11 @@ export const otpService = new OtpService(otpRepo);
 export const projectService = new ProjectService(projectRepo, userRepo, projectBandwidthRepo, deploymentRepo, logsService, redisCacheService);
 export const analyticsService = new AnalyticsService(analyticsRepo, projectBandwidthRepo);
 export const userService = new UserService(userRepo, projectService, otpService);
-export const deploymentService = new DeploymentService(deploymentRepo, projectRepo, userService, logsService, redisCacheService);
+export const githubService = new GithubService(userService, redisCacheService);
+export const deploymentService = new DeploymentService(deploymentRepo, projectRepo, userService, logsService, redisCacheService, githubService);
 export const paymentService = new PaymentService(userRepo);
-export const webhookService = new WebhookService(userService, projectService, deploymentService, redisCacheService);
 
-
+export const webhookService = new WebhookService(userService, projectService, deploymentService, githubService);
 
 export const projectController = new ProjectController(projectService);
 export const deploymentController = new DeploymentController(deploymentService);
@@ -54,4 +55,4 @@ export const logsController = new LogsController(logsService, deploymentService)
 export const analyticsController = new AnalyticsController(analyticsService);
 export const paymentController = new PaymentController(paymentService);
 
-export const webhookController = new WebhookController(webhookService);
+export const webhookController = new WebhookController(webhookService, githubService);

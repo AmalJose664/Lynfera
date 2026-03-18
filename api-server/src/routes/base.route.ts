@@ -9,11 +9,11 @@ baseRouter.get("/", (_req, res) => {
 	return;
 });
 
-baseRouter.get('/health', (_req, res) => {
+baseRouter.get("/health", (_req, res) => {
 	res.status(200).json({
 		success: true,
-		message: 'API is healthy',
-		timestamp: new Date().toISOString()
+		message: "API is healthy",
+		timestamp: new Date().toISOString(),
 	});
 });
 

@@ -11,12 +11,16 @@ class DeploymentEventHandler {
 
 		const { log, deploymentId, projectId } = data;
 		if (!isRetry) {
-			deploymentEmitter.emitEvents(deploymentId, {
-				event_id: event.eventId,
-				deployment_id: deploymentId,
-				project_id: projectId,
-				...log,
-			}, "LOG");
+			deploymentEmitter.emitEvents(
+				deploymentId,
+				{
+					event_id: event.eventId,
+					deployment_id: deploymentId,
+					project_id: projectId,
+					...log,
+				},
+				"LOG",
+			);
 		}
 		process.stdout.write(" L ");
 		await logsService.__insertLog(log.message, projectId, deploymentId, new Date(log.timestamp), log.level, log.sequence);
@@ -29,11 +33,15 @@ class DeploymentEventHandler {
 		const { updates, deploymentId, projectId } = data;
 		process.stdout.write(" U ");
 		if (!isRetry) {
-			deploymentEmitter.emitEvents(deploymentId, {
-				...updates,
+			deploymentEmitter.emitEvents(
 				deploymentId,
-				projectId,
-			}, "UPDATE");
+				{
+					...updates,
+					deploymentId,
+					projectId,
+				},
+				"UPDATE",
+			);
 		}
 
 		switch (data.updateType) {

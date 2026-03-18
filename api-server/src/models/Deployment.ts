@@ -23,7 +23,7 @@ enum EnvsAvailable {
 export enum DeploymentTriggers {
 	GIT_PUSH = "GIT_PUSH",
 	MANUAL = "MANUAL",
-	REDEPLOY = "REDEPLOY"
+	REDEPLOY = "REDEPLOY",
 }
 
 export interface IDeployment extends Document {
@@ -47,7 +47,7 @@ export interface IDeployment extends Document {
 	error_message?: string;
 	branch: string;
 	triggerEvent: DeploymentTriggers;
-	triggeredBy?: String;
+	triggeredBy?: string;
 	file_structure: FileStructureType | null;
 	createdAt: Date;
 	updatedAt: Date;

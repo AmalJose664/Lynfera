@@ -22,7 +22,7 @@ export const authenticaContainerToken = (req: Request, res: Response, next: Next
 			return res.status(STATUS_CODES.UNAUTHORIZED).json({ message: USER_ERRORS.INVALID_TOKEN, resource: "Container token" });
 		}
 	} catch (error: any) {
-		console.log("JWT decode error")
+		console.log("JWT decode error");
 		next(new AppError(error.message, 401));
 		return;
 	}

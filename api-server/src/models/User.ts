@@ -30,8 +30,8 @@ export interface IUser extends Document {
 		subscriptionId: string | null;
 		subscriptionStatus: SubscriptionStatus;
 	} | null;
-	githubAccountId: number
-	githubInstallationId?: number
+	githubAccountId: number;
+	githubInstallationId?: number;
 	createdAt: Date;
 	updatedAt: Date;
 }

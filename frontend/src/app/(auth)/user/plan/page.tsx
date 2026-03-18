@@ -10,6 +10,7 @@ import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { showToast } from "@/components/Toasts";
+import { avatarBgFromName } from "@/lib/moreUtils/combined";
 
 const page = () => {
 	const { data: user, error, isError, refetch } = useGetUserDetailedQuery()
@@ -54,11 +55,17 @@ const page = () => {
 					<div className="px-6 sm:px-8 pb-8">
 						<div className="flex flex-col sm:flex-row items-start sm:items-end gap-6 -mt-12">
 							<div className="relative">
-								<img
-									src={user?.profileImage}
-									alt={user?.name || "User Avatar"}
-									className="w-24 h-24 rounded-2xl border-4 border-secondary shadow-xl"
-								/>
+								{user?.profileImage === "FILL" ? (
+									<span className={`uppercase border text-white rounded-full w-24 h-24 flex items-center justify-center ${avatarBgFromName(user.name)}`} >
+										{user.name && user.name.slice(0, 2)}
+									</span>
+								) : (
+									<img
+										src={user?.profileImage}
+										alt={user?.name || "User Avatar"}
+										className="w-24 h-24 rounded-2xl border-4 border-secondary shadow-xl"
+									/>
+								)}
 								<div className={cn(
 									"absolute -bottom-1 -right-1 w-4 h-4 rounded-full border border-primary",
 									!isFree ? "bg-yellow-400" : "bg-emerald-400"

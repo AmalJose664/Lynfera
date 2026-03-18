@@ -13,5 +13,5 @@ export async function stopKafkaConsumer(): Promise<void> {
 	if (consumersInstance) {
 		await consumersInstance.stop();
 	}
-	sseManager.cleanup()
+	sseManager.cleanup();
 }

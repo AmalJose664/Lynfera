@@ -66,8 +66,8 @@ const features = [
 		label: "NODE_DISTRIBUTION"
 	},
 	{
-		title: "Manual Deploy",
-		desc: "Full control over every push. Direct command-line integration for precision releases.",
+		title: "Automated GitHub Deploys",
+		desc: "Seamless deployments on every push. Integrated with GitHub for fast, reliable, and hands-free releases.",
 		icon: RiCommandLine,
 		label: "CLI_CORE"
 	},

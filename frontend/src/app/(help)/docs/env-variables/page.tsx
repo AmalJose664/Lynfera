@@ -98,14 +98,14 @@ const page = () => {
 						These variables are injected into the build container at build time and can be used to control build behavior, feature flags, or environment-specific settings.
 					</p>
 					<div className="overflow-x-auto">
-						<table className="min-w-full divide-y divide-less border rounded-lg">
+						<table className="min-w-full divide-y divide-less/30 border rounded-md mb-2">
 							<thead className="bg-secondary/30">
 								<tr>
 									<th className="px-6 py-3 text-left text-xs font-bold uppercase text-primary">Variable</th>
 									<th className="px-6 py-3 text-left text-xs font-bold uppercase text-primary">Value / Purpose</th>
 								</tr>
 							</thead>
-							<tbody className="divide-y divide-less text-sm">
+							<tbody className="divide-y divide-less/30 text-sm">
 								<tr>
 									<td className="px-6 py-4 font-mono text-primary">LYNFERA_SETTING_SKIP_INSTALL</td>
 									<td className="px-6 py-4 text-less">
@@ -145,6 +145,12 @@ const page = () => {
 									<td className="px-6 py-4 font-mono text-primary">LYNFERA_PREVENT_DEPLOYMENT_AUTO_PROMOTION</td>
 									<td className="px-6 py-4 text-less">
 										Set to <CodeComponent>true</CodeComponent> to disable automatic promotion of a successful deployment. This allows manual review or staged releases before making the deployment live.
+									</td>
+								</tr>
+								<tr>
+									<td className="px-6 py-4 font-mono text-primary">LYNFERA_SETTING_TREAT_AS_STATIC_SITE</td>
+									<td className="px-6 py-4 text-less">
+										Set <CodeComponent>true</CodeComponent> to treat the project as a static site. This will skip install and build steps and directly upload the files from the specified <CodeComponent>Output Dir</CodeComponent>.
 									</td>
 								</tr>
 							</tbody>

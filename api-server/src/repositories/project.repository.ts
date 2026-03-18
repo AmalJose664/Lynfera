@@ -118,5 +118,10 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 		// container
 		return await Project.findOneAndUpdate({ _id: projectId }, { $set: { ...updateData } }, { new: true }).select(projectUpdateFieldsString);
 	}
+
+	async __updateManyProject(repoIds: number[], updateData: Partial<IProject>, userId?: string): Promise<IProject | null> {
+		// GH
+		return Project.updateMany({ ghRepoId: { $in: repoIds } }, { $set: { ...updateData } }).select(projectUpdateFieldsString);
+	}
 }
 export default ProjectRepository;

@@ -74,6 +74,32 @@ const page = () => {
 					</div>
 				</section>
 
+				<section id="troubleshoot-git-clones" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 bg-white">
+					<div className="overflow-x-auto">
+						<div className="px-4 py-4">
+							<h2 className="text-lg font-semibold">Git Clone Errors</h2>
+
+							<p className="text-sm text-primary mt-4">
+								These errors can occur during a build when cloning repositories. The most common causes are:
+							</p>
+
+							<ul className="px-3 py-1 list-disc space-y-3 mt-3 text-sm text-primary">
+								<li>
+									<strong>Repository not found:</strong> This happens if the repository URL is incorrect, if the repository is private, or if its visibility changed. Verify the repository link and permissions.
+								</li>
+								<li>
+									<strong>Authentication failed:</strong> This occurs if you don’t have access to the repository or if the GitHub App installation is misconfigured. Try removing and re-adding the GitHub App.
+								</li>
+								<li>
+									<strong>Branch not found:</strong> The specified branch does not exist in the repository. Verify the branch name in the <CodeComponent>Project.Branch</CodeComponent> setting.
+								</li>
+								<li>
+									<strong>Other failures:</strong> These are usually caused by permission issues, token mismatches, or invalid repository URLs.
+								</li>
+							</ul>
+						</div>
+					</div>
+				</section>
 				<section id="troubleshoot-logs" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-[#101010]/60 
 				bg-white ">
 					<div className="overflow-x-auto ">

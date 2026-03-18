@@ -179,7 +179,7 @@ const ProfileContent = () => {
 												</Button>
 											</div>
 											<div className='my-2'>
-												<RemoveGithubAppDialog projectId={"43242"} projectName={'3421342'} currentSubdomain={"32"} />
+												<RemoveGithubAppDialog />
 											</div>
 										</div>
 										<div>

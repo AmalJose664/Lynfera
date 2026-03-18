@@ -11,8 +11,6 @@ import {
 	formatDate,
 	formatDuration,
 	generateRepoUrls,
-	getGithubBranchUrl,
-	getGithubCommitUrl,
 	getPercentage,
 	getStatusColor,
 	isStatusFailure,
@@ -25,7 +23,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { FiGitCommit, } from "react-icons/fi";
-import { IoMdGitBranch } from "react-icons/io";
+import { IoMdGitBranch, IoMdRadioButtonOn } from "react-icons/io";
 import { FiAlertCircle } from "react-icons/fi";
 import { MdKeyboardArrowRight, } from "react-icons/md";
 import { IoIosCube, IoMdGlobe } from "react-icons/io";
@@ -36,13 +34,17 @@ import { RiPencilFill } from "react-icons/ri";
 import { PiIdentificationCardLight } from "react-icons/pi";
 import { Deployment } from "@/types/Deployment";
 
-import { CiMicrochip } from "react-icons/ci";
+import { CiMicrochip, CiUser } from "react-icons/ci";
 import OptionsComponent from "@/components/OptionsComponent";
 import { IoClipboardOutline, IoTrashOutline } from "react-icons/io5";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { BsArrowUpCircle } from "react-icons/bs";
 import ChangeDeploymentModal from "@/components/modals/ChangeDeployment";
 import DeleteDeploymentModal from "@/components/modals/DeleteDeployment";
+import { LinkComponent } from "@/components/docs/HelperComponents";
+import { SiGithub } from "react-icons/si";
+import { TbHandFingerDown } from "react-icons/tb";
+import { AiOutlineRedo } from "react-icons/ai";
 
 
 const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => {
@@ -95,6 +97,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 			<ErrorComponent error={error} id={deploymentId} field="Deployment" />
 		);
 	}
+	const isDeletedProject = project && project._id.startsWith("DELETED")
 	return (
 		<div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] text-neutral-900 dark:text-neutral-100">
 			{selectedDeploymentId && <ChangeDeploymentModal refetchDeply={refetchDeply} setSelectedDeploymentId={setSelectedDeploymentId} selectedDeploymentId={selectedDeploymentId} projectId={(deployment?.project as Project)._id} />}
@@ -149,19 +152,30 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 							</div>
 
 							<div className="flex items-center gap-3">
-								<div
-									className={`flex items-center gap-2 px-3 py-1.5 rounded-md border ${getStatusColor(
-										deployment.status as ProjectStatus
-									)} bg-opacity-10 border-opacity-20`}
-								>
-									<StatusIcon status={deployment.status} />
-									<span className="text-sm font-medium capitalize">
-										{deployment.status.toLowerCase()}
-									</span>
-								</div>
+								{!isDeletedProject ?
+
+									<div
+										className={`flex items-center gap-2 px-3 py-1.5 rounded-md border ${getStatusColor(
+											deployment.status as ProjectStatus
+										)} bg-opacity-10 border-opacity-20`}
+									>
+										<StatusIcon status={deployment.status} />
+										<span className="text-sm font-medium capitalize">
+											{deployment.status.toLowerCase()}
+										</span>
+									</div>
+									: (<div
+										className={"flex items-center gap-2 px-3 py-1.5 rounded-md border bg-gray-600/30 bg-opacity-10 border-opacity-20"}
+									>
+										<span className="text-sm font-medium capitalize text-primary">
+											{"DELETED"}
+										</span>
+									</div>
+									)
+								}
 								{!isFailed && deployment.status === ProjectStatus.READY && (
 									<Link
-										href={`${window.location.protocol}//${project.subdomain}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`}
+										href={`${window.location.protocol}//${project.subdomain || "00000"}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`}
 										target="_blank"
 										className="flex items-center gap-2 px-4 py-1.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
 									>
@@ -221,7 +235,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 								<FiAlertCircle className="text-red-500 mt-0.5 size-5" />
 								<div>
 									<h3 className="text-sm font-semibold text-red-700 dark:text-red-400">
-										Deployment Failed
+										{deployment.triggerEvent === "GIT_PUSH" && "GitHub Push"} Deployment Failed
 									</h3>
 									<p className="text-sm text-red-600 dark:text-red-300 mt-1">
 										{deployment.errorMessage ||
@@ -248,14 +262,14 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 														<IoMdGlobe className="size-4" /> Domains
 													</div>
 													<div className="sm:col-span-2">
-														<Link
+														<LinkComponent
 															href={`${window.location.protocol}//${project.subdomain}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`}
-															target="_blank"
-															className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate block font-mono"
+															newPage
+															className="text-sm hover:underline truncate block font-mono w-fit"
 														>
-															{project.subdomain}.
-															{process.env.NEXT_PUBLIC_PROXY_SERVER}
-														</Link>
+															{!isDeletedProject && `${project.subdomain}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`}
+
+														</LinkComponent>
 													</div>
 												</div>
 											)}
@@ -265,16 +279,16 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 													<IoMdGitBranch className="size-4" /> Branch
 												</div>
 												<div className="sm:col-span-2">
-													<Link
-														href={generateRepoUrls(project.repoURL, { branch: project.branch }).branch || project.repoURL}
-														target="_blank"
+													<LinkComponent
+														href={generateRepoUrls(project.repoURL, { branch: deployment.branch || project.branch }).branch || project.repoURL}
+														newPage
 														className="inline-flex items-center px-2.5 py-1 rounded-md bg-neutral-100 dark:bg-neutral-800 text-xs font-mono hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
 													>
 														<IoMdGitBranch className="mr-1 size-3" />
 														<span className="line-clamp-1 text-primary">
-															{project.branch}
+															{deployment.branch || project.branch}
 														</span>
-													</Link>
+													</LinkComponent>
 												</div>
 											</div>
 
@@ -302,24 +316,56 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 													</span>
 												</div>
 											</div>
-											<div className="grid grid-cols-1 sm:grid-cols-3 px-6 py-4 gap-4 items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
-												<div className="text-sm text-neutral-500 font-medium flex items-center gap-2">
-													<RiPencilFill className="size-4" /> Created
+											<div className="grid grid-cols-2 sm:grid-cols-2 px-6 py-4 gap-2 items-center ">
+												<div className="space-y-2 border-r border-b px-2 py-1 dark:hover:bg-neutral-800/50 transition-colors">
+													<div className="text-xs text-neutral-500 font-medium flex items-center gap-2">
+														<RiPencilFill className="size-4 " /> Created
+													</div>
+													<div className="sm:col-span-2 flex flex-col gap-1">
+														<span className="text-xs text-neutral-900 dark:text-neutral-200 truncate">
+															{formatDate(deployment.createdAt, true, true)}
+														</span>
+													</div>
 												</div>
-												<div className="sm:col-span-2 flex flex-col gap-1">
-													<span className="text-sm text-neutral-900 dark:text-neutral-200 truncate">
-														{formatDate(deployment.createdAt)}
-													</span>
+												<div className="space-y-2 border-b border-l px-2 py-1 dark:hover:bg-neutral-800/50 transition-colors">
+													<div className="text-sm text-neutral-500 font-medium flex items-center gap-2">
+														<PiIdentificationCardLight className="size-4" /> Identifier Slug
+													</div>
+													<div className="sm:col-span-2 flex flex-col gap-1">
+														<span className="text-xs truncate text-primary">
+															{deployment.identifierSlug}
+														</span>
+													</div>
 												</div>
-											</div>
-											<div className="grid grid-cols-1 sm:grid-cols-3 px-6 py-4 gap-4 items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
-												<div className="text-sm text-neutral-500 font-medium flex items-center gap-2">
-													<PiIdentificationCardLight className="size-4" /> Identifier Slug
+												<div className="space-y-2 border-t border-r px-2 py-1 dark:hover:bg-neutral-800/50 transition-colors">
+													<div className="text-sm text-neutral-500 font-medium flex items-center gap-2">
+														<PiIdentificationCardLight className="size-4" /> Trigger Event
+													</div>
+													<div className="sm:col-span-2 flex gap-3">
+														{deployment.triggerEvent === "GIT_PUSH"
+															? <SiGithub className="size-3" />
+															: deployment.triggerEvent === "MANUAL"
+																? <IoMdRadioButtonOn className="size-3" />
+																: <AiOutlineRedo className="size-3" />}
+														<span className="text-xs text-primary truncate">
+															{deployment.triggerEvent}
+														</span>
+													</div>
 												</div>
-												<div className="sm:col-span-2 flex flex-col gap-1">
-													<span className="text-xs text-less truncate">
-														{deployment.identifierSlug}
-													</span>
+												<div className="space-y-2 border-t border-l px-2 py-1 dark:hover:bg-neutral-800/50 transition-colors ">
+													<div className="text-sm text-neutral-500 font-medium flex items-center gap-2">
+														<CiUser className="size-4" /> Trigger By
+													</div>
+													<div className="sm:col-span-2 flex flex-col gap-1">
+														<span className="text-xs text-primary truncate">
+															{deployment.triggerBy?.username || "---"}
+															{deployment.triggerBy?.username &&
+																<LinkComponent href={"https://github.com/" + deployment.triggerBy?.username}>
+																	view
+																</LinkComponent>
+															}
+														</span>
+													</div>
 												</div>
 											</div>
 										</div>
@@ -357,6 +403,7 @@ const DeploymentPageContainer = ({ deploymentId }: { deploymentId: string }) => 
 												<p className={`text-sm font-bold rounded-xs px-1 border ${getStatusColor(deployment?.status)}`}>
 													{deployment?.status}
 												</p>
+												<LinkComponent href={"/projects/" + project._id + "?showLogs=true#show-logs"} className="text-xs ml-4">View Live Logs</LinkComponent>
 											</>
 
 										)}

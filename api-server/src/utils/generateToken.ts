@@ -84,7 +84,7 @@ export function generateTokenForGithubAppInstallation(userId: string, redirectPa
 	return jwt.sign(
 		{
 			user: userId,
-			redirectPath
+			redirectPath,
 		},
 		ENVS.GITHUB_CLIENT_ID + ENVS.GITHUB_WEBHOOK_SECRET,
 		{
@@ -96,7 +96,9 @@ export function generateTokenForGithubAppInstallation(userId: string, redirectPa
 export function generateTokenForGithubAppServer() {
 	return jwt.sign(
 		{
-			iss: githubAppId, iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 550
+			iss: githubAppId,
+			iat: Math.floor(Date.now() / 1000),
+			exp: Math.floor(Date.now() / 1000) + 550,
 		},
 		ENVS.GITHUB_APP_PRIVATE_KEY,
 		{

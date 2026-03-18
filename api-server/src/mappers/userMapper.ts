@@ -8,8 +8,8 @@ interface UserResponseDTO {
 	plan: string;
 }
 interface UserAuthProviderResponseDTO {
-	user: string
-	providers: { id: string, provider: string }[]
+	user: string;
+	providers: { id: string; provider: string }[];
 }
 interface UserResponseDetailedDTO {
 	name: string;
@@ -22,16 +22,15 @@ interface UserResponseDetailedDTO {
 	createdAt: Date;
 	_id: string;
 	connectedAccounts: string[];
-	githubInstallationId?: number
-	githubAccountId?: number
-
+	githubInstallationId?: number;
+	githubAccountId?: number;
 }
 export class UserMapper {
 	static toUserInstallationResponse(data: GithubIdsOutput, userId: string): { ids: GithubIdsOutput & { _id: string } } {
-		return { ids: { githubAccountId: data.githubAccountId, githubInstallationId: data.githubInstallationId, _id: userId } }
+		return { ids: { githubAccountId: data.githubAccountId, githubInstallationId: data.githubInstallationId, _id: userId } };
 	}
-	static toUserAuthProviderResponse(providers: IUser['authProviders'], userId: string): UserAuthProviderResponseDTO {
-		return { user: userId, providers: providers.map((p) => ({ id: p.id, provider: p.provider })) }
+	static toUserAuthProviderResponse(providers: IUser["authProviders"], userId: string): UserAuthProviderResponseDTO {
+		return { user: userId, providers: providers.map((p) => ({ id: p.id, provider: p.provider })) };
 	}
 	static toUserResponse(user: IUser): { user: UserResponseDTO } {
 		return {
@@ -59,7 +58,7 @@ export class UserMapper {
 				bandwidthMonthly: data.bandwidth,
 				connectedAccounts: user.authProviders.map((p) => p.provider),
 				githubInstallationId: user.githubInstallationId,
-				githubAccountId: user.githubAccountId
+				githubAccountId: user.githubAccountId,
 			},
 		};
 	}

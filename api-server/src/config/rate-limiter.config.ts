@@ -18,7 +18,6 @@ export const defaultLimiter: Partial<Options> = {
 	...baseRateLimitConfig,
 };
 
-
 export const analyticsLimiter: Partial<Options> = {
 	windowMs: 1 * 60 * 1000,
 	max: 20,

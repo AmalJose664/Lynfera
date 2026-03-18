@@ -45,11 +45,11 @@ class ProjectService implements IProjectService {
 	}
 	async createProject(dto: CreateProjectDTO, userId: string): Promise<IProject | null> {
 		if (
-			!dto.ghRepoId && dto.isPrivate
-			|| dto.provider === ProjectProvider.MANUAL && dto.isPrivate
-			|| dto.provider === ProjectProvider.GITHUB && !dto.ghRepoId
+			(!dto.ghRepoId && dto.isPrivate) ||
+			(dto.provider === ProjectProvider.MANUAL && dto.isPrivate) ||
+			(dto.provider === ProjectProvider.GITHUB && !dto.ghRepoId)
 		) {
-			throw new AppError(PROJECT_ERRORS.INCOMPLETE_DATA, STATUS_CODES.BAD_REQUEST)
+			throw new AppError(PROJECT_ERRORS.INCOMPLETE_DATA, STATUS_CODES.BAD_REQUEST);
 		}
 
 		const projectData: Partial<Omit<IProject, keyof Document>> = {
@@ -147,10 +147,7 @@ class ProjectService implements IProjectService {
 	}
 
 	async deleteProject(projectId: string, userId: string): Promise<boolean> {
-
-		const [user, project] = await Promise.all([this.userRepository.findByUserId(userId),
-		this.projectRepository.__findProject(projectId)
-		]);
+		const [user, project] = await Promise.all([this.userRepository.findByUserId(userId), this.projectRepository.__findProject(projectId)]);
 		if (!user) {
 			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
@@ -169,7 +166,7 @@ class ProjectService implements IProjectService {
 		await this.userRepository.decrementProjects(userId);
 		await this.logsService.deleteProjectLogs(projectId);
 		await this.cacheInvalidator.publishInvalidation("project", result.subdomain);
-		await deploymentService.deleteCloudDeploysMultiple(result._id.toString()) // need fix
+		await deploymentService.deleteCloudDeploysMultiple(result._id.toString()); // need fix
 		return true;
 	}
 
@@ -328,6 +325,12 @@ class ProjectService implements IProjectService {
 			}
 		}
 		return await this.projectRepository.__updateProject(projectId, updateData);
+	}
+	async __unLinkGhProjects(repos: number[], userId?: string): Promise<IProject | null> {
+		return this.projectRepository.__updateManyProject(repos, { provider: ProjectProvider.GITHUB_DISCONNECTED });
+	}
+	async __linkGhProjectsBack(repos: number[], userId?: string): Promise<IProject | null> {
+		return this.projectRepository.__updateManyProject(repos, { provider: ProjectProvider.GITHUB });
 	}
 }
 

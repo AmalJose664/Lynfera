@@ -20,8 +20,12 @@ const OsStats = lazy(() => import("@/components/analytics/PlatformStats"));
 
 
 const ProjectAnalytics = ({ projectId }: { projectId: string }) => {
-	const [showNote, setShowNote] = useState(true)
+	const [showNote, setShowNote] = useState(() => !localStorage.getItem("project_analytics_note"))
 	const { data: user } = useGetUserQuery()
+	const closeNote = () => {
+		setShowNote(false)
+		localStorage.setItem("project_analytics_note", "true")
+	}
 	return (
 		<div>
 			{showNote &&
@@ -42,7 +46,7 @@ const ProjectAnalytics = ({ projectId }: { projectId: string }) => {
 									This may include <code className="border border-blue-400/50 dark:border-blue-800/50 px-2 py-1 rounded-md mx-2">*.js</code>, <code className="border border-blue-400/50 dark:border-blue-800/50 px-2 py-1 rounded-md mx-2">*.css</code>, and other dependent files.
 								</p>
 							</div>
-							<button className="absolute right-2 top-2 border p-1 rounded-md hover:bg-secondary" onClick={() => setShowNote(false)}>
+							<button className="absolute right-2 top-2 border p-1 rounded-md hover:bg-secondary" onClick={closeNote}>
 								<CgClose />
 							</button>
 						</RightFadeComponent>

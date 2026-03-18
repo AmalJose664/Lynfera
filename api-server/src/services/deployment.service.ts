@@ -12,7 +12,7 @@ import { IRedisCache } from "@/interfaces/cache/IRedisCache.js";
 import { ILogsService } from "@/interfaces/service/ILogsService.js";
 import { DeploymentStatus, DeploymentTriggers, IDeployment } from "@/models/Deployment.js";
 import AppError from "@/utils/AppError.js";
-import { IProject, ProjectStatus } from "@/models/Projects.js";
+import { IProject, ProjectProvider, ProjectStatus } from "@/models/Projects.js";
 import { nanoid } from "@/utils/generateNanoid.js";
 import { DEPLOYMENT_ID_LENGTH } from "@/constants/subdomain.js";
 import { QueryDeploymentDTO } from "@/dtos/deployment.dto.js";
@@ -26,6 +26,7 @@ import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { DEPLOYMENT_ERRORS, PROJECT_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 import { PLANS } from "@/constants/plan.js";
 import { IUser } from "@/models/User.js";
+import { IGithubService } from "@/interfaces/service/IGithubService.js";
 
 class DeploymentService implements IDeploymentService {
 	private deploymentRepository: IDeploymentRepository;
@@ -35,6 +36,7 @@ class DeploymentService implements IDeploymentService {
 	private DEPLOYMENTS_SET_KEY = "deployments:running";
 	private redisCache: IRedisCache;
 	private logsService: ILogsService;
+	private githubSvcs: IGithubService;
 
 	private USER_CONCURRENCY_KEY_PREFIX = "build:cncrncy";
 	private USER_CONCURRENCY_TTL_SECONDS = 60 * 10;
@@ -45,12 +47,14 @@ class DeploymentService implements IDeploymentService {
 		userService: IUserSerivce,
 		logsService: ILogsService,
 		redisCache: IRedisCache,
+		githubSvcs: IGithubService,
 	) {
 		this.deploymentRepository = deploymentRepo;
 		this.projectRepository = projectRepo;
 		this.userService = userService;
 		this.logsService = logsService;
 		this.redisCache = redisCache;
+		this.githubSvcs = githubSvcs;
 	}
 	async newDeployment(deploymentData: Partial<IDeployment>, userId: string, projectId: string, isRedeploy: boolean): Promise<IDeployment | null> {
 		const canDeploy = await this.userService.userCanDeploy(userId);
@@ -91,7 +95,6 @@ class DeploymentService implements IDeploymentService {
 		deploymentData.branch = correspondindProject.branch;
 		deploymentData.triggerEvent = isRedeploy ? DeploymentTriggers.REDEPLOY : DeploymentTriggers.MANUAL;
 
-
 		await this.incrementRunningDeplymnts(correspondindProject._id, canDeploy.user._id, canDeploy.user.plan);
 		try {
 			const deployment = await this.deploymentRepository.createDeployment(deploymentData);
@@ -100,9 +103,12 @@ class DeploymentService implements IDeploymentService {
 				this.projectRepository.pushToDeployments(correspondindProject.id, userId, deployment?.id),
 				this.userService.incrementDeployment(correspondindProject.user.toString()),
 			]);
-
+			let token = undefined;
+			if (correspondindProject.isPrivateGhRepo || correspondindProject.provider === ProjectProvider.GITHUB) {
+				token = await this.githubSvcs.createOrGetInstallationAcsTokn(canDeploy.user.githubInstallationId as number);
+			}
 			if (deployment?._id) {
-				await this.deployLocal(deployment._id, projectId, canDeploy.user._id);
+				await this.deployLocal(deployment._id, projectId, token);
 			}
 			return deployment;
 		} catch (error) {
@@ -111,27 +117,25 @@ class DeploymentService implements IDeploymentService {
 		}
 	}
 
-
-
-
-
-
-
 	async createNewFailedDeployment(deployData: Partial<IDeployment>, project: IProject, reason: string): Promise<IDeployment | null> {
-		deployData.timings = { build_ms: 0, upload_ms: 0, duration_ms: 0, install_ms: 0 }
-		deployData.complete_at = new Date()
-		deployData.error_message = reason
-		deployData.status = DeploymentStatus.CANCELED
+		deployData.timings = { build_ms: 0, upload_ms: 0, duration_ms: 1000, install_ms: 0 };
+		deployData.complete_at = new Date(Date.now() + 2000);
+		deployData.error_message = reason;
+		deployData.status = DeploymentStatus.CANCELED;
 		const deployment = await this.deploymentRepository.createDeployment(deployData);
-		await this.projectRepository.pushToDeployments(deployData.id, project.user.toString(), deployment?.id)
-		return deployment
+		await this.projectRepository.pushToDeployments(deployData.id, project.user.toString(), deployment?.id);
+		return deployment;
 	}
 
-	async newPushDeployment(deploymentData: Partial<IDeployment>, project: IProject, installationId?: number): Promise<{ status: string, reason: string }> {
-		const canDeploy = await this.userService.userCanDeploy(project.user.toString())
-		const correspondindProject = project
+	async newPushDeployment(
+		deploymentData: Partial<IDeployment>,
+		project: IProject,
+		installationId?: number,
+	): Promise<{ status: string; reason: string }> {
+		const canDeploy = await this.userService.userCanDeploy(project.user.toString());
+		const correspondindProject = project;
 
-		if (installationId && canDeploy.user.githubInstallationId !== installationId) {
+		if (installationId && canDeploy.user.githubInstallationId && canDeploy.user.githubInstallationId !== installationId) {
 			return { status: "ignored", reason: "installation mismatch" };
 		}
 		deploymentData.status = DeploymentStatus.QUEUED;
@@ -140,23 +144,20 @@ class DeploymentService implements IDeploymentService {
 		deploymentData.identifierSlug = generateSlug(3);
 		deploymentData.project = new Types.ObjectId(correspondindProject._id);
 		deploymentData.user = correspondindProject.user;
-		deploymentData.triggerEvent = DeploymentTriggers.GIT_PUSH
-
+		deploymentData.triggerEvent = DeploymentTriggers.GIT_PUSH;
 
 		if (!canDeploy.allowed) {
-			await this.createNewFailedDeployment(deploymentData, project, "User daily deploy limit reached.")
+			await this.createNewFailedDeployment(deploymentData, project, "User daily deploy limit reached.");
 			return { status: "cancelled", reason: DEPLOYMENT_ERRORS.DAILY_DEPLOYMENT_LIMIT };
 		}
 
-
 		if (correspondindProject.status === ProjectStatus.BUILDING || correspondindProject.status === ProjectStatus.QUEUED) {
-			await this.createNewFailedDeployment(deploymentData, project, "Deployment cancelled; Project already in progress state.")
+			await this.createNewFailedDeployment(deploymentData, project, "Deployment cancelled; Project already in progress state.");
 			return { status: "cancelled", reason: PROJECT_ERRORS.PROJECT_IN_PROGRESS };
-
 		}
 
 		if (correspondindProject.tempDeployment !== null || correspondindProject.tempDeployment) {
-			await this.createNewFailedDeployment(deploymentData, project, "Deployment cancelled; Project already in progress state.")
+			await this.createNewFailedDeployment(deploymentData, project, "Deployment cancelled; Project already in progress state.");
 			return { status: "cancelled", reason: PROJECT_ERRORS.PROJECT_IN_PROGRESS };
 		}
 
@@ -164,7 +165,7 @@ class DeploymentService implements IDeploymentService {
 			await this.incrementRunningDeplymnts(correspondindProject._id, canDeploy.user._id, canDeploy.user.plan);
 		} catch (error) {
 			if (error instanceof AppError) {
-				await this.createNewFailedDeployment(deploymentData, project, error.message)
+				await this.createNewFailedDeployment(deploymentData, project, error.message);
 				return { status: "cancelled", reason: error.message };
 			}
 		}
@@ -176,21 +177,19 @@ class DeploymentService implements IDeploymentService {
 				this.userService.incrementDeployment(correspondindProject.user.toString()),
 			]);
 
+			let token = undefined;
+			if (project.isPrivateGhRepo || project.provider === ProjectProvider.GITHUB) {
+				token = await this.githubSvcs.createOrGetInstallationAcsTokn(canDeploy.user.githubInstallationId as number);
+			}
 			if (deployment?._id) {
-				await this.deployLocal(deployment._id, project._id.toString(), canDeploy.user._id);
+				await this.deployLocal(deployment._id, project._id.toString(), token);
 			}
 			return { status: "deploy started", reason: "" };
-
 		} catch (error) {
 			await this.decrementRunningDeplymnts(project._id.toString(), canDeploy.user._id);
 			return { status: "deploy error", reason: (error as any).message };
 		}
 	}
-
-
-
-
-
 
 	async getDeploymentById(id: string, userId: string, includes?: string): Promise<IDeployment | null> {
 		return await this.deploymentRepository.findDeploymentById(id, userId, { includes, exclude: ["file_structure"] });
@@ -261,7 +260,7 @@ class DeploymentService implements IDeploymentService {
 		return deleteResult;
 	}
 
-	async deployLocal(deploymentId: string, projectId: string, userId: string): Promise<void> {
+	async deployLocal(deploymentId: string, projectId: string, token?: string): Promise<void> {
 		try {
 			// const envs = getNessesaryEnvs();
 			// const command = spawn("node", ["script.js"], {
@@ -287,7 +286,7 @@ class DeploymentService implements IDeploymentService {
 			// 	console.error("Failed to start process:", err);
 			// });
 			// return
-			const result = await dispatchRequestService.dispatchBuild(deploymentId, projectId);
+			const result = await dispatchRequestService.dispatchBuild(deploymentId, projectId, token);
 			console.log(result, " - - - ");
 		} catch (error: any) {
 			console.log("Error on build");
@@ -298,8 +297,9 @@ class DeploymentService implements IDeploymentService {
 			throw error;
 		}
 	}
-	async deployCloud(project: IProject, deployment: IDeployment): Promise<void> {
+	async deployCloud(project: IProject, deployment: IDeployment, token?: string): Promise<void> {
 		try {
+			// currently using deploy local without aws ecs; incomplete code
 			const command = new RunTaskCommand({
 				cluster: config.CLUSTER,
 				taskDefinition: config.TASK,

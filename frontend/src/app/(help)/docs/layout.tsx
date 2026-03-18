@@ -9,6 +9,7 @@ const menuItems = [
 	{ url: 'env-variables', label: 'Environment Variables' },
 	{ url: 'observability', label: 'Logs and Analytics' },
 	{ url: 'troubleshoot', label: 'Common Errors / Logs' },
+	{ url: 'git-integration', label: 'Git Integrations' },
 ];
 export default function layout({
 	children,

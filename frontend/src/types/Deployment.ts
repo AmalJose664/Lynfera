@@ -19,6 +19,9 @@ export interface Deployment {
 	identifierSlug: string;
 	environment: string;
 	publicId: string;
+	branch: string;
+	triggerBy?: { username: string, login: string };
+	triggerEvent?: string;
 	errorMessage?: string;
 	createdAt: Date;
 	updatedAt: Date;

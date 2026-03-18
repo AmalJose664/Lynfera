@@ -8,14 +8,14 @@ interface toGithubRepoResponse {
 	private: boolean;
 	description: string | null;
 	html_url: string;
-	pushAt: string
+	pushAt: string;
 }
 interface toGithubRepoBranchResponse {
 	name: string;
 	commit: {
 		sha: string;
 		url: string;
-	},
+	};
 }
 interface toGithubAccountResponse {
 	login: string;
@@ -25,7 +25,6 @@ interface toGithubAccountResponse {
 	htmlUrl: string;
 	type: "User" | "Organization";
 	siteAdmin: boolean;
-
 }
 export class GithubResponseMapper {
 	static toGithubAccountResponse(account: GithubRepositoryOwner): { account: toGithubAccountResponse } {
@@ -37,9 +36,9 @@ export class GithubResponseMapper {
 				avatarUrl: account.avatar_url,
 				htmlUrl: account.html_url,
 				siteAdmin: account.site_admin,
-				type: account.type
-			}
-		}
+				type: account.type,
+			},
+		};
 	}
 	static toGithubRepoResponse(repo: GithubRepoResponse): { repo: toGithubRepoResponse } {
 		return {
@@ -51,24 +50,24 @@ export class GithubResponseMapper {
 				full_name: repo.full_name,
 				html_url: repo.html_url,
 				private: repo.private,
-				pushAt: repo.pushed_at
-			}
-		}
+				pushAt: repo.pushed_at,
+			},
+		};
 	}
 	static toGithubReposResponse(repos: GithubRepoResponse[]): { repos: toGithubRepoResponse[] } {
 		return {
-			repos: repos.map(re => this.toGithubRepoResponse(re).repo)
-		}
+			repos: repos.map((re) => this.toGithubRepoResponse(re).repo),
+		};
 	}
 	static toGithubRepoBranchResponse(branches: GithubRepositoryBranch[]): { branches: toGithubRepoBranchResponse[] } {
 		return {
-			branches: branches.map(branch => ({
+			branches: branches.map((branch) => ({
 				name: branch.name,
 				commit: {
 					sha: branch.commit.sha,
-					url: branch.commit.url
-				}
-			}))
-		}
+					url: branch.commit.url,
+				},
+			})),
+		};
 	}
 }

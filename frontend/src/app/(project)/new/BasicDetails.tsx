@@ -21,12 +21,9 @@ import { useGetUserGthbInstalionsQuery, useGetUserGthbReposQuery } from "@/store
 import { formatDate } from "@/lib/moreUtils/combined";
 import { GithubRepoResponse } from "@/types/User";
 import { useEffect, useState } from "react";
-import OptionsComponent from "@/components/OptionsComponent";
-import { FiSettings } from "react-icons/fi";
-import Link from "next/link";
 import { LinkComponent } from "@/components/docs/HelperComponents";
 import { connectGithub } from "@/lib/moreUtils/gh";
-import { cn } from "@/lib/utils";
+
 
 
 
@@ -40,10 +37,10 @@ export function BaseSettings({ form, branches }: {
 	const serverMessage = params.get("message")
 	const status = params.get("success")
 	const [selectedRepo, setSelectedRepo] = useState(-1)
-	const [repoTab, setRepoTab] = useState<string>("public-url")
+	const tab = params.get("tab")
+	const [repoTab, setRepoTab] = useState<string>(tab || "public-url")
 	const [manual, setManual] = useState(false)
 
-	const tab = params.get("tab")
 	const { data: ids } = useGetUserGthbInstalionsQuery()
 	const { data: repos, error: repoError, isError, isLoading: reposLoading } = useGetUserGthbReposQuery(undefined, { skip: !ids?.githubInstallationId })
 
@@ -173,6 +170,11 @@ export function BaseSettings({ form, branches }: {
 																Updated {formatDate(new Date(repo.pushAt), true)}
 															</span>
 														</div>
+														{repo.private && (<div>
+															<span className="text-xs border rounded-full px-2.5 py-1 border-sky-400/70 text-sky-400">
+																private
+															</span>
+														</div>)}
 													</div>
 
 
@@ -198,17 +200,17 @@ export function BaseSettings({ form, branches }: {
 											))
 										) : (
 											<>
-												{isError && <div className="py-12 text-center">
-													<p className="text-sm text-primary opacity-40">{(errors as any)}.</p>
+												{isError && <div className="py-3 text-center">
+													<p className="text-sm text-primary opacity-40">{(repoError as any).data.message}</p>
 												</div>}
-												<div className="py-12 text-center">
+												<div className="py-3 text-center">
 													<p className="text-sm text-primary opacity-40">{reposLoading ? "Loading.." : "No repositories found"}.</p>
 												</div>
 											</>
 										)}
 									</div>
 								) : (
-									<div className="flex flex-col justify-around items-center">
+									<div className="flex flex-col justify-around items-center mt-4">
 										<p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center">
 											Connect your account to import repositories directly.
 										</p>

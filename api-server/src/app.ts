@@ -22,10 +22,10 @@ app.use(cors(corsOptions));
 
 app.use(STRIPE_WEBHOOK_REQ_PATH, express.raw({ type: "application/json" }));
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
-app.use(helmet())
+app.use(helmet());
 app.use(passport.initialize());
 app.use(morgan("tiny"));
 

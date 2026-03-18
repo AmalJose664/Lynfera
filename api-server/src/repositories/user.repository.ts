@@ -4,8 +4,6 @@ import { IUser, User } from "@/models/User.js";
 import { GithubIds, GithubIdsOutput, IUserRepository, SimpleOptions } from "@/interfaces/repository/IUserRepository.js";
 import { IPlans } from "@/constants/plan.js";
 
-
-
 class UserRepository extends BaseRepository<IUser> implements IUserRepository {
 	constructor() {
 		super(User);
@@ -72,20 +70,19 @@ class UserRepository extends BaseRepository<IUser> implements IUserRepository {
 		return await User.findOneAndUpdate({ stripeCustomerId: stripeId }, { $set: { plan: planData, payment: paymentData } }, { new: true });
 	}
 
-
 	async findAuthProviders(userId: string): Promise<Partial<IUser> | null> {
-		return await User.findOne({ _id: userId }, { authProviders: 1 }) as Partial<IUser>;
+		return (await User.findOne({ _id: userId }, { authProviders: 1 })) as Partial<IUser>;
 	}
 
-
-	async removeGhbApCreds(installationId: number,): Promise<void> {
+	async removeGhbApCreds(installationId: number): Promise<void> {
 		await User.findOneAndUpdate({ githubInstallationId: installationId }, { $set: { githubInstallationId: null, githubAccountId: null } });
 	}
 
 	async addGhbApCreds(userId: string, updateData: GithubIds): Promise<GithubIdsOutput | null> {
-		const { installId, loginId } = updateData
-		return User.findOneAndUpdate({ _id: userId }, { $set: { githubInstallationId: installId, githubAccountId: loginId } }, { new: true, })
-			.select("githubInstallationId githubAccountId");
+		const { installId, loginId } = updateData;
+		return User.findOneAndUpdate({ _id: userId }, { $set: { githubInstallationId: installId, githubAccountId: loginId } }, { new: true }).select(
+			"githubInstallationId githubAccountId",
+		);
 	}
 
 	async findGhbApCreds(userId: string): Promise<GithubIdsOutput | null> {
@@ -93,8 +90,9 @@ class UserRepository extends BaseRepository<IUser> implements IUserRepository {
 	}
 	async findUserByInstallationId(installationId: number, onlyNeededFields: boolean): Promise<IUser | null> {
 		if (onlyNeededFields) {
-			return User.findOne({ githubInstallationId: installationId })
-				.select("_id githubInstallationId githubAccountId projects deploymentsToday")
+			return User.findOne({ githubInstallationId: installationId }).select(
+				"_id githubInstallationId githubAccountId projects deploymentsToday",
+			);
 		}
 		return User.findOne({ githubInstallationId: installationId });
 	}

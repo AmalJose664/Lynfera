@@ -17,6 +17,7 @@ import { LoadingSpinner2 } from "@/components/LoadingSpinner"
 import { isStatusProgress } from "@/lib/moreUtils/combined"
 import { showToast } from "@/components/Toasts"
 import { IoIosCloud, IoIosCube } from "react-icons/io"
+import { useSearchParams } from "next/navigation"
 
 interface ProjectPageContainerProps {
 	projectId: string
@@ -35,7 +36,8 @@ export function ProjectPageContainer({ projectId, tab }: ProjectPageContainerPro
 	} = useGetProjectFullQuery({ id: projectId, params: { include: "user" } })
 
 	const [createDeployment, { isLoading: createDeploymentLoading }] = useCreateDeploymentMutation()
-	const [showBuild, setShowBuild] = useState(false)
+	const queryParams = useSearchParams()
+	const [showBuild, setShowBuild] = useState(!!queryParams.get("showLogs"))
 	const handleCreateDeployment = async (isRedeploy: boolean) => {
 		const t = showToast.message("Deployment", "New Deployment Requested", <IoIosCloud className="w-4 h-4" />)
 		try {

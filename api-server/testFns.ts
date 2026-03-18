@@ -48,7 +48,7 @@ async function mongodbData() {
 		// const saved = await OtpModel.find()
 		// console.log(saved)
 		// await Promise.all(dpls.map(async (d) => {
-		await Deployment.updateMany({ _id: "697dc843d79bd147c535419a" }, { status: "QUEUED" })
+		await Deployment.updateMany({ _id: "697dc843d79bd147c535419a" }, { status: "QUEUED" });
 
 		// }))
 		console.log(

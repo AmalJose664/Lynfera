@@ -1,19 +1,19 @@
-import { IDeployment } from "@/models/Deployment.js";
+import { DeploymentTriggers, IDeployment } from "@/models/Deployment.js";
 import { IUser } from "@/models/User.js";
 
 interface toDeploymentResponseDTO {
 	deployment: {
 		_id: string;
 		project:
-		| string
-		| {
-			name: string;
-			_id: string;
-			subdomain: string;
-			branch: string;
-			repoURL: string;
-			currentDeployment?: string;
-		};
+			| string
+			| {
+					name: string;
+					_id: string;
+					subdomain: string;
+					branch: string;
+					repoURL: string;
+					currentDeployment?: string;
+			  };
 		commit: { id: string; msg: string };
 		user: string | Partial<IUser>;
 		status: "NOT_STARTED" | "QUEUED" | "BUILDING" | "READY" | "FAILED" | "CANCELLED";
@@ -29,6 +29,9 @@ interface toDeploymentResponseDTO {
 		completedAt: Date;
 		identifierSlug: string;
 		errorMessage?: string;
+		triggerBy?: { username: string; login: string };
+		triggerEvent?: DeploymentTriggers;
+		branch: string;
 		createdAt: Date;
 		updatedAt: Date;
 	};
@@ -37,15 +40,15 @@ interface toDeploymentBasicResponseDTO {
 	deployment: {
 		_id: string;
 		project:
-		| string
-		| {
-			name: string;
-			_id: string;
-			subdomain: string;
-			branch: string;
-			repoURL: string;
-			currentDeployment?: string;
-		};
+			| string
+			| {
+					name: string;
+					_id: string;
+					subdomain: string;
+					branch: string;
+					repoURL: string;
+					currentDeployment?: string;
+			  };
 		commit: { id: string; msg: string };
 		status: "NOT_STARTED" | "QUEUED" | "BUILDING" | "READY" | "FAILED" | "CANCELLED";
 		publicId: string;
@@ -101,13 +104,21 @@ export class DeploymentMapper {
 				_id: deployment._id,
 				project: this.isPopulatedObject(deployment.project, ["branch", "_id", "name"])
 					? {
-						name: (deployment.project as any).name,
-						_id: (deployment.project as any)._id,
-						subdomain: (deployment.project as any).subdomain,
-						branch: (deployment.project as any).branch,
-						repoURL: (deployment.project as any).repoURL,
-					}
-					: deployment?.project?.toString(),
+							name: (deployment.project as any).name,
+							_id: (deployment.project as any)._id,
+							subdomain: (deployment.project as any).subdomain,
+							branch: (deployment.project as any).branch,
+							repoURL: (deployment.project as any).repoURL,
+						}
+					: deployment.project
+						? deployment.project?.toString()
+						: {
+								_id: "DELETED_PROJECT_" + Math.random().toString(36).slice(2, 12),
+								name: "",
+								subdomain: "",
+								branch: "unknown",
+								repoURL: "github.com/unknown/unknown",
+							},
 				commit: { msg: deployment.commit_hash.split("||")[1], id: deployment.commit_hash.split("||")[0] },
 				status: deployment.status,
 				publicId: deployment.publicId,
@@ -117,26 +128,36 @@ export class DeploymentMapper {
 	}
 
 	static toDeploymentFullResponse(deployment: IDeployment): toDeploymentResponseDTO {
+		const commitDataSplit = deployment.commit_hash?.split("||");
+		const triggerDataSplit = deployment.triggeredBy?.split("||");
 		return {
 			deployment: {
 				_id: deployment._id,
 				project: this.isPopulatedObject(deployment.project, ["branch", "_id", "name"])
 					? {
-						name: (deployment.project as any).name,
-						_id: (deployment.project as any)._id,
-						subdomain: (deployment.project as any).subdomain,
-						branch: (deployment.project as any).branch,
-						repoURL: (deployment.project as any).repoURL,
-						currentDeployment: (deployment.project as any).currentDeployment,
-					}
-					: deployment.project.toString(),
-				commit: { msg: deployment.commit_hash.split("||")[1], id: deployment.commit_hash.split("||")[0] },
+							name: (deployment.project as any).name,
+							_id: (deployment.project as any)._id,
+							subdomain: (deployment.project as any).subdomain,
+							branch: (deployment.project as any).branch,
+							repoURL: (deployment.project as any).repoURL,
+							currentDeployment: (deployment.project as any).currentDeployment,
+						}
+					: deployment.project
+						? deployment.project?.toString()
+						: {
+								_id: "DELETED_PROJECT_" + Math.random().toString(36).slice(2, 12),
+								name: "",
+								subdomain: "",
+								branch: "unknown",
+								repoURL: "github.com/unknown/unknown",
+							},
+				commit: { msg: commitDataSplit[1], id: commitDataSplit[0] },
 				user: this.isPopulatedObject(deployment.user, ["profileImage", "email", "name"])
 					? {
-						name: (deployment.user as any).name,
-						profileImage: (deployment.user as any).profileImage,
-						email: (deployment.user as any).email,
-					}
+							name: (deployment.user as any).name,
+							profileImage: (deployment.user as any).profileImage,
+							email: (deployment.user as any).email,
+						}
 					: deployment.user.toString(),
 				status: deployment.status,
 				performance: {
@@ -149,8 +170,11 @@ export class DeploymentMapper {
 				publicId: deployment.publicId,
 				identifierSlug: deployment.identifierSlug,
 				overWrite: deployment.overWrite,
+				branch: deployment.branch,
 				completedAt: deployment.complete_at,
 				errorMessage: deployment.error_message,
+				triggerBy: { username: triggerDataSplit ? triggerDataSplit[1] : "", login: triggerDataSplit ? triggerDataSplit[0] : "" },
+				triggerEvent: deployment.triggerEvent,
 				createdAt: deployment.createdAt,
 				updatedAt: deployment.updatedAt,
 			},

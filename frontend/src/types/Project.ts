@@ -10,7 +10,8 @@ export enum ProjectStatus {
 }
 export enum ProjectProvider {
 	MANUAL = "MANUAL",
-	GITHUB = "GITHUB"
+	GITHUB = "GITHUB",
+	GITHUB_DISCONNECTED = "GITHUB_DISCONNECTED",
 }
 export interface Project {
 	_id: string;
