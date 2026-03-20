@@ -37,7 +37,7 @@ interface ProjectOverviewProps {
 const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, setShowBuild, setTabs }: ProjectOverviewProps) => {
 	const isprojectError = isStatusFailure(project.status)
 	const runningDeploymentStatus = runningDeployment?.status
-	const isDeplymentError = project.deployments?.length !== 0
+	const isDeplymentError = project.deployments?.length !== 0 || (!project.currentDeployment && isprojectError)
 		&& deployment
 		&& (isStatusFailure(deployment.status))
 	const isProjectProgress = isStatusProgress(project.status)
