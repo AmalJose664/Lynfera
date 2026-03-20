@@ -235,7 +235,7 @@ function EmailMethodBox({ setToggleEmail }: { setToggleEmail: Dispatch<SetStateA
 							<MdOutlineEmail className='mr-2 text-primary dark:group-hover:text-black group-hover:text-white' />
 							<span className="text-primary text-sm dark:group-hover:text-black group-hover:text-white"
 							>
-								{(isSubmitting || isSubmitSuccessful) ? "Loading..." : "Sign Up"}</span>
+								{isSubmitSuccessful ? "Redirecting..." : ((isSubmitting) ? "Loading..." : "Sign Up")}</span>
 						</button>
 					</div>
 				</form>

@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit'
-import userReducer from "./slices/userSlice"
+import projectReducer from "./slices/projectSlice"
 import logsReducer from "./slices/logSlice"
 
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
@@ -12,7 +12,7 @@ import { authApi } from './services/authApi'
 export const makeStore = () => {
 	return configureStore({
 		reducer: {
-			userReducer,
+			project: projectReducer,
 			logs: logsReducer,
 			[projectApis.reducerPath]: projectApis.reducer,
 			[deployemntApis.reducerPath]: deployemntApis.reducer,

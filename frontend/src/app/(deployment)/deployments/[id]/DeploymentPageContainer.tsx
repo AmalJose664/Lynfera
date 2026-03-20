@@ -70,7 +70,7 @@ const DeploymentPageContent = ({ deploymentId }: { deploymentId: string }) => {
 	const toggleLogs = params.get("showlogs") === "true"
 	const project = deployment?.project as Project;
 	const [showLogs, setShowLogs] = useState(toggleLogs || false);
-	const { data: logs, refetch, } = useGetDeploymentLogsQuery(
+	const { data: logs, refetch, isLoading: isLoadingLogs } = useGetDeploymentLogsQuery(
 		{ deploymentId: deployment?._id ?? "" },
 		{ skip: !showLogs || !deployment?._id }
 	);
@@ -425,6 +425,7 @@ const DeploymentPageContent = ({ deploymentId }: { deploymentId: string }) => {
 										>
 											<div className="p-1">
 												<Logs
+													isLoadingLogs={isLoadingLogs}
 													deploymentId={deployment?._id || ""}
 													deploymentSpecificLogs={logs}
 													scrollToBottom={toggleLogs}
@@ -488,7 +489,7 @@ const PerformanceMetrics = ({ performance }: { performance: Deployment['performa
 		{
 			label: "Bg tasks (queueing, build start)",
 			value: totalDuration - (uploadTime + buildTime + installTime),
-			color: "from-neutral-500/10 to-neutral-800",
+			color: "from-neutral-500/10 to-neutral-500",
 			accent: "bg-neutral-400"
 		},
 	]

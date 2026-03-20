@@ -33,9 +33,11 @@ const AllDeployments = ({ projectId, subdomain, currentDeployment, repoURL, setT
 	const router = useRouter()
 	const [page, setPage] = useState(1)
 	const limit = 10
-	const { data, isLoading, isError, error } = useGetProjectDeploymentsQuery({ id: projectId, params: { include: "project", page, limit } })
-	const { data: deployments = [], meta } = data ?? {};
+	const { data, isLoading, isError, error, currentData } = useGetProjectDeploymentsQuery({ id: projectId, params: { include: "project", page, limit } })
+	const resolvedData = currentData ?? data;
 
+	const deployments = resolvedData?.data ?? [];
+	const { meta } = resolvedData ?? {};
 
 	const [search, setSearch] = useState("")
 	const [selectedDeploymentId, setSelectedDeploymentId] = useState<string | null>(null)

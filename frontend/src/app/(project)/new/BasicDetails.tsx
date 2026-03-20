@@ -22,7 +22,8 @@ import { GithubRepoResponse } from "@/types/User";
 import { Suspense, useEffect, useState } from "react";
 import { LinkComponent } from "@/components/docs/HelperComponents";
 import { connectGithub } from "@/lib/moreUtils/gh";
-import { LoadingSpinnerPageSuspense } from "@/components/LoadingSpinner";
+import LoadingSpinner, { LoadingSpinner3, LoadingSpinnerPageSuspense } from "@/components/LoadingSpinner";
+import { useAppDispatch, useAppSelector } from "@/store/store";
 
 export function BaseSettings({ form, branches }: {
 	form: UseFormReturn<ProjectFormInput>
@@ -50,6 +51,7 @@ function BaseSettingsContent({ form, branches }: {
 	const [repoTab, setRepoTab] = useState<string>(tab || "public-url")
 	const [manual, setManual] = useState(false)
 
+	const { branchesLoading } = useAppSelector(s => s.project);
 	const { data: ids } = useGetUserGthbInstalionsQuery()
 	const { data: repos, error: repoError, isError, isLoading: reposLoading } = useGetUserGthbReposQuery(undefined, { skip: !ids?.githubInstallationId })
 
@@ -256,6 +258,7 @@ function BaseSettingsContent({ form, branches }: {
 
 					<label className="flex items-center gap-2  mb-1 font-medium text-sm" htmlFor="">
 						<IoIosGitBranch />{" "}<span className="text-primary">Branch</span>
+						{branchesLoading && <LoadingSpinner size={"sm"} className="dark:border-zinc-700 border-zinc-300" />}
 					</label>
 					<button type="button"
 						className="border float-end mb-2 px-3 py-2 rounded-md text-xs"

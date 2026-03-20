@@ -28,7 +28,7 @@ const ProjectEmptyState = () => {
 				<EmptyContent>
 					<div className="flex gap-2">
 						<Link href={'/new'} className=""><Button>Create Project</Button></Link>
-						<Link href={'/new'} className="">
+						<Link href={'/new?tab=provider'} className="">
 							<Button variant="outline">Import Project</Button>
 						</Link>
 					</div>

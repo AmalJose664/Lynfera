@@ -24,8 +24,13 @@ const RandomAdBoxes = lazy(() => import("@/app/(deployment)/deployments/RandomAd
 const AllDeployments = () => {
 	const [page, setPage] = useState(1)
 	const limit = 10
-	const { data, isLoading, isError, error } = useGetDeploymentsQuery({ params: { include: "project", page, limit } })
-	const { data: deployments = [], meta } = data ?? {};
+	const { data, isLoading, isError, error, currentData } = useGetDeploymentsQuery({ params: { include: "project", page, limit } })
+
+	const resolvedData = currentData ?? data;
+
+	const deployments = resolvedData?.data ?? [];
+	const { meta } = resolvedData ?? {};
+
 	const { data: user } = useGetUserQuery()
 	const [search, setSearch] = useState("")
 	const [statuses, setStatuses] = useState<Record<string, boolean>>(

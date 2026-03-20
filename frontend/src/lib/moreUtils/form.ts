@@ -77,25 +77,23 @@ export const repoCheck = async (repoUrl: string, isPrivate?: boolean, times = 1)
 
 export const getBranches = async (
 	repoUrl: string,
-	setFn: (branches: string[]) => void,
 	isPrivate: boolean,
 	times = 1
-) => {
+): Promise<string[]> => {
 	if (times > 3) {
-		return false
+		return []
 	}
 	let apiUrl = ""
 	let branchExtractor = (data: any): string[] => []
 
 	const parsed = parseRepoUrl(repoUrl)
-	if (!parsed) return
+	if (!parsed) return []
 
 	if (isPrivate) {
 		const response = await axiosInstance.get(`/github/repos/${parsed.owner}/${parsed.repo}/branches`,)
 		const data = response.data
 		branchExtractor = data => data.map((b: any) => b.name)
-		setFn(branchExtractor(data.branches))
-		return
+		return branchExtractor(data.branches)
 	}
 	try {
 
@@ -118,11 +116,12 @@ export const getBranches = async (
 				break
 		}
 		const res = await axios.get(apiUrl)
-		setFn(branchExtractor(res.data))
+		return branchExtractor(res.data)
 	} catch (error: any) {
 		if (error.status === 403) {
-			await getBranches(repoUrl, setFn, true, times + 1)
+			await getBranches(repoUrl, true, times + 1)
 		}
 		console.warn("Invalid or unsupported repository")
+		return []
 	}
 }

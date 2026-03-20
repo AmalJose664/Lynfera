@@ -25,15 +25,17 @@ import { AiOutlineNumber } from 'react-icons/ai';
 import { IconType } from "react-icons";
 import { TbArrowsMaximize } from 'react-icons/tb';
 import { showToast } from './Toasts';
+import { LoadingSpinner2 } from './LoadingSpinner';
 
 interface LogsComponentProps {
 	deploymentId: string,
 	refetch: () => void,
 	scrollToBottom?: boolean
+	isLoadingLogs: boolean
 	deploymentSpecificLogs?: Log[]
 }
 
-export function Logs({ deploymentId, refetch, scrollToBottom, deploymentSpecificLogs }: LogsComponentProps) {
+export function Logs({ deploymentId, refetch, scrollToBottom, isLoadingLogs, deploymentSpecificLogs }: LogsComponentProps) {
 	const dispatch = useDispatch()
 
 	const logs = useSelector((state: RootState) => state.logs)
@@ -221,7 +223,9 @@ export function Logs({ deploymentId, refetch, scrollToBottom, deploymentSpecific
 							<div className="flex items-center justify-center h-full text-gray-700">
 								<div className="text-center text-xs">
 									<MdTerminal className="w-8 h-8 mx-auto mb-2 opacity-50" />
-									<p>No logs</p>
+									{isLoadingLogs ? (
+										<LoadingSpinner2 isLoading={isLoadingLogs} />
+									) : <p>No logs</p>}
 								</div>
 							</div>
 						) : (

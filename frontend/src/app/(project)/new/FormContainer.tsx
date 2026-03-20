@@ -21,6 +21,8 @@ import BackButton from "@/components/BackButton";
 import { showToast } from "@/components/Toasts";
 import { LinkComponent } from "@/components/docs/HelperComponents";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { fetchBranches } from "@/store/slices/projectSlice";
 
 
 function ProjectForm() {
@@ -45,8 +47,9 @@ function ProjectForm() {
 	const [createProject, { isLoading, isSuccess }] = useCreateProjectMutation()
 
 	const [showAdvanced, setShowAdvanced] = useState(false)
-	const [branches, setBranches] = useState<string[] | undefined>()
 
+	const dispatch = useAppDispatch();
+	const { branches, repoUrl: fetchedRepoUrl } = useAppSelector(s => s.project);
 
 	const { handleSubmit, formState,
 		watch
@@ -57,8 +60,17 @@ function ProjectForm() {
 
 	const repoUrl = watch("repoURL")
 	const changedRepo = useDebounce(repoUrl, 450)
+
+
+
 	useEffect(() => {
-		getBranches(changedRepo, setBranches, form.getValues("isPrivate"))
+		const repoUrl = form.getValues("repoURL")
+		const isPrivate = form.getValues("isPrivate")
+		if (repoUrl === fetchedRepoUrl) {
+			return
+		}
+		dispatch(fetchBranches({ repoUrl, isPrivate }));
+
 	}, [changedRepo])
 
 

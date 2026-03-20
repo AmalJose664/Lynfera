@@ -12,6 +12,7 @@ import { Suspense } from "react"
 import { LoadingSpinner2 } from "@/components/LoadingSpinner"
 import StatusIcon, { AnimationBuild } from "@/components/ui/StatusIcon"
 import { getStatusColor, isStatusProgress } from "@/lib/moreUtils/combined"
+import { useGetDeploymentLogsQuery } from "@/store/services/logsApi"
 
 interface TabProjectProps {
 	project: Project
@@ -40,7 +41,10 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 	const { setShowBuild, showBuild } = build
 	const isProjectProgress = isStatusProgress(project.status)
 
-
+	const { isLoading } = useGetDeploymentLogsQuery(
+		{ deploymentId: deployment?._id ?? lastDeployment?._id ?? "" },
+		{ skip: !showBuild || (!deployment?._id && !lastDeployment?._id) }
+	)
 	return (
 		<>
 			<div className="dark:bg-neutral-950 border bg-neutral-50 w-full rounded-md mb-6 mt-4 p-3 md:p-4">
@@ -108,7 +112,7 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 								transition={{ duration: 0.28, ease: "easeInOut" }}
 								className="dark:bg-stone-900 bg-stone-100 h-auto overflow-hidden"
 							>
-								<Logs deploymentId={deployment?._id || ""} refetch={refetchLogs} />
+								<Logs isLoadingLogs={isLoading} deploymentId={deployment?._id || ""} refetch={refetchLogs} />
 							</motion.div>
 						)}
 					</AnimatePresence>

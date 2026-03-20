@@ -3,7 +3,7 @@ import { IoIosClose } from "react-icons/io";
 import { FaPlus } from "react-icons/fa";
 
 import { Input } from "@/components/ui/input"
-import { Project } from "@/types/Project"
+import { Project, ProjectProvider } from "@/types/Project"
 import { User } from "@/types/User"
 import React, { JSX, memo, useEffect, useMemo, useState } from "react"
 
@@ -20,15 +20,28 @@ import { getBranches } from "@/lib/moreUtils/form";
 import { useUpdateProjectMutation } from "@/store/services/projectsApi";
 import { ChangeProjectSubdomainDialog } from "@/components/modals/ChangeSubdomain";
 import RightFadeComponent from "@/components/RightFadeComponent";
-import { LoadingSpinner2 } from "@/components/LoadingSpinner";
+import { LoadingSpinner2, LoadingSpinner3 } from "@/components/LoadingSpinner";
 import Copybtn from "@/components/Copybtn";
 import { ClearAnalyticsDialog } from "@/components/modals/ClearAnalytics";
 import { showToast } from "@/components/Toasts";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { fetchBranches } from "@/store/slices/projectSlice";
 
 
+interface DetailsInterface {
+	project: Project,
+	form: UseFormReturn<ProjectUpdateFormType>,
+	isUpdateMode: boolean,
+	setIsUpdateMode: React.Dispatch<React.SetStateAction<boolean>>,
+}
+interface DetailsRowInterface {
+	label?: string,
+	value?: string,
+	isLink?: boolean,
+	children?: React.ReactNode
+}
 
-
-const DetailRow = ({ label = "", value = "", isLink = false, children }: { label?: string, value?: string, isLink?: boolean, children?: React.ReactNode }) => (
+const DetailRow = ({ label = "", value = "", isLink = false, children }: DetailsRowInterface) => (
 	<div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0 px-4 py-3 
 	transition-colors duration-75 border-b dark:border-b-background hover:bg-secondary rounded-md">
 		<div className="sm:w-40 shrink-0">
@@ -57,7 +70,19 @@ const DetailRow = ({ label = "", value = "", isLink = false, children }: { label
 );
 
 
-const Details = ({ project, form, branches, isUpdateMode, setIsUpdateMode }: { project: Project, form: UseFormReturn<ProjectUpdateFormType>, isUpdateMode: boolean, setIsUpdateMode: React.Dispatch<React.SetStateAction<boolean>>, branches: string[] | null }) => {
+const Details = ({ project, form, isUpdateMode, setIsUpdateMode, }: DetailsInterface) => {
+	const dispatch = useAppDispatch();
+	const { branches, branchesLoading, repoUrl: fetchedRepoUrl } = useAppSelector(s => s.project);
+
+	useEffect(() => {
+		if (project) {
+			const { repoURL, isPrivateGhRepo } = project
+			if (repoURL === fetchedRepoUrl || !isUpdateMode) {
+				return
+			}
+			dispatch(fetchBranches({ repoUrl: repoURL, isPrivate: isPrivateGhRepo }));
+		}
+	}, [isUpdateMode]);
 	const { errors } = useFormState({
 		control: form.control,
 		name: ['name', 'branch']
@@ -115,7 +140,10 @@ const Details = ({ project, form, branches, isUpdateMode, setIsUpdateMode }: { p
 	return (
 
 		<RightFadeComponent className="dark:bg-neutral-900 bg-white rounded-md py-3 px-5 border mb-3">
-			<h2 className="text-xl mb-2">Project Details</h2>
+			<div className="flex items-center gap-2">
+				<h2 className="text-xl mb-2">Project Details</h2>
+				<LoadingSpinner3 isLoading={branchesLoading}></LoadingSpinner3>
+			</div>
 			<div className="border pb-4 rounded-md overflow-hidden">
 				<AnimatePresence mode="wait" initial={false}>
 
@@ -472,15 +500,9 @@ const SaveBar = memo(({ control, handleSubmit, saveAndDeploy }: { control: any, 
 
 const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reDeploy: (arg: boolean) => Promise<void>, setTabs: (state: string) => void }) => {
 
-	const [branches, setBranches] = useState<string[] | null>(null)
 	const [isUpdateModeDetails, setIsUpdateModeDetails] = useState<boolean>(false)
 	const [isUpdateModeConf, setIsUpdateModeConf] = useState<boolean>(false)
 	const [isUpdateModeEnv, setIsUpdateModeEnv] = useState<boolean>(false)
-
-
-	useEffect(() => {
-		getBranches(project.repoURL, setBranches, project.isPrivateGhRepo)
-	}, [project.repoURL])
 
 
 	const form = useForm<ProjectUpdateFormType>({
@@ -555,7 +577,7 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 					<LoadingSpinner2 isLoading={isLoading} />
 					<SaveBar control={form.control} handleSubmit={handleSubmit} saveAndDeploy={saveAndDeploy} />
 
-					<Details project={project} form={form} branches={branches} isUpdateMode={isUpdateModeDetails} setIsUpdateMode={setIsUpdateModeDetails} />
+					<Details project={project} form={form} isUpdateMode={isUpdateModeDetails} setIsUpdateMode={setIsUpdateModeDetails} />
 					<Configurations project={project} form={form} isUpdateMode={isUpdateModeConf} setIsUpdateMode={setIsUpdateModeConf} />
 					<EnvVariables project={project} form={form} isUpdateMode={isUpdateModeEnv} setIsUpdateMode={setIsUpdateModeEnv} />
 
@@ -602,16 +624,35 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 						</div>
 						<div className="flex border items-start justify-between p-4 rounded-md">
 							<div>
-								<p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-									Auto Deploy on Github Push
-								</p>
+								<div className="flex gap-3 items-center">
+									<p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+										Auto Deploy on Github Push
+									</p>
+									{project.provider === ProjectProvider.MANUAL && <div className="relative group">
+										<span
+											className="text-xs font-medium text-gray-900 border px-2 py-1 rounded-full dark:text-gray-100">
+											Disabled
+										</span>
+										<div
+											className="absolute -top-24 left-1/6 -translate-x-1/2 w-44 px-3 py-2 text-sm text-secondary 
+								bg-accent-foreground border rounded-md shadow-md 
+								opacity-0 invisible
+								group-hover:opacity-100 group-hover:visible
+								transition-opacity duration-200
+								delay-500
+								pointer-events-none
+								">This setting is only for GitHub connected Projects
+										</div>
+									</div>
+									}
+								</div>
 								<p className="text-xs text-gray-500">
 									Automatically start new deployment on git push (For github connected projects only).
 								</p>
 							</div>
 							<div className="ml-6 mt-6">
 								<label className="inline-flex items-center cursor-pointer">
-									<input {...(register("autoDeployEnabled"))} type="checkbox" className="" />
+									<input disabled={project.provider === ProjectProvider.MANUAL} {...(register("autoDeployEnabled"))} type="checkbox" className="" />
 								</label>
 							</div>
 						</div>
