@@ -1,6 +1,7 @@
+import { EachBatchHandler, EachBatchPayload } from "kafkajs";
 import { ZodObject } from "zod";
 
-export type EventHandler<T = any> = (event: T, isRetry: boolean) => Promise<void>;
+export type EventHandler<T, T2> = (event: T2, isRetry: boolean) => T;
 
 export enum EventTypes {
 	DEPLOYMENT_LOG = "DEPLOYMENT_LOG",
@@ -12,13 +13,16 @@ export enum UpdateTypes {
 	CUSTOM = "CUSTOM",
 	END = "END",
 }
+export type CustomEachBatchHandler<HandlerReturnType, HandlerDataTypeParsed> = (
+	payload: EachBatchPayload,
+	config: EventConfig<HandlerReturnType, HandlerDataTypeParsed>,
+) => Promise<void>;
 
-export interface EventConfig {
+export interface EventConfig<HandlerReturnType, HandlerDataTypeParsed> {
 	topic: string;
 	schema: ZodObject;
-	handler: EventHandler;
-	processFn: (data: any | unknown, topic: string, type: "logs" | "analytics") => Promise<void>;
-	description?: string;
+	mode: "batch" | "single";
+	handler: EventHandler<HandlerReturnType, HandlerDataTypeParsed>;
+	processFn: (data: any | unknown, config: EventConfig<HandlerReturnType, HandlerDataTypeParsed>) => Promise<void>;
+	consumer: CustomEachBatchHandler<HandlerReturnType, HandlerDataTypeParsed>;
 }
-
-export type EventRegistryType = Record<string, Record<string, EventConfig>>;

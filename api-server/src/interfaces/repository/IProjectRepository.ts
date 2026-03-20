@@ -6,7 +6,7 @@ export interface IProjectRepository {
 	createProject(project: Partial<IProject>): Promise<IProject | null>;
 
 	getAllProjects(userId: string, query: QueryProjectDTO & { fields?: string[] }): Promise<{ projects: IProject[]; total: number }>;
-	findProject(projectId: string, userId: string, options?: { include?: string; fields?: string[] }): Promise<IProject | null>;
+	findProject(projectId: string, userId: string, options?: { include?: string; fields?: string[]; deletedToo?: boolean }): Promise<IProject | null>;
 	findProjectsBySubdomain(subdomain: string): Promise<IProject[]>;
 	deleteProject(projectId: string, userId: string): Promise<IProject | null>;
 

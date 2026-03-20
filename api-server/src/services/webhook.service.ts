@@ -67,7 +67,7 @@ class WebhookService implements IWebhookService {
 	): Promise<{ status: string; reason: string }> {
 		const { ref, installationId, sender, allChanges, deployRequired, headCommit } = meta;
 		if (headCommit.message.includes("[skip-ci]")) {
-			console.log("Found skip command")
+			console.log("Found skip command");
 			return { status: "ignored", reason: "Manual override" };
 		}
 		const project = await this.projectSvcs.__getProjectByRepository(repo.id);
@@ -100,7 +100,7 @@ class WebhookService implements IWebhookService {
 			hasChanges = !pathFound ? true : allChanges.some((c) => c.startsWith(pathFound));
 		}
 		if (headCommit.message.includes("[force-deploy]")) {
-			shouldDeploy = true
+			shouldDeploy = true;
 		}
 
 		if (!shouldDeploy && !hasChanges) {

@@ -38,7 +38,6 @@ class GithubService implements IGithubService {
 		const token = this.createGithubAccessToken();
 		const installationAccessToken = await this.createOrGetInstallationAcsTokn(user.githubInstallationId, token);
 
-
 		const repos = await dispatchRequestService.getUserRepos(installationAccessToken);
 		return repos;
 	}

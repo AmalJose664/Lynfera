@@ -3,6 +3,7 @@ import { downloadFile, newDeployment, provideProjectFiles, provideProjectIndex, 
 import { validateObjectId } from "../middleware/validate.js";
 import multer from "multer"
 import { authorizeActions } from "../middleware/authorizeActions.js";
+import { produceDeploymentUpdate, produceTestLogs } from "../controller/testControllers.js";
 
 const upload = multer({ dest: 'public/temp/' });
 const router = Router({})
@@ -38,5 +39,8 @@ router.post(
 );
 
 
+
+router.post("/test/kafka/produce", produceTestLogs);
+router.post("/test/kafka/update", produceDeploymentUpdate);
 
 export default router

@@ -1,3 +1,4 @@
+import { ILogs } from "@/models/Logs.js";
 import { ResponseJSON, ResultSet } from "@clickhouse/client";
 
 export interface LogModel {
@@ -13,5 +14,6 @@ export interface ILogRepository {
 	getLogs(projectId: string, page: number, limit: number): Promise<ResponseJSON<unknown>>;
 	deletedeploymentLogs(deploymentId: string): Promise<void>;
 	deleteProjectLogs(projectId: string): Promise<void>;
-	__insertLogs(data: LogModel): Promise<void>;
+	__insertLog(data: LogModel): Promise<void>;
+	__insertLogsAsBatch(logs: ILogs[]): Promise<void>;
 }

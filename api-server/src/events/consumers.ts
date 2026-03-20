@@ -1,6 +1,6 @@
 import { IKafkaEventConsumer } from "@/interfaces/consumers/IKafkaEventConsumer.js";
 import { Consumer, Kafka } from "kafkajs";
-import { getAllTopics, processConumerAnalytics, processConumerLogs } from "@/events/regitry.js";
+import universalKafkaHandler, { getAllTopics, EVENT_REGISTRY, getDeploymentLogsTopic } from "@/events/regitry.js";
 
 class KafkaEventConsumer implements IKafkaEventConsumer {
 	private kafka: Kafka;
@@ -37,11 +37,11 @@ class KafkaEventConsumer implements IKafkaEventConsumer {
 
 			await this.logsConsumer.run({
 				autoCommit: false,
-				eachBatch: processConumerLogs,
+				eachBatch: universalKafkaHandler,
 			});
 			await this.analyticsConsumer.run({
 				autoCommit: true,
-				eachBatch: processConumerAnalytics,
+				eachBatch: universalKafkaHandler,
 			});
 
 			this.isRunning = true;
@@ -51,6 +51,18 @@ class KafkaEventConsumer implements IKafkaEventConsumer {
 			throw error;
 		}
 	}
+	getDeploymentLogsTopic() {
+		return getDeploymentLogsTopic();
+	}
+	pauseLogs() {
+		console.log(this.getDeploymentLogsTopic(), "Pasuing logs topics....");
+		this.logsConsumer.pause([{ topic: this.getDeploymentLogsTopic() }]);
+	}
+	resumeLogs() {
+		console.log(this.getDeploymentLogsTopic(), "Resume logs topics....");
+		this.logsConsumer.resume([{ topic: this.getDeploymentLogsTopic() }]);
+	}
+
 	async stop(): Promise<void> {
 		if (!this.isRunning) {
 			return;

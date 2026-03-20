@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import router from "./routes/routes.js";
 import { validateEnv } from "./config/env.config.js";
+import { producer } from "./controller/testControllers.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -38,4 +39,20 @@ app.use(router)
 validateEnv()
 app.listen(port, async () => {
 	console.log(`Server is running on http://localhost:${port}`);
+});
+
+process.on("SIGINT", async () => {
+	console.log("Exiting.........");
+	await producer.disconnect();
+	process.exit(0);
+});
+
+process.on("SIGTERM", async () => {
+	console.log("Exiting.....");
+	await producer.disconnect();
+	process.exit(0);
+});
+
+process.on("exit", (code) => {
+	console.log(`Process exited`);
 });

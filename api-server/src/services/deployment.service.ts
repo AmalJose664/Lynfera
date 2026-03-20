@@ -217,7 +217,8 @@ class DeploymentService implements IDeploymentService {
 	}
 
 	async deleteDeployment(projectId: string, deploymentId: string, userId: string): Promise<number> {
-		const project = await this.projectRepository.findProject(projectId, userId);
+		const project = await this.projectRepository.findProject(projectId, userId, { deletedToo: true });
+
 		if (!project) throw new AppError(PROJECT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 
 		if (project.status === ProjectStatus.BUILDING || project.status === ProjectStatus.QUEUED) {
@@ -225,7 +226,10 @@ class DeploymentService implements IDeploymentService {
 		}
 
 		if (!project.deployments?.includes(deploymentId as any)) {
-			throw new AppError(DEPLOYMENT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
+			const deployment = await this.deploymentRepository.__findDeployment(deploymentId);
+			if (!deployment || deployment.project.toString() !== project._id.toString()) {
+				throw new AppError(DEPLOYMENT_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
+			}
 		}
 		let newCurrentDeployment = null;
 
@@ -290,10 +294,16 @@ class DeploymentService implements IDeploymentService {
 			console.log(result, " - - - ");
 		} catch (error: any) {
 			console.log("Error on build");
-			await this.__updateDeployment(projectId, deploymentId, {
-				status: DeploymentStatus.FAILED,
-				error_message: DEPLOYMENT_ERRORS.DEPLOY_FAILED,
-			});
+			await Promise.all([
+				this.__updateDeployment(projectId, deploymentId, {
+					status: DeploymentStatus.FAILED,
+					error_message: DEPLOYMENT_ERRORS.DEPLOY_FAILED,
+				}),
+				this.projectRepository.__updateProject(projectId, {
+					status: ProjectStatus.FAILED,
+					tempDeployment: null,
+				}),
+			]);
 			throw error;
 		}
 	}
@@ -327,10 +337,16 @@ class DeploymentService implements IDeploymentService {
 			});
 			await ecsClient.send(command);
 		} catch (error: any) {
-			await this.__updateDeployment(project._id, deployment._id, {
-				status: DeploymentStatus.FAILED,
-				error_message: DEPLOYMENT_ERRORS.DEPLOY_FAILED,
-			});
+			await Promise.all([
+				this.__updateDeployment(project._id, deployment._id, {
+					status: DeploymentStatus.FAILED,
+					error_message: DEPLOYMENT_ERRORS.DEPLOY_FAILED,
+				}),
+				this.projectRepository.__updateProject(project._id, {
+					status: ProjectStatus.FAILED,
+					tempDeployment: null,
+				}),
+			]);
 			throw error;
 		}
 	}

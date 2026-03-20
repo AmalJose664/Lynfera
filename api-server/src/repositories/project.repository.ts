@@ -16,11 +16,15 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 		const savedProject = await project.save();
 		return savedProject;
 	}
-	async findProject(projectId: string, userId: string, options?: { include?: string; fields?: string[] }): Promise<IProject | null> {
+	async findProject(
+		projectId: string,
+		userId: string,
+		options?: { include?: string; fields?: string[]; deletedToo?: boolean },
+	): Promise<IProject | null> {
 		let query = Project.findOne({
 			_id: projectId,
 			user: userId,
-			isDeleted: false,
+			...(!options?.deletedToo && { isDeleted: false }),
 		});
 
 		if (options?.fields?.length) {
@@ -67,7 +71,7 @@ class ProjectRepository extends BaseRepository<IProject> implements IProjectRepo
 	}
 
 	async deleteProject(projectId: string, userId: string): Promise<IProject | null> {
-		return await Project.findOneAndUpdate({ _id: projectId, user: userId, isDeleted: false }, { isDeleted: true }, { new: true });
+		return await Project.findOneAndUpdate({ _id: projectId, user: userId, isDeleted: false }, { isDeleted: true, ghRepoId: null }, { new: true });
 	}
 	async updateProject(projectId: string, userId: string, updateData: Partial<IProject>): Promise<IProject | null> {
 		return await Project.findOneAndUpdate({ _id: projectId, user: userId }, { $set: { ...updateData } }, { new: true }).select([

@@ -19,10 +19,11 @@ class AnalyticsService implements IAnalyticsService {
 	constructor(analyticsRepo: IAnalyticsRepository, projectBandwidthRepo: IProjectBandwidthRepository) {
 		this.analyticsRepo = analyticsRepo;
 		this.projectBandwidthRepo = projectBandwidthRepo;
-		this.startFlushTimer();
+		// this.startFlushTimer();
 	}
 
 	private startFlushTimer(): void {
+		// not called ; Use interval Service in utils for intervals
 		this.flushTimer = setInterval(() => {
 			process.stdout.write(" -");
 			if (this.analyticsBuffer.length > 0) {
@@ -31,11 +32,11 @@ class AnalyticsService implements IAnalyticsService {
 		}, this.FLUSH_INTERVAL);
 	}
 	async saveBatch(): Promise<void> {
-		console.log("saving ....", this.analyticsBuffer.length, this.analyticsBuffer[0].project_id, this.analyticsBuffer[0].path);
 		if (this.isFlushing || this.analyticsBuffer.length === 0) {
-			console.log("returning ...");
+			process.stdout.write(` "`);
 			return;
 		}
+		console.log("saving ....", this.analyticsBuffer.length, this.analyticsBuffer[0].project_id, this.analyticsBuffer[0].path);
 
 		this.isFlushing = true;
 		const batch = this.analyticsBuffer.splice(0, this.BATCH_SIZE * 3);
@@ -81,12 +82,17 @@ class AnalyticsService implements IAnalyticsService {
 	}
 
 	async exitService(): Promise<void> {
-		console.log("service cleaning....");
+		console.log("service cleaning analytics....");
 		clearInterval(this.flushTimer);
 		while (this.analyticsBuffer.length > 0) {
+			if (this.isFlushing) {
+				await new Promise((resolve) => setTimeout(resolve, 500));
+				continue;
+			}
 			await this.saveBatch();
 		}
 	}
+
 	async clearAnalytics(projectId: string): Promise<void> {
 		return this.analyticsRepo.clearProjectAnalytics(projectId);
 	}

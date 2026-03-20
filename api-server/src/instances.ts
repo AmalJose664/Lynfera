@@ -26,6 +26,7 @@ import OtpService from "./services/otpVerify.service.js";
 import WebhookController from "./controllers/webhookController.js";
 import WebhookService from "./services/webhook.service.js";
 import GithubService from "./services/github.service.js";
+import IntervalManager from "./utils/intervalService.js";
 
 export const userRepo = new UserRepo();
 export const projectRepo = new ProjectRepo();
@@ -56,3 +57,5 @@ export const analyticsController = new AnalyticsController(analyticsService);
 export const paymentController = new PaymentController(paymentService);
 
 export const webhookController = new WebhookController(webhookService, githubService);
+
+export const intervalManager = new IntervalManager(logsService, analyticsService);

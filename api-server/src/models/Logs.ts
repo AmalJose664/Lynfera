@@ -1,11 +1,11 @@
 export interface ILogs {
 	event_id: string;
-	level: string;
-	message: string;
-	timestamp: Date | string;
+	info: string;
+	log: string;
+	report_time: Date | number;
 	deployment_id: string;
 	project_id: string;
-	stream: string;
+	sequence: number;
 }
 
 // Table query

@@ -3,35 +3,36 @@ import { DeploymentLogEvent, DeploymentUpdatesEvent } from "@/events/schemas/dep
 import { deploymentEmitter } from "@/events/deploymentEmitter.js";
 import { UpdateTypes } from "@/events/types/event.js";
 import { ProjectStatus } from "@/models/Projects.js";
+import { ILogs } from "@/models/Logs.js";
 
 class DeploymentEventHandler {
-	static async handleLogs(event: DeploymentLogEvent, isRetry: boolean): Promise<void> {
-		//service call
+	static handleLogsBatch(events: ILogs[]): void {
+		process.stdout.write(` L-${events.length}`);
+		logsService.__insertToBatch(events);
+	}
+
+	static async handlerMessageEmitting(event: DeploymentLogEvent) {
 		const { data } = event;
 
 		const { log, deploymentId, projectId } = data;
-		if (!isRetry) {
-			deploymentEmitter.emitEvents(
-				deploymentId,
-				{
-					event_id: event.eventId,
-					deployment_id: deploymentId,
-					project_id: projectId,
-					...log,
-				},
-				"LOG",
-			);
-		}
-		process.stdout.write(" L ");
-		await logsService.__insertLog(log.message, projectId, deploymentId, new Date(log.timestamp), log.level, log.sequence);
-		//stream
-	}
 
+		deploymentEmitter.emitEvents(
+			deploymentId,
+			{
+				event_id: event.eventId,
+				deployment_id: deploymentId,
+				project_id: projectId,
+				...log,
+			},
+			"LOG",
+		);
+	}
 	static async handleUpdates(event: DeploymentUpdatesEvent, isRetry: boolean): Promise<void> {
 		//service call
 		const { data } = event;
 		const { updates, deploymentId, projectId } = data;
 		process.stdout.write(" U ");
+
 		if (!isRetry) {
 			deploymentEmitter.emitEvents(
 				deploymentId,

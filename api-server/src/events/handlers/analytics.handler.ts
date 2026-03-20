@@ -1,9 +1,12 @@
 import { analyticsService } from "@/instances.js";
 import { BandWidthWithProjectType } from "@/interfaces/service/IAnalyticsService.js";
 import { BufferAnalytics } from "@/models/Analytics.js";
-
+export type BatchAnalyticsType = {
+	events: BufferAnalytics[];
+	bandwidthByProjectBatch: BandWidthWithProjectType;
+};
 class ProjectAnalyticsHandler {
-	static async handleDataBatch(data: { events: BufferAnalytics[]; bandwidthByProjectBatch: BandWidthWithProjectType }, dummy: boolean) {
+	static handleDataBatch(data: BatchAnalyticsType, dummy: boolean) {
 		analyticsService.addEventBatch(data.events, data.bandwidthByProjectBatch);
 	}
 	static async handleDataSinlge(data: BufferAnalytics) {

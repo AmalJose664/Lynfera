@@ -2,6 +2,7 @@ import { v4 as uuidV4 } from "uuid";
 import { ClickHouseClient, ResponseJSON } from "@clickhouse/client";
 
 import { ILogRepository, LogModel } from "@/interfaces/repository/ILogRepository.js";
+import { ILogs } from "@/models/Logs.js";
 
 class LogRepository implements ILogRepository {
 	private client: ClickHouseClient;
@@ -54,7 +55,7 @@ class LogRepository implements ILogRepository {
 			},
 		});
 	}
-	async __insertLogs(data: LogModel): Promise<void> {
+	async __insertLog(data: LogModel): Promise<void> {
 		await this.client.insert({
 			table: "log_events",
 			values: [
@@ -69,6 +70,17 @@ class LogRepository implements ILogRepository {
 				},
 			],
 			format: "JSONEachRow",
+		});
+	}
+	async __insertLogsAsBatch(logs: ILogs[]): Promise<void> {
+		await this.client.insert({
+			table: "log_events",
+			values: logs,
+			format: "JSONEachRow",
+			clickhouse_settings: {
+				async_insert: 1,
+				wait_for_async_insert: 0,
+			},
 		});
 	}
 }

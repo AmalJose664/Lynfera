@@ -1,8 +1,7 @@
 import "./config/env.config.js";
 import httpServer from "./app.js";
-import { redisCacheService } from "./instances.js";
+import { intervalManager, redisCacheService } from "./instances.js";
 import { startKafkaConsumer, stopKafkaConsumer } from "./events/index.js";
-import { analyticsService } from "./instances.js";
 import { ENVS } from "@/config/env.config.js";
 const PORT = ENVS.PORT || 8000;
 
@@ -18,13 +17,13 @@ startServer().catch((e) => {
 });
 process.on("SIGINT", async () => {
 	console.log("Exiting.........");
-	await Promise.all([stopKafkaConsumer(), analyticsService.exitService(), redisCacheService.disconnect()]);
+	await Promise.all([stopKafkaConsumer(), intervalManager.exitService(), redisCacheService.disconnect()]);
 	process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
 	console.log("Exiting.....");
-	await Promise.all([stopKafkaConsumer(), analyticsService.exitService(), redisCacheService.disconnect()]);
+	await Promise.all([stopKafkaConsumer(), intervalManager.exitService(), redisCacheService.disconnect()]);
 	process.exit(0);
 });
 
