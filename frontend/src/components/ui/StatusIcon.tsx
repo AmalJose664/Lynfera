@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { GoCheckCircleFill, GoXCircleFill } from "react-icons/go";
 import { IoAlertCircleSharp } from "react-icons/io5";
-import { MdTableRows } from "react-icons/md";
 import { FaRegCirclePause } from "react-icons/fa6";
 
 const StatusIcon = ({ status, className }: { status: string, className?: string }) => {

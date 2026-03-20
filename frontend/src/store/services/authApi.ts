@@ -2,6 +2,7 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../axiosBaseQuery";
 import { GithubAccountResponse, GithubIdsOutput, GithubRepoResponse, User, UserDetailed } from "@/types/User";
 import { authApi as api } from "@/store/services/authApi";
+import { ServerMessages } from "@/types/Others";
 
 export const authApi = createApi({
 	reducerPath: "authApi",
@@ -76,9 +77,17 @@ export const authApi = createApi({
 				{ type: 'Auth', id: 'user_data_detailed' },
 			],
 		}),
-
+		getServerNotifications: builder.query<ServerMessages, void>({
+			query: () => ({ url: "/server-notifications", method: 'get', overidePath: true }),
+			keepUnusedDataFor: 7 * 60,
+			extraOptions: { maxRetries: 0 },
+			transformResponse: (data: any) => {
+				return data.fromServer
+			},
+			providesTags: (result, error,) => [{ type: 'Auth', id: "notifications" }]
+		}),
 	}),
 })
 
 export const { useGetUserQuery, useGetUserDetailedQuery, useLogoutMutation, useGetUserGtbAccountQuery, useRemoveUserGithubAppMutation,
-	useGetUserGthbInstalionsQuery, useGetUserGthbReposQuery } = authApi
+	useGetUserGthbInstalionsQuery, useGetUserGthbReposQuery, useGetServerNotificationsQuery } = authApi

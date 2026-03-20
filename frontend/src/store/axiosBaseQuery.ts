@@ -10,15 +10,17 @@ export const axiosBaseQuery = (
 	method: AxiosRequestConfig['method'],
 	data?: AxiosRequestConfig['data'],
 	params?: AxiosRequestConfig['params'],
+	overidePath?: boolean
 	retry?: number,
 	retryDelay?: number,
 }, unknown, unknown> =>
-	async ({ url, method, data, params, retry, retryDelay }) => {
+	async ({ url, method, data, params, retry, retryDelay, overidePath }) => {
 		try {
 			const safeRetryTimes = retry ? (retry > 5 ? 5 : retry) : 2
 			const config: WithRetryConfig = {
 				// ...globalConfig,
-				url: baseUrl + url, // fll here
+
+				url: overidePath ? baseUrl?.replace("/api", url) : baseUrl + url, // fll here
 				method,
 				data,
 				params,

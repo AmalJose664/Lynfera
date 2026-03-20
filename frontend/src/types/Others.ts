@@ -11,3 +11,10 @@ export type SourceLocation = {
 	startLine?: number
 	endLine?: number
 }
+
+export type ServerMessages = {
+	message: string;
+	id: number;
+	smallText?: string
+	type: "ERROR" | "NEUTRAL" | "SUCCESS" | "WARNING"
+}

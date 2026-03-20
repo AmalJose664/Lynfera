@@ -1,3 +1,4 @@
+import { getServerNotifications } from "@/controllers/serverDataOnlyController.js";
 import { Router } from "express";
 
 const baseRouter = Router();
@@ -16,5 +17,8 @@ baseRouter.get("/health", (_req, res) => {
 		timestamp: new Date().toISOString(),
 	});
 });
+
+
+baseRouter.get("/server-notifications", getServerNotifications);
 
 export default baseRouter;
