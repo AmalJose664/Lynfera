@@ -139,10 +139,10 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 								</div>
 							</div>
 						</RightFadeComponent>
-						<div className="flex w-full gap-6 items-center justify-around">
+						<div className="flex w-full gap-6 items-center justify-around flex-col md:flex-row">
 							<RightFadeComponent delay={.07} className="border w-full rounded-lg dark:bg-neutral-900  bg-white px-3 py-2">
 								<h4 className="text-sm font-medium  text-primary mb-4">Options</h4>
-								<div className="rounded-lg dark:bg-neutral-900  bg-white px-4 py-2 flex items-center gap-3">
+								<div className="rounded-lg dark:bg-neutral-900  bg-white px-4 py-2 flex items-center gap-3 flex-wrap md:flex-nowrap">
 									{(isprojectError)
 										&&
 										(isDeplymentError) &&
@@ -164,9 +164,9 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 								</div>
 							</RightFadeComponent>
 							{(project.provider === ProjectProvider.GITHUB || project.provider === ProjectProvider.GITHUB_DISCONNECTED) &&
-								<RightFadeComponent delay={.09} className="border w-full rounded-lg dark:bg-neutral-900  bg-white px-3 py-2">
+								<RightFadeComponent delay={.09} className="border w-full rounded-lg dark:bg-neutral-900  bg-white px-3 py-2 ">
 									<h4 className="text-sm font-medium  text-primary mb-4">Github</h4>
-									<div className="flex gap-4 py-2">
+									<div className="flex py-2 flex-wrap gap-2">
 										{project.provider === ProjectProvider.GITHUB
 											? (
 												<div className="flex text-sm border rounded-md px-4 py-[7px] w-fit items-center gap-3">

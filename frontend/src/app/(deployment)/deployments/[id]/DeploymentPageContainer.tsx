@@ -137,27 +137,30 @@ const DeploymentPageContent = ({ deploymentId }: { deploymentId: string }) => {
 						className="space-y-6 "
 					>
 						<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-							<div>
-								<h1 className="text-2xl font-bold flex items-center gap-2">
+							<div className="flex gap-3 items-center">
+								<h1 className="md:text-2xl text-base font-bold flex items-center gap-2">
 									<IoIosCube className="" />
 									{project.name}
+								</h1>
+
+								<div className="flex gap-3 items-center ">
 									<span className="text-neutral-400 font-normal mx-2">/</span>
-									<span className="text-lg font-normal text-neutral-500">
+									<span className="md:text-lg text-xs font-normal text-neutral-500">
 										Deployment
 									</span>
-									<span className="text-neutral-400 font-normal mx-2">|</span>
-									<span className="text-sm font-normal text-neutral-500">
+									<span className="hidden md:block text-neutral-400 font-normal mx-2">|</span>
+									<span className="hidden md:block text-sm font-normal text-neutral-500">
 										{deployment.identifierSlug}
 									</span>
 									{((deployment.project as Project).currentDeployment === deployment._id)
-										&& <span className="py-1 uppercase px-2 border border-blue-500 rounded-full text-[11px] text-blue-400 tracking-wider">
+										&& <span className="py-1 uppercase px-2 border border-blue-500 rounded-full text-[10px] md:text-[11px] text-blue-400 tracking-wider">
 											current deployment
 										</span>
 									}
-								</h1>
+								</div>
 							</div>
 
-							<div className="flex items-center gap-3">
+							<div className="flex items-center gap-3 justify-between">
 								{!isDeletedProject ?
 
 									<div
@@ -179,60 +182,64 @@ const DeploymentPageContent = ({ deploymentId }: { deploymentId: string }) => {
 									</div>
 									)
 								}
-								{!isFailed && deployment.status === ProjectStatus.READY && (
-									<Link
-										href={`${window.location.protocol}//${project.subdomain || "00000"}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`}
-										target="_blank"
-										className="flex items-center gap-2 px-4 py-1.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
-									>
-										Visit Project<LuExternalLink />
-									</Link>
-								)}
-								{!isFailed && deployment.status === ProjectStatus.READY && (
-									<Link
-										href={`${window.location.protocol}//${project.subdomain}--${deployment.publicId}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`}
-										target="_blank"
-										className="flex items-center gap-2 px-4 py-1.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
-									>
-										Visit This Deployment<LuExternalLink />
-									</Link>
-								)}
-								<OptionsComponent parentClassName="" options={[
-									{
-										title: "Promote Deployment",
-										actionFn: () => setSelectedDeploymentId(deployment._id),
-										className: "",
-										isDisabled: deployment.status != ProjectStatus.READY
-											|| deployment._id === (deployment.project as Project).currentDeployment,
-										Svg: BsArrowUpCircle
-									},
-									{
-										title: "Show Project",
-										actionFn: () => router.push("/projects/" + (deployment.project as Project)._id),
-										className: "",
-										Svg: IoIosCube
-									},
-									{
-										title: "Copy Deployment ID",
-										actionFn: () => navigator.clipboard.writeText(deployment._id),
-										className: "",
-										Svg: IoClipboardOutline
-									},
-									{
-										title: "Copy Public ID",
-										actionFn: () => navigator.clipboard.writeText(deployment.publicId),
-										className: "",
-										Svg: IoClipboardOutline
-									},
-									...(isStatusFailure(deployment.status) && deployment._id !== project.currentDeployment ? [{
-										title: "Delete Failed Deployment",
-										actionFn: () => setShowDeleteModal(true),
-										isDisabled: !isStatusFailure(deployment.status),
-										className: "text-red-400",
-										Svg: IoTrashOutline
-									}] : []),
+								<div className="flex items-center gap-3">
 
-								]} />
+									{!isFailed && deployment.status === ProjectStatus.READY && (
+										<Link
+											href={`${window.location.protocol}//${project.subdomain || "00000"}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`}
+											target="_blank"
+											className="flex items-center gap-2 px-4 py-1.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-md text-xs md:text-sm font-medium hover:opacity-90 transition-opacity"
+										>
+											Visit Project<LuExternalLink />
+										</Link>
+									)}
+									{!isFailed && deployment.status === ProjectStatus.READY && (
+										<Link
+											href={`${window.location.protocol}//${project.subdomain}--${deployment.publicId}.${process.env.NEXT_PUBLIC_PROXY_SERVER}`}
+											target="_blank"
+											className="flex items-center gap-2 px-4 py-1.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-md text-xs md:text-sm font-medium hover:opacity-90 transition-opacity"
+										>
+											Visit This Deployment<LuExternalLink />
+										</Link>
+									)}
+
+									<OptionsComponent parentClassName="" className="" options={[
+										{
+											title: "Promote Deployment",
+											actionFn: () => setSelectedDeploymentId(deployment._id),
+											className: "",
+											isDisabled: deployment.status != ProjectStatus.READY
+												|| deployment._id === (deployment.project as Project).currentDeployment,
+											Svg: BsArrowUpCircle
+										},
+										{
+											title: "Show Project",
+											actionFn: () => router.push("/projects/" + (deployment.project as Project)._id),
+											className: "",
+											Svg: IoIosCube
+										},
+										{
+											title: "Copy Deployment ID",
+											actionFn: () => navigator.clipboard.writeText(deployment._id),
+											className: "",
+											Svg: IoClipboardOutline
+										},
+										{
+											title: "Copy Public ID",
+											actionFn: () => navigator.clipboard.writeText(deployment.publicId),
+											className: "",
+											Svg: IoClipboardOutline
+										},
+										...(isStatusFailure(deployment.status) && deployment._id !== project.currentDeployment ? [{
+											title: "Delete Failed Deployment",
+											actionFn: () => setShowDeleteModal(true),
+											isDisabled: !isStatusFailure(deployment.status),
+											className: "text-red-400",
+											Svg: IoTrashOutline
+										}] : []),
+
+									]} />
+								</div>
 							</div>
 						</div>
 
