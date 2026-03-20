@@ -22,7 +22,8 @@ const AlertsAndProblems = () => {
 		setShowAlert(false)
 	}
 	const allowedPages = ["/projects", "/deployments", "/resources"]
-	const isAllowedPage = allowedPages.some(page => window.location.pathname.startsWith(page))
+	const isAllowedPage = typeof window !== "undefined" &&
+		allowedPages.some(page => window.location.pathname.startsWith(page))
 	if (isLoading || !showAlert || !data || !isAllowedPage) return null
 	const style = config[data.type || "NEUTRAL"];
 	return (

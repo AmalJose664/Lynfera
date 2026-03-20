@@ -10,7 +10,6 @@ export const getServerNotifications = async (req: Request, res: Response, next: 
 			res.status(404).json({ messgae: "Not found" })
 			return
 		}
-		console.log({ data })
 		res.status(200).json({ fromServer: data })
 
 	} catch (error: any) {

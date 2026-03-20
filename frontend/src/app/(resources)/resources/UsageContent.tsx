@@ -1,5 +1,6 @@
 "use client"
 
+import { LinkComponent } from "@/components/docs/HelperComponents"
 import { LoadingSpinner3 } from "@/components/LoadingSpinner"
 import RightFadeComponent from "@/components/RightFadeComponent"
 import { SubtleProgressBar } from "@/components/SimpleStatsCompnts"
@@ -10,6 +11,7 @@ import { useGetProjectsQuery, useGetProjectsUsagesQuery } from "@/store/services
 import { Project, ProjectUsageResults } from "@/types/Project"
 import Link from "next/link"
 import { lazy, Suspense } from "react"
+import { FaRegCircleQuestion } from "react-icons/fa6"
 import { IoIosCube, IoMdCloudDone } from "react-icons/io"
 import { MdOutlineStorage } from "react-icons/md"
 const ChartDailyDeploys = lazy(() => import("@/components/analytics/DailyDeploys"));
@@ -94,7 +96,7 @@ const UsagePage = () => {
 								</div>
 								<div className=" p-8 ">
 									<div className="flex gap-1 items-center">
-										<p>Review all current projects from the </p><Link href={'/projects'}>Projects page.</Link>
+										<p>Review all current projects from the </p><LinkComponent href={'/projects'}>Projects page.</LinkComponent>
 									</div>
 									<RightFadeComponent className="rounded-md mt-3 border p-6 dark:shadow-none shadow-md hover:shadow-lg transition-shadow duration-200">
 										<div className="flex items-center justify-between">
@@ -162,10 +164,20 @@ const UsagePage = () => {
 						</section>
 
 						<section id="usage-stats" className="scroll-mt-12 border rounded-md overflow-hidden dark:bg-background bg-white">
-							<div className="pt-8 px-4 mb-6">
-								<h2 className="text-2xl font-semibold tracking-tight text-primary ">Resource Usage</h2>
-								<p className="text-sm text-less mt-1">Bandwidth, Deployments, and Build time per project.</p>
+							<div className="flex items-center justify-between">
+								<div className="pt-8 px-4 mb-6">
+									<h2 className="text-2xl font-semibold tracking-tight text-primary ">Resource Usage</h2>
+									<p className="text-sm text-less mt-1">Bandwidth, Deployments, and Build time per project.</p>
+								</div>
+
+								<div className="px-10 ">
+									<LinkComponent href="/docs/observability#analytics-data" className="text-sm flex items-center gap-3">
+										Learn more
+										<FaRegCircleQuestion />
+									</LinkComponent>
+								</div>
 							</div>
+
 
 							<div className="overflow-x-auto dark:bg-background bg-white">
 								<table className="w-full text-left border-collapse">
