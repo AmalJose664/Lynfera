@@ -6,6 +6,8 @@ baseRouter.get("/", (_req, res) => {
 	res.status(200).json({
 		status: "ok",
 		service: "lynfera-backend",
+		ip: { reqIp: _req.ip },
+
 	});
 	return;
 });

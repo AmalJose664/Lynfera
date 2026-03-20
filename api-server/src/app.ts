@@ -29,6 +29,8 @@ app.use(helmet());
 app.use(passport.initialize());
 app.use(morgan("tiny"));
 
+app.set("trust proxy", 1);
+
 app.use("/api", apiRouter);
 app.use("/", baseRouter);
 
