@@ -125,7 +125,7 @@ const page = () => {
 							<ul className="px-3 py-1 list-disc space-y-3 mt-3">
 								<li><strong>Build timeout:</strong> The maximum build time is 30 minutes. If your build exceeds this limit, it will be terminated, and the deployment fails.</li>
 								<li><strong>Concurrency:</strong> Max concurrent builds for each user is decided by their plan (free - 1, pro - 3).</li>
-								<li><strong>Container resources:</strong> We fairly give both sets of users (free, pro) container with a limit of 2 vCPUs and 2 GB RAM for now but these values may change in the future.</li>
+								<li><strong>Container resources:</strong> We fairly give both sets of users (free, pro) container with a limit of 2 vCPUs and 4 GB RAM for now but these values may change in the future.</li>
 								<li><strong>Build image:</strong> Builds in {SITE_NAME} get a base image of Node:22-bookworm. You can view the generated image <LinkComponent href="https://hub.docker.com/r/amal664/lynfera-builds" newPage>here</LinkComponent></li>
 							</ul>
 						</div>
