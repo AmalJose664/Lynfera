@@ -15,7 +15,7 @@ class LogsService implements ILogsService {
 
 	private logsBuffer: ILogs[] = [];
 	private readonly BATCH_SIZE = 2000;
-	private readonly MAX_BUFFER_SIZE = 20;
+	private readonly MAX_BUFFER_SIZE = 10000;
 	private isSaving = false;
 	private isPaused = false;
 

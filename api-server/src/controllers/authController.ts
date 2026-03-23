@@ -10,7 +10,7 @@ import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { UserMapper } from "@/mappers/userMapper.js";
 import { LoginUserDTO, SignUpUserDTO, VerifyOtpDTO } from "@/dtos/auth.dto.js";
 import { generateOtpToken, RefresheTokenType } from "@/utils/generateToken.js";
-import { accessCookieConfig } from "@/config/cookie.config.js";
+import { accessCookieConfig, refreshCookieConfig } from "@/config/cookie.config.js";
 import { COMMON_ERRORS, OTP_ERRORS, USER_ERRORS } from "@/constants/errors.js";
 import { FRONTEND_REDIRECT_PATH } from "@/constants/paths.js";
 import { notify } from "@/utils/notifyOnSignup.js";
@@ -132,8 +132,8 @@ export const verifyAuth = (req: Request, res: Response) => {
 };
 
 export const userLogout = (req: Request, res: Response) => {
-	res.clearCookie("refresh_token");
-	res.clearCookie("access_token");
+	res.clearCookie("refresh_token", refreshCookieConfig);
+	res.clearCookie("access_token", accessCookieConfig);
 	res.clearCookie("is_Authenticated");
 	res.status(STATUS_CODES.OK).json({ message: "user logged out" });
 };
