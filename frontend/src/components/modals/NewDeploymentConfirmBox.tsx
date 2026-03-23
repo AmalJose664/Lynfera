@@ -54,7 +54,7 @@ const NewDeploymentConfirmBox = ({ showConfirm, setShowConfirm, project, handleC
 								setShowConfirm(false)
 								setTabs("settings")
 							}}
-							className="flex-1 sm:flex-none sm:min-w-20 bg-secondary text-secondary-foreground hover:bg-secondary/80"
+							className="flex-1 sm:flex-none sm:min-w-20 bg-secondary border text-secondary-foreground hover:bg-secondary/80"
 						>
 							Settings
 						</AlertDialogAction>

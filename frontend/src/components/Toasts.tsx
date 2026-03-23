@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+import { ExternalToast, toast } from "sonner";
 type ToastType = "success" | "error" | "info" | "message" | "warning";
 
 import { RxCheckCircled, RxCross2 } from "react-icons/rx";
@@ -7,7 +7,6 @@ import { TiMessages } from "react-icons/ti";
 import { BiSolidError } from "react-icons/bi";
 import { ReactElement } from "react";
 import { MdError, MdOutlineError } from "react-icons/md";
-import { IoIosArrowRoundForward, IoIosCloud } from "react-icons/io";
 
 const themeConfigOr = {
 	success: {
@@ -90,29 +89,29 @@ export const OrbitalPillToast = ({ t, message, description, type, CustomIcon }: 
 
 
 export const showToast = {
-	message: (message: string, description?: string, CustomIcon?: ReactElement) => {
+	message: (message: string, description?: string, CustomIcon?: ReactElement, data?: ExternalToast) => {
 		return toast.custom((t) => (
 			<OrbitalPillToast t={t} type="message" message={message} description={description} CustomIcon={CustomIcon} />
-		));
+		), data);
 	},
-	success: (message: string, description?: string, CustomIcon?: ReactElement) => {
+	success: (message: string, description?: string, CustomIcon?: ReactElement, data?: ExternalToast) => {
 		return toast.custom((t) => (
 			<OrbitalPillToast t={t} type="success" message={message} description={description} CustomIcon={CustomIcon} />
-		));
+		), data);
 	},
-	error: (message: string, description?: string, CustomIcon?: ReactElement) => {
+	error: (message: string, description?: string, CustomIcon?: ReactElement, data?: ExternalToast) => {
 		return toast.custom((t) => (
 			<OrbitalPillToast t={t} type="error" message={message} description={description} CustomIcon={CustomIcon} />
-		));
+		), data);
 	},
-	warning: (message: string, description?: string, CustomIcon?: ReactElement) => {
+	warning: (message: string, description?: string, CustomIcon?: ReactElement, data?: ExternalToast) => {
 		return toast.custom((t) => (
 			<OrbitalPillToast t={t} type="warning" message={message} description={description} CustomIcon={CustomIcon} />
-		));
+		), data);
 	},
-	info: (message: string, description?: string, CustomIcon?: ReactElement) => {
+	info: (message: string, description?: string, CustomIcon?: ReactElement, data?: ExternalToast) => {
 		return toast.custom((t) => (
 			<OrbitalPillToast t={t} type="info" message={message} description={description} CustomIcon={CustomIcon} />
-		));
+		), data);
 	},
 };

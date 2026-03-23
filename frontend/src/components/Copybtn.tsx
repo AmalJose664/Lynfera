@@ -17,7 +17,7 @@ const Copybtn = ({ value }: { value: string }) => {
 	return (
 		<button type="button" onClick={() => {
 			navigator.clipboard.writeText(value)
-			showToast.info("Value copied")
+			showToast.info("Value copied", "", undefined, { duration: 900 })
 			setCopy(true)
 			if (copyTimerRef.current) {
 				clearTimeout(copyTimerRef.current)

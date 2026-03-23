@@ -136,7 +136,8 @@ export function ChangeProjectSubdomainDialog({ projectName, projectId, currentSu
 					</DialogClose>
 
 					<Button variant={"outline"}
-						className="flex-1 sm:flex-none sm:min-w-24 text-primary border text-sm px-3 py-1 rounded-md bg-background hover:bg-red-50 dark:hover:bg-[#1a1a1a] min-w-20"
+						className="flex-1 sm:flex-none sm:min-w-24 border text-sm px-3 py-1 rounded-md bg-primary! text-white dark:text-black 
+						min-w-20 dark:hover:text-black hover:text-white"
 						disabled={userConfirmText !== confirmText || data.isLoading}
 						onClick={handleUpdate}
 					>
