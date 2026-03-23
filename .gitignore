@@ -8,6 +8,8 @@ yarn-error.log*
 lynfera-githubapp.pem
 test-server/public/user-projects/
 
+api-for-hf/
+api-for-hf/*
 test-grounds/
 test-grounds/*
 .vscode/
