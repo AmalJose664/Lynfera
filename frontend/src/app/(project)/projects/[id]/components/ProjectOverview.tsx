@@ -226,7 +226,7 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 									<div className="flex items-center gap-2">
 										<span className="text-xs  text-less">
 											<LinkComponent newPage
-												href={generateRepoUrls(project.repoURL, { commitSha: deployment?.commit.id }).commit || project.repoURL} className='flex gap-2 items-center font-medium hover:underline text-sky-200! rounded-sm'>
+												href={generateRepoUrls(project.repoURL, { commitSha: deployment?.commit.id }).commit || project.repoURL} className='flex gap-2 items-center font-medium hover:underline dark:text-sky-200! text-sky-500! rounded-sm'>
 												{deployment?.commit.id.slice(0, 10) || "" + "..."}
 												<p className="text-xl">/</p>
 												<span className="truncate max-w-40">{deployment?.commit.msg}</span>
@@ -241,7 +241,7 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 									</div>
 									<span className="text-sm max-w-40 truncate text-less"><LinkComponent newPage
 										href={generateRepoUrls(project.repoURL, { branch: project.branch }).branch || project.repoURL}
-										className='text-xs! hover:underline font-medium text-sky-200!'>{project.branch}</LinkComponent>
+										className='text-xs! hover:underline font-medium dark:text-sky-200! text-sky-500!'>{project.branch}</LinkComponent>
 									</span>
 								</div>
 							</div>

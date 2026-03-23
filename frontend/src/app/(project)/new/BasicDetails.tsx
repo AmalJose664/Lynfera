@@ -22,8 +22,8 @@ import { GithubRepoResponse } from "@/types/User";
 import { Suspense, useEffect, useState } from "react";
 import { LinkComponent } from "@/components/docs/HelperComponents";
 import { connectGithub } from "@/lib/moreUtils/gh";
-import LoadingSpinner, { LoadingSpinner3, LoadingSpinnerPageSuspense } from "@/components/LoadingSpinner";
-import { useAppDispatch, useAppSelector } from "@/store/store";
+import LoadingSpinner, { LoadingSpinnerPageSuspense } from "@/components/LoadingSpinner";
+import { useAppSelector } from "@/store/store";
 
 export function BaseSettings({ form, branches }: {
 	form: UseFormReturn<ProjectFormInput>
@@ -93,7 +93,7 @@ function BaseSettingsContent({ form, branches }: {
 			</div>
 
 			<div className="mb-3 px-3 py-2">
-				<Tabs defaultValue={tab || "public-url"} value={repoTab} onValueChange={setRepoTab} className="w-full">
+				<Tabs defaultValue={tab || "public-url"} value={repoTab} onValueChange={setRepoTab} className="w-full ">
 					{(selectedRepo !== -1) ? (
 						<div className="mb-3 py-2">
 							<label className="flex items-center gap-2 mb-1 font-medium  text-sm" htmlFor="repoURL">
@@ -110,10 +110,10 @@ function BaseSettingsContent({ form, branches }: {
 						</div>
 					) : (<div>
 						<TabsList className="grid w-full grid-cols-2">
-							<TabsTrigger value="public-url" className="flex items-center gap-2">
+							<TabsTrigger value="public-url" className="flex border-1 items-center gap-2  data-[state=active]:border-neutral-400">
 								<LuLink className="w-4 h-4" /> Public URL
 							</TabsTrigger>
-							<TabsTrigger value="provider" className="flex items-center gap-2">
+							<TabsTrigger value="provider" className="flex border-1 items-center gap-2 data-[state=active]:border-neutral-400">
 								<LuPlug className="w-4 h-4" /> {userAppConnected ? "Provider" : "Connect Provider"}
 							</TabsTrigger>
 

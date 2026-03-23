@@ -45,7 +45,7 @@ const ProjectTabs = ({ tab, setTab }: { tab: string, setTab: (state: string) => 
 						value={tabVal.title}
 						ref={tabVal.ref}
 						onClick={() => setTab(tabVal.title)}
-						className={`text-sm border pb-1 transition-all text-primary whitespace-nowrap`}
+						className={`text-sm border pb-1 transition-all text-primary whitespace-nowrap  data-[state=active]:dark:bg-background data-[state=active]:bg-white `}
 					>
 						{tabVal.title[0].toUpperCase() + tabVal.title.slice(1)}
 					</TabsTrigger>

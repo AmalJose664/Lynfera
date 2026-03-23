@@ -5,7 +5,7 @@ import { useForm, } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ProjectFormSchema } from "@/lib/schema/project";
 import { AnimatePresence, motion } from "motion/react"
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { CiSettings } from "react-icons/ci";
@@ -60,10 +60,15 @@ function ProjectForm() {
 
 	const repoUrl = watch("repoURL")
 	const changedRepo = useDebounce(repoUrl, 450)
+	const isFirstRender = useRef(true)
 
 
 
 	useEffect(() => {
+		if (isFirstRender.current) {
+			isFirstRender.current = false
+			return
+		}
 		const repoUrl = form.getValues("repoURL")
 		const isPrivate = form.getValues("isPrivate")
 		if (repoUrl === fetchedRepoUrl) {
@@ -151,7 +156,10 @@ function ProjectForm() {
 						</div>
 						<div>
 							<LinkComponent
-								href="/docs/getting-started#start-project" className="text-xs text-blue-300/80!">Learn more</LinkComponent>
+								href="/docs/getting-started#start-project" className="text-xs dark:text-blue-300/80! text-blue-600/80!">Learn more</LinkComponent>
+							<span>|</span>
+							<LinkComponent
+								href="/product" className="text-xs">Please Read</LinkComponent>
 						</div>
 					</form>
 
