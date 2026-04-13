@@ -79,7 +79,7 @@ class LogsService implements ILogsService {
 
 	async saveBatch(): Promise<void> {
 		if (this.isSaving || this.logsBuffer.length === 0) {
-			process.stdout.write(" '");
+			// process.stdout.write(" '");
 			return;
 		}
 		this.isSaving = true;

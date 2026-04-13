@@ -29,7 +29,7 @@ PARTITION BY toYYYYMM(report_time)
 ORDER BY (deployment_id, report_time, sequence)
 TTL
 	toDateTime(report_time) + INTERVAL 25 DAY,
-	toDateTime(report_time) + INTERVAL 5 DAY DELETE WHERE info = 'decor'
+	toDateTime(report_time) + INTERVAL 5 DAY DELETE WHERE info = 'DECOR'
 SETTINGS index_granularity = 8192;
  * 
  *

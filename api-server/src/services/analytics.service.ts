@@ -33,7 +33,7 @@ class AnalyticsService implements IAnalyticsService {
 	}
 	async saveBatch(): Promise<void> {
 		if (this.isFlushing || this.analyticsBuffer.length === 0) {
-			process.stdout.write(` "`);
+			// process.stdout.write(` "`);
 			return;
 		}
 		console.log("saving ....", this.analyticsBuffer.length, this.analyticsBuffer[0].project_id, this.analyticsBuffer[0].path);

@@ -14,7 +14,7 @@ class IntervalManager {
 	}
 	private startFlushTimer(): void {
 		this.flushTimer = setInterval(async () => {
-			process.stdout.write(" -");
+			// process.stdout.write(" -");
 			await this.flushAll();
 		}, this.FLUSH_INTERVAL);
 	}

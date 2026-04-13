@@ -4,7 +4,7 @@ module.exports = {
 		script: "./dist/server.js",
 
 
-		instances: "max",
+		instances: 3,
 		exec_mode: "cluster",
 
 		max_memory_restart: "4G",

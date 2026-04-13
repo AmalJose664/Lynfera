@@ -7,7 +7,7 @@ export const getServerNotifications = async (req: Request, res: Response, next: 
 	try {
 		const data = await redisCacheService.get<string>("server-notifications")
 		if (!data) {
-			res.status(404).json({ messgae: "Not found" })
+			res.status(200).json({ fromServer: null })
 			return
 		}
 		res.status(200).json({ fromServer: data })
