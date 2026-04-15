@@ -68,11 +68,18 @@ class ProjectService implements IProjectService {
 			subdomain: `${generateSlug(2)}-${nanoid(6)}`,
 		};
 
-		const user = await this.userRepository.findByUserId(userId);
+		const [user, problems] = await Promise.all([
+			this.userRepository.findByUserId(userId),
+			this.cacheInvalidator.get<{ affectedModules: string[] }>("server-notifications"),
+		]);
 		if (!user) {
 			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
-		if (user?.projects > PLANS[user.plan].maxProjects) {
+		if (problems?.affectedModules?.includes("projects")) {
+			throw new AppError(PROJECT_ERRORS.CREATE_FAILED + "; Projects creation currently disabled", STATUS_CODES.BAD_REQUEST);
+		}
+
+		if (user?.projects < PLANS[user.plan].maxProjects) {
 			throw new AppError(PROJECT_ERRORS.LIMIT_REACHED, STATUS_CODES.FORBIDDEN);
 		}
 		const newProject = await this.projectRepository.createProject(projectData);

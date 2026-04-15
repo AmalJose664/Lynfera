@@ -56,6 +56,7 @@ const envSchema = z.object({
 	EMAIL_SENDER_EMAIL: z.email(),
 
 	NOTIFY_EVENTS_API_KEY: z.string(),
+	USE_REDIS_EMITTER: z.stringbool("Please provide 'true' or 'false' for ENV :- USE_REDIS_EMITTER").optional().default(false),
 });
 function validateEnv() {
 	try {

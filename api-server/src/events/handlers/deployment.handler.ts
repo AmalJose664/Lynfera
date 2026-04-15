@@ -106,7 +106,6 @@ class DeploymentEventHandler {
 				break;
 			}
 			case UpdateTypes.CUSTOM: {
-				updates;
 				await Promise.all([
 					deploymentService.__updateDeployment(projectId, deploymentId, {
 						status: updates.status,

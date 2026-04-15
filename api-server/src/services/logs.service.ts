@@ -144,7 +144,7 @@ class LogsService implements ILogsService {
 
 	async __saveLogAsBatch(logs: ILogs[]): Promise<void> {
 		// await new Promise((res) => setTimeout(res, 2000))
-		console.log(logs[0].event_id)
+		console.log(logs[0].event_id);
 		await this.logsRepository.__insertLogsAsBatch(logs);
 	}
 

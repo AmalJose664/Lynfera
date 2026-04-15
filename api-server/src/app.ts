@@ -27,7 +27,9 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 app.use(helmet());
 app.use(passport.initialize());
-app.use(morgan("tiny"));
+
+morgan.token("app-id", () => String(process.pid));
+app.use(morgan(":app-id :method :url :status :response-time ms"));
 
 app.set("trust proxy", 1);
 

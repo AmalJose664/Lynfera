@@ -1,7 +1,11 @@
+import { redisEmitterPublisher, redisEmitterSubscriber } from "@/config/redis.config.js";
 import { EventEmitter } from "events";
 import { Response, Request } from "express";
+import { Redis } from "ioredis";
+import { IDeploymentEmitter, SSEClient } from "./types/Emitters.js";
+import { ENVS } from "@/config/env.config.js";
 
-class DeploymentEmitter extends EventEmitter {
+class DeploymentEmitter extends EventEmitter implements IDeploymentEmitter {
 	onEvent(eventString: string, callback: (log: any) => void) {
 		this.on(eventString, callback);
 	}
@@ -17,17 +21,70 @@ class DeploymentEmitter extends EventEmitter {
 		this.removeAllListeners(eventString);
 	}
 }
-export const deploymentEmitter = new DeploymentEmitter();
 
-interface SSEClient {
-	deploymentId: string;
-	res: Response;
-	listener: (data: any) => void;
-	errors: number;
+class RedisDeploymentEmitter implements IDeploymentEmitter {
+	private sub: Redis;
+	private pub: Redis;
+	private localInternalEmitter: EventEmitter;
+	constructor(publisher: Redis, subscriber: Redis) {
+		this.pub = publisher;
+		this.sub = subscriber;
+		this.localInternalEmitter = new EventEmitter();
+		this.start();
+	}
+	private start() {
+		this.sub.on("message", (channel, message) => {
+			try {
+				const parsed = JSON.parse(message);
+				this.localInternalEmitter.emit(channel, parsed);
+			} catch (error) {
+				console.log("Error on Redis message parsing...", channel);
+			}
+		});
+		console.log("Started sub on------------------------");
+	}
+	async onEvent(eventString: string, callback: (log: any) => void) {
+		if (this.localInternalEmitter.listenerCount(eventString) === 0) {
+			await this.sub.subscribe(eventString);
+		}
+		this.localInternalEmitter.on(eventString, callback);
+	}
+
+	async offEvent(eventString: string, callback: (log: any) => void) {
+		this.localInternalEmitter.off(eventString, callback);
+		if (this.localInternalEmitter.listenerCount(eventString) === 0) {
+			await this.sub.unsubscribe(eventString);
+		}
+	}
+	async emitEvents(eventString: string, log: any, type: string) {
+		const emitData = { type, data: log };
+		const str = JSON.stringify(emitData);
+		await this.pub.publish(eventString, str);
+	}
+
+	async offAllEvents(eventString: string) {
+		await this.sub.unsubscribe(eventString);
+		this.localInternalEmitter.removeAllListeners(eventString);
+	}
+
+	setMaxListeners(n: number) {
+		this.localInternalEmitter.setMaxListeners(n);
+	}
+	eventNames() {
+		return this.localInternalEmitter.eventNames();
+	}
+	listeners(name: string | symbol) {
+		return this.localInternalEmitter.listeners(name);
+	}
 }
 
+console.log("Using redis emiter = ", ENVS.USE_REDIS_EMITTER);
+export const deploymentEmitter = ENVS.USE_REDIS_EMITTER
+	? new RedisDeploymentEmitter(redisEmitterPublisher, redisEmitterSubscriber)
+	: new DeploymentEmitter();
+
 class SSEManager {
-	private emitter: DeploymentEmitter;
+	private emitter: DeploymentEmitter | RedisDeploymentEmitter;
 	private clients: Map<string, SSEClient>;
 	private interval: NodeJS.Timeout;
 

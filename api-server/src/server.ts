@@ -7,10 +7,10 @@ import { cpus, freemem, loadavg, totalmem } from "os";
 const PORT = ENVS.PORT || 8000;
 
 const startServer = async () => {
-	console.log("starting.....");
+	console.log("starting.....app id " + process.pid);
 	if (ENVS.NODE_ENV === "production") {
-		const totalMem = totalmem() / (1024 ** 3);
-		const freeMem = freemem() / (1024 ** 3);
+		const totalMem = totalmem() / 1024 ** 3;
+		const freeMem = freemem() / 1024 ** 3;
 		const cpuCores = cpus().length;
 		const load = loadavg(); // [1m, 5m, 15m]
 

@@ -5,15 +5,14 @@ import { STATUS_CODES } from "@/utils/statusCodes.js";
 import { NextFunction, Request, Response } from "express";
 export const getServerNotifications = async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const data = await redisCacheService.get<string>("server-notifications")
+		const data = await redisCacheService.get<string>("server-notifications");
 		if (!data) {
-			res.status(200).json({ fromServer: null })
-			return
+			res.status(200).json({ fromServer: null });
+			return;
 		}
-		res.status(200).json({ fromServer: data })
-
+		res.status(200).json({ fromServer: data });
 	} catch (error: any) {
-		console.log(error.message, error)
+		console.log(error.message, error);
 		next(new AppError(COMMON_ERRORS.SOMETHING_WENT_WRONG, STATUS_CODES.INTERNAL_SERVER_ERROR, error));
 	}
 };

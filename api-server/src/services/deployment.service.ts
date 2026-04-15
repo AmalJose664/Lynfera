@@ -57,11 +57,18 @@ class DeploymentService implements IDeploymentService {
 		this.githubSvcs = githubSvcs;
 	}
 	async newDeployment(deploymentData: Partial<IDeployment>, userId: string, projectId: string, isRedeploy: boolean): Promise<IDeployment | null> {
-		const canDeploy = await this.userService.userCanDeploy(userId);
+		const [canDeploy, problems] = await Promise.all([
+			this.userService.userCanDeploy(userId),
+			this.redisCache.get<{ affectedModules: string[] }>("server-notifications"),
+		]);
+		if (problems?.affectedModules?.includes("deployments")) {
+			throw new AppError(DEPLOYMENT_ERRORS.DEPLOY_FAILED + "; Deployments are currently disabled", STATUS_CODES.BAD_REQUEST);
+		}
+
 		if (!canDeploy.user) {
 			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
-		if (!canDeploy.allowed) {
+		if (canDeploy.allowed) {
 			throw new AppError(DEPLOYMENT_ERRORS.DAILY_DEPLOYMENT_LIMIT, STATUS_CODES.TOO_MANY_REQUESTS);
 		}
 
@@ -132,8 +139,15 @@ class DeploymentService implements IDeploymentService {
 		project: IProject,
 		installationId?: number,
 	): Promise<{ status: string; reason: string }> {
-		const canDeploy = await this.userService.userCanDeploy(project.user.toString());
+		const [canDeploy, problems] = await Promise.all([
+			this.userService.userCanDeploy(project.user.toString()),
+			this.redisCache.get<{ affectedModules: string[] }>("server-notifications"),
+		]);
 		const correspondindProject = project;
+
+		if (problems?.affectedModules?.includes("github")) {
+			await this.createNewFailedDeployment(deploymentData, project, DEPLOYMENT_ERRORS.DEPLOY_FAILED + "; Deployments are currently disabled");
+		}
 
 		if (installationId && canDeploy.user.githubInstallationId && canDeploy.user.githubInstallationId !== installationId) {
 			return { status: "ignored", reason: "installation mismatch" };
