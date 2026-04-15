@@ -52,7 +52,7 @@ function ProjectForm() {
 	const { branches, repoUrl: fetchedRepoUrl } = useAppSelector(s => s.project);
 
 	const { handleSubmit, formState,
-		watch
+		watch, setError
 	} = form
 	const { errors,
 		isSubmitting, isSubmitSuccessful
@@ -100,9 +100,17 @@ function ProjectForm() {
 			}
 			console.log("Error!", error)
 			if (error.status === 400) {
+				setError("root", {
+					type: "server",
+					message: error.data.message,
+				});
 				return showToast.error("Error on creating project, ", error.data.message || error.message)
 			}
-			showToast.error("Error", "Error on creating project")
+			setError("root", {
+				type: "server",
+				message: error.data.message,
+			});
+			showToast.error("Error", "Error on creating project;  " + error.data.message)
 		}
 
 	}
@@ -129,6 +137,7 @@ function ProjectForm() {
 						onSubmit={handleSubmit(onSubmit)}
 					// transition={{ duration: 0.4, ease: "easeInOut" }}
 					>
+						<p className="text-red-400 text-sm pl-2">{errors.root?.message}</p>
 						<BaseSettings form={form} branches={branches || []} />
 
 						<div className="px-4 my-4 group transition-all duration-200 w-fit">
