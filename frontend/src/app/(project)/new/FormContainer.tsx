@@ -110,6 +110,8 @@ function ProjectForm() {
 				type: "server",
 				message: error.data.message,
 			});
+
+
 			showToast.error("Error", "Error on creating project;  " + error.data.message)
 		}
 
