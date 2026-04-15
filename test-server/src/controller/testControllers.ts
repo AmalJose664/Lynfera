@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { kafka } from "../config/kafka.config.js";
 
 
-const DEPLOYMENT_IDS = ["69b6d927f05fac425bcfc3b0"];
+const DEPLOYMENT_IDS = ["69dd44ce0c263cbd29a2cc66"];
 const PROJECT_IDS = ["69b692161c4fecb9419d4a79"];
 const LOG_LEVELS = ["info", "warn", "error", "decor"];
 const STREAMS = ["stdout", "stderr"];
@@ -95,9 +95,9 @@ function buildStartPayload(deploymentId: string, projectId: string) {
 		data: {
 			deploymentId,
 			projectId,
-			updateType: "START",
+			updateType: "CUSTOM", // changed here
 			updates: {
-				status: "READY",
+				status: "BUILDING", // changed here
 				commit_hash: randomFrom(COMMIT_HASHES),
 				techStack: randomFrom(TECH_STACKS),
 				preventAutoPromoteDeployment: false,
@@ -109,7 +109,7 @@ function buildStartPayload(deploymentId: string, projectId: string) {
 function buildEndPayload(
 	deploymentId: string,
 	projectId: string,
-	outcome: "END" | "ERROR"
+	outcome: "END" | "ERROR" | "CUSTOM"
 ) {
 	const status = outcome === "END" ? "READY" : randomFrom(["FAILED", "CANCELLED"] as const);
 	const now = new Date();
@@ -154,16 +154,13 @@ function buildEndPayload(
 }
 
 export async function produceDeploymentUpdate(req: Request, res: Response) {
-	const producer = kafka.producer();
-
 	const deploymentId = randomFrom(DEPLOYMENT_IDS);
 	const projectId = randomFrom(PROJECT_IDS);
 	const delayMs = randomInt(3000, 7000);
-	const outcome: "END" | "ERROR" = Math.random() > 0.3 ? "END" : "ERROR";
+	// const outcome: "END" | "ERROR" | "CUSTOM" = Math.random() > 0.3 ? "END" : "ERROR";
+	const outcome: "END" | "ERROR" | "CUSTOM" = Math.random() > 0.3 ? "CUSTOM" : "CUSTOM";
 
 	try {
-		await producer.connect();
-
 		// 1. Send START immediately
 		const startPayload = buildStartPayload(deploymentId, projectId);
 		await producer.send({
@@ -172,22 +169,23 @@ export async function produceDeploymentUpdate(req: Request, res: Response) {
 		});
 
 		// Respond to client right away — don't hold the HTTP request
+
+		// 2. Wait, then send END or ERROR in background
+		// await new Promise(resolve => setTimeout(resolve, delayMs));
+
+		// const endPayload = buildEndPayload(deploymentId, projectId, outcome);
+		// await producer.send({
+		// 	topic: "deployment.updates",
+		// 	messages: [{ key: "update", value: JSON.stringify(endPayload) }],
+		// });
 		res.status(200).json({
 			success: true,
 			message: `START sent. ${outcome} will follow in ~${delayMs}ms`,
 			deploymentId,
 			projectId,
 			outcome,
-			startPayload,
-		});
-
-		// 2. Wait, then send END or ERROR in background
-		await new Promise(resolve => setTimeout(resolve, delayMs));
-
-		const endPayload = buildEndPayload(deploymentId, projectId, outcome);
-		await producer.send({
-			topic: "deployment.updates",
-			messages: [{ key: "update", value: JSON.stringify(endPayload) }],
+			// endPayload,
+			startPayload
 		});
 
 		console.log(`[kafka] ${outcome} sent for deployment ${deploymentId}`);
@@ -198,6 +196,6 @@ export async function produceDeploymentUpdate(req: Request, res: Response) {
 			res.status(500).json({ success: false, error: String(err) });
 		}
 	} finally {
-		await producer.disconnect();
+		// await producer.disconnect();
 	}
 }
