@@ -68,7 +68,7 @@ class DeploymentService implements IDeploymentService {
 		if (!canDeploy.user) {
 			throw new AppError(USER_ERRORS.NOT_FOUND, STATUS_CODES.NOT_FOUND);
 		}
-		if (canDeploy.allowed) {
+		if (!canDeploy.allowed) {
 			throw new AppError(DEPLOYMENT_ERRORS.DAILY_DEPLOYMENT_LIMIT, STATUS_CODES.TOO_MANY_REQUESTS);
 		}
 

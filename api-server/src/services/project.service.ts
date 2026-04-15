@@ -79,7 +79,7 @@ class ProjectService implements IProjectService {
 			throw new AppError(PROJECT_ERRORS.CREATE_FAILED + "; Projects creation currently disabled", STATUS_CODES.BAD_REQUEST);
 		}
 
-		if (user?.projects < PLANS[user.plan].maxProjects) {
+		if (user?.projects > PLANS[user.plan].maxProjects) {
 			throw new AppError(PROJECT_ERRORS.LIMIT_REACHED, STATUS_CODES.FORBIDDEN);
 		}
 		const newProject = await this.projectRepository.createProject(projectData);
