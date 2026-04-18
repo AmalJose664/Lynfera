@@ -1,8 +1,6 @@
 
 'use client'
 
-import { FiMoreHorizontal } from "react-icons/fi"
-import { TiArrowLeft } from "react-icons/ti"
 import ProjectTabs from "../../../../../components/project/ProjectTabs"
 import { Project } from "@/types/Project"
 import { Deployment } from "@/types/Deployment"
@@ -67,7 +65,6 @@ export function ProjectContent({
 			scrollRef.current?.scrollIntoView({ behavior: "smooth" })
 		}, 600)
 	}, [])
-	const router = useRouter()
 	const searchParams = useSearchParams()
 	useEffect(() => {
 		return () => {
@@ -170,7 +167,7 @@ export function ProjectContent({
 								deployment,
 								tempDeployment,
 								lastDeployment,
-								newDeployment
+								newDeployment: { ...newDeployment, newDeploymentDialog: () => setShowConfirm(true) }
 							}}
 							build={{ setShowBuild, showBuild }}
 							reDeploy={reDeploy}

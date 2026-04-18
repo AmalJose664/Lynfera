@@ -1,6 +1,7 @@
 import { ParsedRepo, SourceLocation } from "@/types/Others";
 import { ProjectStatus } from "@/types/Project";
 import { parseRepoUrl } from "./form";
+import axios from "axios";
 
 
 export const formatDate = (
@@ -252,7 +253,67 @@ export const getGithubCommitUrl = (repoUrl: string, commitId: string) => { //cha
 
 	return `${repoUrl}/commit/${commitId}`;
 };
+export const GIT_COMMIT_SEPARATOR = "::"
+export const getLatestCommit = async (url: string,): Promise<string | null> => {
+	if (!url) return null
 
+	const parsed = parseRepoUrl(url)
+	if (!parsed) return null
+
+	const { provider, owner, repo } = parsed
+
+
+	try {
+		if (provider === "github") {
+			const res = await axios(
+				`https://api.github.com/repos/${owner}/${repo}/commits`
+			)
+			const data = res.data?.[0]
+
+			if (!data) return null
+
+			const sha = data.sha
+			const message = data.commit?.message
+
+			return `${sha}${GIT_COMMIT_SEPARATOR}${message}`
+		}
+
+		if (provider === "gitlab") {
+			const res = await axios(
+				`https://gitlab.com/api/v4/projects/${encodeURIComponent(
+					`${owner}/${repo}`
+				)}/repository/commits`
+			)
+			const data = res.data?.[0]
+
+			if (!data) return null
+
+			const sha = data.id
+			const message = data.title || data.message
+
+			return `${sha}${GIT_COMMIT_SEPARATOR}${message}`
+		}
+
+		if (provider === "bitbucket") {
+			const res = await axios(
+				`https://api.bitbucket.org/2.0/repositories/${owner}/${repo}/commits`
+			)
+			const data = res.data?.values?.[0]
+
+			if (!data) return null
+
+			const sha = data.hash
+			const message = data.message
+
+			return `${sha}${GIT_COMMIT_SEPARATOR}${message}`
+		}
+
+		return null
+	} catch (err) {
+		console.error("Failed to fetch latest commit:", err)
+		return null
+	}
+}
 
 export const generateRepoUrls = (
 	url: string,

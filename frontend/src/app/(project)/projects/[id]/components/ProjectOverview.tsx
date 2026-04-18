@@ -20,9 +20,8 @@ import { Button } from "@/components/ui/button";
 import RightFadeComponent from "@/components/RightFadeComponent";
 import { TbHexagonNumber1Filled } from "react-icons/tb";
 import { LinkComponent } from "@/components/docs/HelperComponents";
-import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DeploymentDuarionWarning, DeploymentFailedWarning } from "@/components/Banners";
+import { DeploymentDuarionWarning, DeploymentFailedWarning, NewCommitFound } from "@/components/Banners";
 import { RiGitRepositoryPrivateFill } from "react-icons/ri";
 import { FaLockOpen } from "react-icons/fa";
 
@@ -33,8 +32,9 @@ interface ProjectOverviewProps {
 	runningDeployment?: Deployment;
 	setShowBuild: (state: boolean) => void;
 	setTabs: (state: string) => void;
+	newDeploymentDialog: () => void;
 }
-const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, setShowBuild, setTabs }: ProjectOverviewProps) => {
+const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, newDeploymentDialog, setTabs }: ProjectOverviewProps) => {
 	const isprojectError = isStatusFailure(project.status)
 	const runningDeploymentStatus = runningDeployment?.status
 	const isDeplymentError = project.deployments?.length !== 0 || (!project.currentDeployment && isprojectError)
@@ -52,6 +52,7 @@ const ProjectOverview = ({ project, deployment, runningDeployment, reDeploy, set
 				<div className="">
 					<DeploymentFailedWarning runningDeployment={runningDeployment} />
 					<DeploymentDuarionWarning runningDeployment={runningDeployment} />
+					<NewCommitFound project={project} currentCommit={deployment?.commit} newDeploymentDialog={newDeploymentDialog} />
 				</div>
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 					<div className="lg:col-span-2 space-y-6">

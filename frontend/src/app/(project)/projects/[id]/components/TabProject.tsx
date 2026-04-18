@@ -22,7 +22,8 @@ interface TabProjectProps {
 		lastDeployment?: Deployment
 		newDeployment: {
 			onCreateDeployment: (arg: boolean) => void;
-			createDeploymentLoading: boolean
+			createDeploymentLoading: boolean;
+			newDeploymentDialog: () => void;
 		}
 	}
 	build: {
@@ -64,6 +65,7 @@ const TabProject = ({ project, deploymentCtx, build, setTabs, reDeploy, refetchL
 					deployment={deployment || lastDeployment}
 					runningDeployment={tempDeployment}
 					reDeploy={reDeploy}
+					newDeploymentDialog={newDeployment.newDeploymentDialog}
 					setShowBuild={setShowBuild}
 					setTabs={setTabs}
 				/>
