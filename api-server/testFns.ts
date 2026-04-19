@@ -162,18 +162,18 @@ async function gitPushStatusChanger() {
 	console.log("Starting ...");
 	const repoUser = "AmalJose664/Three-d-Projects"
 
-	// const res = await fetch(`https://api.github.com/repos/${repoUser}/check-runs/${71949271798}`, {
-	// 	method: "PATCH",
-	// 	headers: {
-	// 		Authorization: `Bearer ${installationToken}`,
-	// 		Accept: "application/vnd.github+json",
-	// 		"Content-Type": "application/json",
-	// 	},
-	// 	body: JSON.stringify({
-	// 		status: "completed",
-	// 		conclusion: "cancelled", // or "failure"
-	// 	}),
-	// });
+	const res = await fetch(`https://api.github.com/repos/${repoUser}/check-runs/${71949271798}`, {
+		method: "PATCH",
+		headers: {
+			Authorization: `Bearer ${"token here"}`,
+			Accept: "application/vnd.github+json",
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			status: "completed",
+			conclusion: "cancelled", // or "failure"
+		}),
+	});
 
 	// const res = await fetch(`https://api.github.com/repos//${repoUser}/check-runs`, {
 	// 	method: "POST",

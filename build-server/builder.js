@@ -68,12 +68,16 @@ const settings = {
 	localDeploy: !true,           // for non s3 uploads
 	runCommands: true,            // for testing only 
 	cloneRepo: true,            // for testing only 
-	uploadArtifacts: true       // for disabling uploading in dev
+	uploadArtifacts: true,       // for disabling uploading in dev
+	githubCheckRuns: {
+		sendStart: true,
+		sendStop: true
+	}
 }
 
 console.log(DEPLOYMENT_ID, PROJECT_ID, "<<<<<")
 
-let gitCommitData = process.env.GIT_COMMIT_DATA || "----||-----"
+let gitCommitData = process.env.GIT_COMMIT_DATA || "----||----"
 
 const userSettings = {
 	skipInstall: false,
@@ -313,6 +317,9 @@ async function cloneGitRepoAndValidate(taskDir, runDir, projectData) {
 async function getGitCommitData(taskDir) {
 	const repoGit = simpleGit(taskDir);
 	const logss = await repoGit.log({})
+	if (logss.all.length === 0) {
+		return "----||----"
+	}
 	return logss.all[0].hash + "||" + logss.all[0].message
 }
 
@@ -396,9 +403,9 @@ async function fetchProjectData(deploymentId = "") {
 
 			return [projectData.project, deploymentData.deployment]
 		} catch (error) { // Currently this retries with data already fetched but that not a big problem for now
+			console.log("Error on data fetching; ", error.message)
 			const isAxiosErr = axios.isAxiosError(error)
 			const status = error?.response?.status
-
 			const retryableCodes = [
 				'ECONNABORTED',
 				'ECONNRESET',
@@ -1169,6 +1176,109 @@ async function uploadOutputFiles(sourceDir) {
 	return { fileStructure, totalSize };
 }
 
+function getRepoInfo(repoURL) {
+	if (!repoURL) return null;
+	const cleaned = repoURL.replace(/\.git$/, "").replace(/\/$/, "");
+	const parts = cleaned.split("/");
+	const repo = parts.pop();
+	const owner = parts.pop();
+	return { owner, repo };
+}
+
+async function sendDeploymentGithubStatusStart(project, commitAvailble = "") {
+	if (!settings.githubCheckRuns.sendStart) return console.log("\nCancelled check runs start\n");
+	const installAccessToken = process.env.INSTALLATION_ACCESS_TOKEN.replace(/\r$/, "")
+
+	const githubHeadersCommon = {
+		Authorization: `Bearer ${installAccessToken}`,
+		Accept: "application/vnd.github+json",
+	}
+	try {
+		const userWithRepo = getRepoInfo(project.repoURL)
+		const owner = userWithRepo.owner
+		const repo = userWithRepo.repo
+		if (project.provider !== 'GITHUB' || !installAccessToken || !owner || !repo) {
+			return undefined
+		}
+		console.log("Updating github check run 'start'");
+		let commitLatest = commitAvailble
+		if (!commitAvailble) {
+			console.log("Github checks; No commit found; Fetching commit...");
+			const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/commits/${project.branch}`, {
+				headers: {
+					...githubHeadersCommon,
+					"Content-Type": "application/json",
+				}
+			})
+			commitLatest = response.data.sha
+			console.log("commit", commitLatest, "from new fetch \n")
+		}
+
+		const response = await axios.post(`https://api.github.com/repos/${owner}/${repo}/check-runs`,
+			{
+				name: brandName,
+				head_sha: commitLatest,
+				status: "in_progress",
+			}, {
+			headers: {
+				...githubHeadersCommon,
+				"Content-Type": "application/json",
+			}
+		});
+		const data = response.data;
+		const checkId = data.id;
+		return checkId
+	} catch (error) {
+		console.log("Error on updating github check runs 'start'", error?.response?.data || error.message)
+		return undefined
+	}
+}
+
+async function sendDeploymentGithubStatusStop(project, meta = { checkId: 0 }, errorData = {
+	conslusion: "", errorMessage: "", errorSummary: "", isError: false,
+}) {
+	if (!settings.githubCheckRuns.sendStop) return console.log("\nCancelled check runs stop\n");
+	console.log("Check runs :: deployment status ->", errorData.isError ? "error" : "success");
+
+	const { checkId } = meta
+	if (!projectData || !checkId) {
+		return
+	}
+	const installAccessToken = process.env.INSTALLATION_ACCESS_TOKEN.replace(/\r$/, "");
+	try {
+		const userWithRepo = getRepoInfo(project.repoURL)
+		const owner = userWithRepo.owner
+		const repo = userWithRepo.repo
+
+		if (projectData.provider !== 'GITHUB' || !installAccessToken || !owner || !repo) {
+			return
+		}
+
+		console.log("Updating github check run 'complete'");
+		const { conclusion, isError, errorMessage } = errorData
+
+		await axios.patch(`https://api.github.com/repos/${owner}/${repo}/check-runs/${checkId}`, {
+			name: brandName,
+			status: "completed",
+			conclusion,
+			output: {
+				title: `${brandName} Deployment completed${isError ? " with errors" : ""}.`,
+				summary: errorMessage || "",
+			}
+		}, {
+			headers: {
+				Authorization: `Bearer ${installAccessToken}`,
+				Accept: "application/vnd.github+json",
+				"Content-Type": "application/json",
+			}
+		})
+
+	} catch (error) {
+		console.log("Error on updating github check runs 'stop' :: ", error?.response?.data || error.message)
+		return
+	}
+}
+
 // --------------------------------------------------------MAIN_TASK--------------------------------------------------
 
 let projectData = null
@@ -1179,32 +1289,43 @@ async function init() {
 	if (settings.sendKafkaMessage) {
 		await kafkaProducer.connect();
 	};
-
-	["\x1b[38;5;153m\x1b[3;2m" + repeat("-", 60) + "\x1b[38;5;153m\x1b[3;2m BEGIN " + "\x1b[38;5;153m\x1b[3;2m" + repeat("-", 150) + "\x1b[0m", repeat(" ", 100)].map((v) => publishLogs({
-		DEPLOYMENT_ID, PROJECT_ID,
-		level: logValues.DECOR,
-		message: v, stream: "system"
-	}))
-	publishLogs({
-		DEPLOYMENT_ID, PROJECT_ID,
-		level: logValues.INFO,
-		message: "Starting deployment..", stream: "system"
-	})
-	const timerStart = performance.now();
 	await publishUpdates({
 		DEPLOYMENT_ID, PROJECT_ID,
 		type: "START",
 		commit_hash: gitCommitData,
 		status: deploymentStatus.BUILDING
 	});
+	const timerStart = performance.now();
 
+
+	["\x1b[38;5;153m\x1b[3;2m" + repeat("-", 60) + "\x1b[38;5;153m\x1b[3;2m BEGIN " + "\x1b[38;5;153m\x1b[3;2m" + repeat("-", 150) + "\x1b[0m", repeat(" ", 100)].map((v) => publishLogs({
+		DEPLOYMENT_ID, PROJECT_ID,
+		level: logValues.DECOR,
+		message: v, stream: "system"
+	}));
+
+	publishLogs({
+		DEPLOYMENT_ID, PROJECT_ID,
+		level: logValues.INFO,
+		message: "Starting deployment..", stream: "system"
+	})
+	let githubCheckId = null;
+	let gitCommitSha = gitCommitData.split("||")[0];
 	try {
 		//logs
 		console.log("Executing script.js");
 
 		console.log("Fetching project data");
-		const taskDir = path.join(__dirname, "./output/");            // UPDATE THIS ON DEPLOYMENT !!!!!!!!!!!!!!!!!
+		const [project, deploymentData] = await fetchProjectData(DEPLOYMENT_ID);
 
+		githubCheckId = await sendDeploymentGithubStatusStart(project,
+			deploymentData.triggerEvent !== "GIT_PUSH" ?
+				(deploymentData.commit.id === "----" ? "" : deploymentData.commit.id)
+				: ""
+		)
+
+
+		const taskDir = path.join(__dirname, "./output/");            // UPDATE THIS ON DEPLOYMENT !!!!!!!!!!!!!!!!!
 		["Directory set to " + taskDir, "Fetching project data "].map((v) => publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
 			level: logValues.INFO,
@@ -1214,7 +1335,6 @@ async function init() {
 		//-----------------------------------------CLONING_FETCHING-----------------------------------------------------------------------------------------------------
 
 
-		const [project, deploymentData] = await fetchProjectData(DEPLOYMENT_ID);
 		projectData = project;
 		projectUser = project.user;
 		DEPLOYMENT_ID = deploymentData._id;
@@ -1240,7 +1360,7 @@ async function init() {
 
 		await cloneGitRepoAndValidate(taskDir, runDir, projectData);
 		gitCommitData = await getGitCommitData(taskDir).catch((e) => console.log("Error getting commit", e)) || gitCommitData;
-
+		gitCommitSha = gitCommitData.split("||")[0];
 
 		publishLogs({
 			DEPLOYMENT_ID, PROJECT_ID,
@@ -1495,6 +1615,7 @@ async function init() {
 			message: v, stream: "system"
 		}))
 
+		await sendDeploymentGithubStatusStop(projectData, { commitLatest: gitCommitSha, checkId: githubCheckId }, { conclusion: "success", isError: false, });
 		await publishUpdates({
 			DEPLOYMENT_ID, PROJECT_ID,
 			type: "END",
@@ -1511,6 +1632,7 @@ async function init() {
 		})
 
 		console.log("Time taken ", durationMs.toFixed(2), "logs number ", logsNumber)
+		console.log("Deployment finished ...");
 	} catch (err) {
 		//logs
 		if (err?.isContainerError || err instanceof ContainerError) {
@@ -1528,6 +1650,13 @@ async function init() {
 				level: logValues.DECOR,
 				message: v, stream: "system"
 			}));
+
+			await sendDeploymentGithubStatusStop(projectData, { checkId: githubCheckId }, {
+				isError: true,
+				conclusion: err.cancelled ? "cancelled" : "failure",
+				errorMessage: `${err.message} ${err.cause ? "| " + err.cause : ""}`,
+			});
+
 			await publishUpdates({
 				DEPLOYMENT_ID, PROJECT_ID,
 				type: "ERROR",
@@ -1545,6 +1674,13 @@ async function init() {
 				level: logValues.ERROR,
 				message: `Internal Server Error`, stream: "Server"
 			})
+
+			await sendDeploymentGithubStatusStop(projectData, { checkId: githubCheckId }, {
+				isError: true,
+				conclusion: "failure",
+				errorMessage: `${err.message} ${err.cause ? "| " + err.cause : ""}`,
+			});
+
 			await publishUpdates({
 				DEPLOYMENT_ID, PROJECT_ID,
 				type: "ERROR",
