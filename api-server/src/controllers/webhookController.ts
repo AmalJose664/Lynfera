@@ -43,7 +43,7 @@ class WebhookController implements IWebhookController {
 			const { body } = req;
 			const eventType = String(req.headers["x-github-event"]);
 			switch (eventType) {
-				case "push":
+				case "push": {
 					const repository = body.repository;
 					const sender = body.sender;
 					const installationId = body.installation.id;
@@ -63,7 +63,9 @@ class WebhookController implements IWebhookController {
 					deployResult = await this.webhookService.webhookCodePushEvent(repository, meta);
 					console.log({ deployResult });
 					break;
-				case "installation":
+				}
+
+				case "installation": {
 					const action = body.action;
 					switch (action) {
 						case "created":
@@ -75,7 +77,28 @@ class WebhookController implements IWebhookController {
 							break;
 					}
 					break;
-				case "installation_repositories":
+				}
+
+				case "check_run": {
+					const checkRunAction = body.action;
+					switch (checkRunAction) {
+						case "rerequested": {
+							const repository = body.repository;
+							const sender = body.sender;
+							const installationId = body.installation.id;
+
+							const headCommitId = body.check_run.head_sha;
+							const meta = { sender, installationId, headCommitId };
+
+							deployResult = await this.webhookService.webhookCheckRunReRequestEvent(repository, meta);
+							console.log({ deployResult });
+							break;
+						}
+					}
+					break;
+				}
+
+				case "installation_repositories": {
 					const repoActions = body.action;
 					switch (repoActions) {
 						case "added":
@@ -85,6 +108,10 @@ class WebhookController implements IWebhookController {
 							await this.webhookService.webhookRepositoryAddRemove(body.repositories_added, body.repositories_removed);
 							break;
 					}
+				}
+				default: {
+					console.log("Github webhook req: ", body.action, body.repository.id, eventType);
+				}
 			}
 
 			// console.log("\n---------------------\n", JSON.stringify(body, null, 2), "\n---------------------\n",

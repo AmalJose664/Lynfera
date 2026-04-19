@@ -39,7 +39,7 @@ class DeploymentService implements IDeploymentService {
 	private githubSvcs: IGithubService;
 
 	private USER_CONCURRENCY_KEY_PREFIX = "build:cncrncy";
-	private USER_CONCURRENCY_TTL_SECONDS = 60 * 10;
+	private USER_CONCURRENCY_TTL_SECONDS = 60 * 20;
 
 	constructor(
 		deploymentRepo: IDeploymentRepository,
@@ -94,7 +94,7 @@ class DeploymentService implements IDeploymentService {
 
 		deploymentData.status = DeploymentStatus.QUEUED;
 		deploymentData.overWrite = false;
-		deploymentData.commit_hash = "------||------";
+		deploymentData.commit_hash = "----||----";
 		deploymentData.publicId = nanoid(DEPLOYMENT_ID_LENGTH);
 		deploymentData.identifierSlug = generateSlug(3);
 		deploymentData.project = new Types.ObjectId(correspondindProject._id);
@@ -145,10 +145,6 @@ class DeploymentService implements IDeploymentService {
 		]);
 		const correspondindProject = project;
 
-		if (problems?.affectedModules?.includes("github")) {
-			await this.createNewFailedDeployment(deploymentData, project, DEPLOYMENT_ERRORS.DEPLOY_FAILED + "; Deployments are currently disabled");
-		}
-
 		if (installationId && canDeploy.user.githubInstallationId && canDeploy.user.githubInstallationId !== installationId) {
 			return { status: "ignored", reason: "installation mismatch" };
 		}
@@ -158,8 +154,11 @@ class DeploymentService implements IDeploymentService {
 		deploymentData.identifierSlug = generateSlug(3);
 		deploymentData.project = new Types.ObjectId(correspondindProject._id);
 		deploymentData.user = correspondindProject.user;
-		deploymentData.triggerEvent = DeploymentTriggers.GIT_PUSH;
 
+		if (problems?.affectedModules?.includes("github") || problems?.affectedModules?.includes("deployments")) {
+			await this.createNewFailedDeployment(deploymentData, project, DEPLOYMENT_ERRORS.DEPLOY_FAILED + "; Deployments are currently disabled");
+			return { status: "cancelled", reason: DEPLOYMENT_ERRORS.CREATE_FAILED };
+		}
 		if (!canDeploy.allowed) {
 			await this.createNewFailedDeployment(deploymentData, project, "User daily deploy limit reached.");
 			return { status: "cancelled", reason: DEPLOYMENT_ERRORS.DAILY_DEPLOYMENT_LIMIT };

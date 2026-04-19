@@ -6,7 +6,7 @@ import { IGithubService } from "@/interfaces/service/IGithubService.js";
 import { IProjectService } from "@/interfaces/service/IProjectService.js";
 import { IUserSerivce } from "@/interfaces/service/IUserService.js";
 import { IWebhookService } from "@/interfaces/service/IWebhookService.js";
-import { IDeployment } from "@/models/Deployment.js";
+import { DeploymentTriggers, IDeployment } from "@/models/Deployment.js";
 import AppError, { WebhookError } from "@/utils/AppError.js";
 import dispatchRequestService from "@/utils/dispatchRequest.js";
 import { generateTokenForGithubAppInstallation } from "@/utils/generateToken.js";
@@ -111,6 +111,37 @@ class WebhookService implements IWebhookService {
 			triggeredBy: `${sender.id}||${sender.login}`,
 			commit_hash: `${headCommit.id}||${headCommit.message}`,
 			branch: project.branch,
+			triggerEvent: DeploymentTriggers.GIT_PUSH,
+		};
+		return await this.deploySvs.newPushDeployment(deployData, project, installationId);
+		return { reason: "", status: "" };
+	}
+
+	async webhookCheckRunReRequestEvent(
+		repo: GithubRepoResponse,
+		meta: {
+			sender: GithubRepositoryOwner;
+			installationId: number;
+			headCommitId: string;
+		},
+	): Promise<{ status: string; reason: string }> {
+		const { installationId, sender, headCommitId } = meta;
+
+		const project = await this.projectSvcs.__getProjectByRepository(repo.id);
+
+		if (!project) {
+			console.log("No Project found");
+			return { status: "ignored", reason: PROJECT_ERRORS.NOT_FOUND };
+		}
+		if (project.isDisabled || project.isDeleted) {
+			return { status: "ignored", reason: "project inactive" };
+		}
+
+		const deployData: Partial<IDeployment> = {
+			triggeredBy: `${sender.id}||${sender.login}`,
+			commit_hash: `${headCommitId}||----`,
+			branch: project.branch,
+			triggerEvent: DeploymentTriggers.GITHUB_CHECKS_RERUN,
 		};
 		return await this.deploySvs.newPushDeployment(deployData, project, installationId);
 		return { reason: "", status: "" };

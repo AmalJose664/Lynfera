@@ -22,6 +22,7 @@ enum EnvsAvailable {
 }
 export enum DeploymentTriggers {
 	GIT_PUSH = "GIT_PUSH",
+	GITHUB_CHECKS_RERUN = "GITHUB_CHECKS_RERUN",
 	MANUAL = "MANUAL",
 	REDEPLOY = "REDEPLOY",
 }

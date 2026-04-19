@@ -18,6 +18,14 @@ export interface IWebhookService {
 			deployRequired: boolean;
 		},
 	): Promise<{ status: string; reason: string }>;
+	webhookCheckRunReRequestEvent(
+		repo: GithubRepoResponse,
+		meta: {
+			sender: GithubRepositoryOwner;
+			installationId: number;
+			headCommitId: string;
+		},
+	): Promise<{ status: string; reason: string }>;
 
 	githubSecondaryEvents(installationId: string, userId: string): Promise<string>;
 	removeGhbInstallation(installationId: string, userId: string, skipUserCheck?: boolean): Promise<void>;

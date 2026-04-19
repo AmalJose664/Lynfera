@@ -138,7 +138,7 @@ async function getClickhouseData() {
 	// 	query: "TRUNCATE analytics"
 	// })
 }
-getClickhouseData().then(() => process.exit(0));
+// getClickhouseData().then(() => process.exit(0));
 async function idChecker() {
 	const obj = new Set();
 	const id = "";
@@ -157,3 +157,39 @@ async function idChecker() {
 	console.log(obj);
 }
 // idChecker()
+
+async function gitPushStatusChanger() {
+	console.log("Starting ...");
+	const repoUser = "AmalJose664/Three-d-Projects"
+
+	// const res = await fetch(`https://api.github.com/repos/${repoUser}/check-runs/${71949271798}`, {
+	// 	method: "PATCH",
+	// 	headers: {
+	// 		Authorization: `Bearer ${installationToken}`,
+	// 		Accept: "application/vnd.github+json",
+	// 		"Content-Type": "application/json",
+	// 	},
+	// 	body: JSON.stringify({
+	// 		status: "completed",
+	// 		conclusion: "cancelled", // or "failure"
+	// 	}),
+	// });
+
+	// const res = await fetch(`https://api.github.com/repos//${repoUser}/check-runs`, {
+	// 	method: "POST",
+	// 	headers: {
+	// 		Authorization: `Bearer ${installationToken}`,
+	// 		Accept: "application/vnd.github+json",
+	// 		"Content-Type": "application/json",
+	// 	},
+	// 	body: JSON.stringify({
+	// 		name: "Lynfera Deploy",
+	// 		head_sha: "5ea33e0389101cbc2a6122f48397c07761692a28",
+	// 		status: "in_progress",
+	// 	}),
+	// });
+
+	const check = await res.json();
+	console.log({ check });
+}
+gitPushStatusChanger();
