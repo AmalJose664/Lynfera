@@ -254,7 +254,7 @@ export const getGithubCommitUrl = (repoUrl: string, commitId: string) => { //cha
 	return `${repoUrl}/commit/${commitId}`;
 };
 export const GIT_COMMIT_SEPARATOR = "::"
-export const getLatestCommit = async (url: string,): Promise<string | null> => {
+export const getLatestCommit = async (url: string, branch: string): Promise<string | null> => {
 	if (!url) return null
 
 	const parsed = parseRepoUrl(url)
@@ -266,7 +266,7 @@ export const getLatestCommit = async (url: string,): Promise<string | null> => {
 	try {
 		if (provider === "github") {
 			const res = await axios(
-				`https://api.github.com/repos/${owner}/${repo}/commits`
+				`https://api.github.com/repos/${owner}/${repo}/commits?sha=${branch}`
 			)
 			const data = res.data?.[0]
 
@@ -282,7 +282,7 @@ export const getLatestCommit = async (url: string,): Promise<string | null> => {
 			const res = await axios(
 				`https://gitlab.com/api/v4/projects/${encodeURIComponent(
 					`${owner}/${repo}`
-				)}/repository/commits`
+				)}/repository/commits?ref_name=${branch}`
 			)
 			const data = res.data?.[0]
 
@@ -296,7 +296,7 @@ export const getLatestCommit = async (url: string,): Promise<string | null> => {
 
 		if (provider === "bitbucket") {
 			const res = await axios(
-				`https://api.bitbucket.org/2.0/repositories/${owner}/${repo}/commits`
+				`https://api.bitbucket.org/2.0/repositories/${owner}/${repo}/commits/${branch}`
 			)
 			const data = res.data?.values?.[0]
 

@@ -19,7 +19,7 @@ const initialState: ProjectDatas = {};
 export const fetchCommit = createAsyncThunk(
 	"projectsDatas/fetchLatestCommit",
 	async ({ project }: { project: Project }, { rejectWithValue }) => {
-		const commit = await getLatestCommit(project.repoURL)
+		const commit = await getLatestCommit(project.repoURL, project.branch)
 		if (!commit) return rejectWithValue("Failed to get commits");
 		return commit
 	}

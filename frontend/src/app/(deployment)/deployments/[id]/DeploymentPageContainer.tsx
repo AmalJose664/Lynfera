@@ -21,11 +21,11 @@ import { useGetDeploymentLogsQuery } from "@/store/services/logsApi";
 import { Project, ProjectStatus } from "@/types/Project";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { JSX, Suspense, useEffect, useRef, useState } from "react";
 import { FiGitCommit, } from "react-icons/fi";
 import { IoMdGitBranch, IoMdRadioButtonOn } from "react-icons/io";
 import { FiAlertCircle } from "react-icons/fi";
-import { MdKeyboardArrowRight, } from "react-icons/md";
+import { MdCloudSync, MdKeyboardArrowRight, } from "react-icons/md";
 import { IoIosCube, IoMdGlobe } from "react-icons/io";
 import { LuExternalLink } from "react-icons/lu";
 import RightFadeComponent from "@/components/RightFadeComponent";
@@ -355,11 +355,10 @@ const DeploymentPageContent = ({ deploymentId }: { deploymentId: string }) => {
 														<PiIdentificationCardLight className="size-4" /> Trigger Event
 													</div>
 													<div className="sm:col-span-2 flex gap-3">
-														{deployment.triggerEvent === "GIT_PUSH"
-															? <SiGithub className="size-3" />
-															: deployment.triggerEvent === "MANUAL"
-																? <IoMdRadioButtonOn className="size-3" />
-																: <AiOutlineRedo className="size-3" />}
+														{deployment.triggerEvent
+															? triggerIcons[deployment.triggerEvent]
+															: <IoMdRadioButtonOn className="size-3" />
+														}
 														<span className="text-xs text-primary truncate">
 															{deployment.triggerEvent}
 														</span>
@@ -577,4 +576,11 @@ const PerformanceMetrics = ({ performance }: { performance: Deployment['performa
 			</div>
 		</RightFadeComponent>
 	);
+};
+
+const triggerIcons: Record<string, JSX.Element> = {
+	GIT_PUSH: <SiGithub className="size-3" />,
+	MANUAL: <IoMdRadioButtonOn className="size-3" />,
+	REDEPLOY: <AiOutlineRedo className="size-3" />,
+	GITHUB_CHECKS_RERUN: <MdCloudSync className="size-3" />,
 };
