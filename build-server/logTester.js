@@ -1,3 +1,25 @@
+/**
+ * @file logTester.js
+ * @description Development utility for simulating a full deployment log stream.
+ *
+ * Publishes a realistic sequence of Kafka messages to the "deployment.logs" and
+ * "deployment.updates" topics without actually running a build. Useful for:
+ *   - Testing the frontend log viewer UI.
+ *   - Verifying Kafka consumer behaviour.
+ *   - Checking that the API server correctly handles START → LOG* → END sequences.
+ *
+ * The script sends:
+ *   1. A START update (status: BUILDING).
+ *   2. 10–14 randomly-levelled log messages with realistic timing gaps.
+ *   3. An END update (status: READY).
+ *
+ * Hardcoded PROJECT_ID and DEPLOYMENT_ID must be updated to match real
+ * documents in the database before running.
+ *
+ * Usage:
+ *   KAFKA_USERNAME=<user> KAFKA_PASSWORD=<pass> node logTester.js
+ */
+
 import { Kafka } from "kafkajs"
 import { randomUUID } from 'crypto';
 const PROJECT_ID = '69246647869c614a349015fc'
@@ -22,6 +44,15 @@ const producer = kafkaClient.producer();
 
 
 
+/**
+ * Generates and publishes a simulated deployment log stream.
+ *
+ * Sends a START update, waits 10 seconds (simulating build startup), then
+ * streams 10–14 log messages with 300–700 ms gaps and two 10-second pauses
+ * mid-stream (simulating install and build phases). Finishes with an END update.
+ *
+ * @param {import('kafkajs').Producer} producer - Connected Kafka producer instance.
+ */
 generateDeploymentLogs(producer)
 async function generateDeploymentLogs(producer) {
 	await producer.connect()

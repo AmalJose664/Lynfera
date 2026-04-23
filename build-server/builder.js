@@ -1,3 +1,55 @@
+/**
+ * @file builder.js
+ * @description Core build runner for the Lynfera build server.
+ *
+ * This is the main entry point executed inside the Docker container for every
+ * deployment. It orchestrates the full lifecycle of a frontend project build:
+ *
+ *   1. Reads secrets securely from stdin (injected by main.sh).
+ *   2. Initialises the Kafka producer and S3 client.
+ *   3. Fetches project and deployment metadata from the API server.
+ *   4. Clones the user's Git repository (supports private GitHub repos via
+ *      GitHub App installation tokens).
+ *   5. Validates package.json for suspicious scripts.
+ *   6. Detects the frontend framework and build tool (Vite, CRA, Angular, etc.).
+ *   7. Runs `npm install` with automatic retry logic (up to 3 attempts with
+ *      progressively looser flags: default → --legacy-peer-deps → --force).
+ *   8. Runs `npm run build` with optional framework-specific base-path flags.
+ *   9. Validates the build output (file count, individual file size, total size).
+ *  10. Uploads every output file to S3 (or a local storage server for dev).
+ *  11. Publishes real-time log messages and deployment status updates to Kafka.
+ *  12. Reports build status to GitHub Check Runs API (start + complete).
+ *  13. Handles errors, cancellations, and graceful shutdown.
+ *
+ * Environment variables consumed (injected by the API server at container
+ * start-up; sensitive values are passed via stdin and deleted from the
+ * environment immediately after reading):
+ *   - DEPLOYMENT_ID        – MongoDB ObjectId of the deployment being built.
+ *   - PROJECT_ID           – MongoDB ObjectId of the parent project.
+ *   - API_ENDPOINT         – Base URL of the internal API server.
+ *   - SERVICE_TOKEN        – Bearer token for internal API calls.
+ *   - INSTALLATION_ACCESS_TOKEN – GitHub App installation token (private repos).
+ *   - GIT_COMMIT_DATA      – Pre-fetched commit hash + message ("hash||msg").
+ *   - CLOUD_BUCKET         – S3 bucket name for build artifact storage.
+ *   Secrets passed via stdin (see cleanEnv / main.sh):
+ *   - CONTAINER_API_TOKEN  – Token for authenticating with the API server.
+ *   - CLOUD_ACCESSKEY      – S3-compatible storage access key.
+ *   - CLOUD_SECRETKEY      – S3-compatible storage secret key.
+ *   - CLOUD_ENDPOINT       – S3-compatible storage endpoint URL.
+ *   - KAFKA_USERNAME        – Kafka SASL username.
+ *   - KAFKA_PASSWORD        – Kafka SASL password.
+ *
+ * User-controlled build settings (set via project environment variables):
+ *   - LYNFERA_SETTING_SKIP_INSTALL          – Skip npm install entirely.
+ *   - LYNFERA_SETTING_SKIP_BUILD            – Skip npm run build entirely.
+ *   - LYNFERA_SETTING_INSTALL_RETRIES       – Max install attempts (1–3).
+ *   - LYNFERA_SETTING_SKIP_DECOR_LOGS       – Suppress decorative log lines.
+ *   - LYNFERA_SETTING_FRAMEWORK             – Override auto-detected framework.
+ *   - LYNFERA_PREVENT_DEPLOYMENT_AUTO_PROMOTION – Prevent auto-promotion.
+ *   - LYNFERA_SETTING_TREAT_AS_STATIC_SITE  – Treat project as a static site
+ *                                             (skips install + build).
+ */
+
 import { execa } from 'execa';
 import { existsSync, } from "fs"
 import { readdir, stat, rename, mkdir, rm, readFile } from 'fs/promises';
@@ -14,10 +66,14 @@ import FormData from "form-data";
 import axios from 'axios';
 import pLimit from "p-limit"
 
+// Deployment and project IDs are injected by the API server as environment
+// variables. The fallback "---" is used only during local development.
 let DEPLOYMENT_ID = process.env.DEPLOYMENT_ID || "---"   // Received from env by apiserver or use backup for local testing
 let PROJECT_ID = process.env.PROJECT_ID || "---"   // Received from env by apiserver or use backup for local testing
 const brandName = "Lynfera"
 
+// Kafka producer and S3 client are initialised lazily in createClients() after
+// secrets are read from stdin, so they start as null.
 let kafkaProducer = null
 let API_SERVER_CONTAINER_API_TOKEN = null
 
@@ -27,12 +83,28 @@ const BUCKET_NAME = process.env.CLOUD_BUCKET
 
 console.log("Starting file..")
 const git = simpleGit();
+// Limit concurrent S3 upload operations to avoid overwhelming the connection pool.
 const limit = pLimit(8);
 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * Custom error class for expected, recoverable build failures.
+ *
+ * Using a dedicated class lets the top-level error handler distinguish between
+ * anticipated build errors (wrong branch, bad package.json, etc.) and
+ * unexpected runtime exceptions, so it can report the right status to Kafka
+ * and GitHub.
+ *
+ * @property {boolean} isContainerError - Always true; used as a type guard.
+ * @property {string}  stream           - The log stream where the error occurred
+ *                                        (e.g. "git clone", "stderr", "upload").
+ * @property {string}  cause            - Human-readable explanation shown to the user.
+ * @property {boolean} cancelled        - When true the deployment is marked CANCELLED
+ *                                        instead of FAILED (e.g. invalid state).
+ */
 class ContainerError extends Error {
 	isContainerError = true
 	constructor(message, stream, cause = "", cancelled = false) {
@@ -43,6 +115,7 @@ class ContainerError extends Error {
 		this.cancelled = cancelled
 	}
 }
+/** Possible deployment lifecycle states sent to the API server via Kafka. */
 const deploymentStatus = {
 	NOT_STARTED: "NOT_STARTED",
 	QUEUED: "QUEUED",
@@ -51,6 +124,7 @@ const deploymentStatus = {
 	FAILED: "FAILED",
 	CANCELED: "CANCELLED"
 }
+/** Log severity levels used when publishing messages to the Kafka log topic. */
 const logValues = {
 	INFO: "INFO",
 	SUCCESS: "SUCCESS",
@@ -59,6 +133,11 @@ const logValues = {
 	WARN: "WARN"
 }
 
+/**
+ * Feature flags that control build server behaviour.
+ * Most flags are toggled for local development or testing; production values
+ * are shown in the comments.
+ */
 const settings = {
 	runnOnlyQueuedDeplymnts: !true, // only run if deployment is in queued state
 	customBuildPath: !true,
@@ -79,6 +158,11 @@ console.log(DEPLOYMENT_ID, PROJECT_ID, "<<<<<")
 
 let gitCommitData = process.env.GIT_COMMIT_DATA || "----||----"
 
+/**
+ * Per-deployment user-controlled settings.
+ * These are populated from the project's environment variables by
+ * applyUserSettingsChanges() before the build starts.
+ */
 const userSettings = {
 	skipInstall: false,
 	skipBuild: false,
@@ -89,10 +173,18 @@ const userSettings = {
 	treatAsGenericProject: false
 }
 
+// Running log sequence counter and in-memory buffer used for batched Kafka sends.
 let logsNumber = 0
 let logBuffer = [];
 let flushTimer = null;
 // ----------------------------------------------------FUNCTIONS--------------------------------------------------
+
+/**
+ * Removes sensitive credentials from the Node.js process environment.
+ * Called immediately after the secrets have been consumed and the Kafka /
+ * S3 clients have been initialised, so they are never accessible to user
+ * build scripts.
+ */
 const deleteEnvs = () => {
 
 	delete process.env.KAFKA_USERNAME;
@@ -105,6 +197,11 @@ const deleteEnvs = () => {
 
 }
 
+/**
+ * Flushes the in-memory log buffer to Kafka as a single batch.
+ * Clears any pending flush timer before sending to avoid duplicate sends.
+ * Silently swallows Kafka errors so a logging failure never crashes the build.
+ */
 const sendLogsAsBatch = async () => {
 
 	if (flushTimer) {
@@ -128,6 +225,20 @@ const sendLogsAsBatch = async () => {
 		console.error("Kafka batch send failed:", error);
 	}
 }
+/**
+ * Enqueues a log entry and schedules a batched Kafka send.
+ *
+ * Logs are buffered in memory and flushed either when the buffer reaches 50
+ * entries or after a 400 ms idle timeout, whichever comes first. This reduces
+ * the number of Kafka round-trips without introducing noticeable latency.
+ *
+ * @param {object} logData
+ * @param {string} logData.DEPLOYMENT_ID - Deployment ObjectId.
+ * @param {string} logData.PROJECT_ID    - Project ObjectId.
+ * @param {string} logData.level         - One of the logValues constants.
+ * @param {string} logData.message       - The log message text (may contain ANSI codes).
+ * @param {string} logData.stream        - Source stream label (e.g. "stdout", "system").
+ */
 const publishLogs = (logData = {}) => {
 	logsNumber++;
 	if (!settings.sendKafkaMessage) return
@@ -163,8 +274,16 @@ const publishLogs = (logData = {}) => {
 	}
 }
 
+/** Returns a string of `n` space-separated copies of `s`. Used for log indentation. */
 const repeat = (s, n) => Array.from({ length: n }).fill(s).join(" ")
+/** Returns a cyan ANSI-coloured horizontal rule of `n` double-dash segments. */
 const line = (n) => "\x1b[38;5;14m" + (Array.from({ length: n }).fill("──").join("")) + "\x1b[0m"
+
+/**
+ * Publishes the decorative build-server banner and deploy configuration summary
+ * to the log stream. These are DECOR-level messages and can be suppressed via
+ * the LYNFERA_SETTING_SKIP_DECOR_LOGS environment variable.
+ */
 const printInfoLogs = () => {
 	if (userSettings.skipDecorLogs) return
 	const symbols = ["✮", "❁", "✧", "❃", "✾", "✣", "─", "❆", "❀", "✴"]
@@ -216,6 +335,28 @@ const printInfoLogs = () => {
 	}))
 }
 
+/**
+ * Publishes a deployment status update event to the "deployment.updates" Kafka topic.
+ *
+ * Update types include START, END, and ERROR. Only the fields present in
+ * updateData are included in the Kafka message payload.
+ *
+ * @param {object} updateData
+ * @param {string} updateData.DEPLOYMENT_ID  - Deployment ObjectId.
+ * @param {string} updateData.PROJECT_ID     - Project ObjectId.
+ * @param {string} updateData.type           - Event type: "START" | "END" | "ERROR".
+ * @param {string} [updateData.status]       - New deployment status.
+ * @param {string} [updateData.user]         - User ObjectId who triggered the build.
+ * @param {string} [updateData.complete_at]  - ISO timestamp of completion.
+ * @param {number} [updateData.duration_ms]  - Total build duration in milliseconds.
+ * @param {string} [updateData.techStack]    - Detected or user-specified framework.
+ * @param {number} [updateData.install_ms]   - npm install duration in milliseconds.
+ * @param {number} [updateData.build_ms]     - npm run build duration in milliseconds.
+ * @param {number} [updateData.upload_ms]    - Upload duration in milliseconds.
+ * @param {string} [updateData.commit_hash]  - Git commit hash + message ("hash||msg").
+ * @param {string} [updateData.error_message]- Human-readable error description.
+ * @param {object} [updateData.file_structure]- Output file list and total size.
+ */
 const publishUpdates = async (updateData = {}) => {
 	if (!settings.sendKafkaMessage) return
 	try {
@@ -253,6 +394,19 @@ const publishUpdates = async (updateData = {}) => {
 	}
 }
 
+/**
+ * Clones the project's Git repository into taskDir and verifies the clone succeeded.
+ *
+ * For private GitHub repositories the installation access token is injected into
+ * the clone URL as HTTP basic-auth credentials (x-access-token:<token>).
+ * A shallow, single-branch clone is used to minimise download size.
+ *
+ * @param {string} taskDir     - Absolute path to the working directory.
+ * @param {string} runDir      - Absolute path to the root directory inside the clone
+ *                               (may differ from taskDir when rootDir is set).
+ * @param {object} projectData - Project document from the API server.
+ * @throws {ContainerError} On authentication failure, missing branch, or network errors.
+ */
 async function cloneGitRepoAndValidate(taskDir, runDir, projectData) {
 
 	if (settings.cloneRepo) {
@@ -314,6 +468,13 @@ async function cloneGitRepoAndValidate(taskDir, runDir, projectData) {
 	}
 }
 
+/**
+ * Reads the latest commit hash and message from the cloned repository.
+ *
+ * @param {string} taskDir - Absolute path to the cloned repository root.
+ * @returns {Promise<string>} A string in the format "hash||message", or
+ *                            "----||----" if the repository has no commits.
+ */
 async function getGitCommitData(taskDir) {
 	const repoGit = simpleGit(taskDir);
 	const logss = await repoGit.log({})
@@ -323,6 +484,18 @@ async function getGitCommitData(taskDir) {
 	return logss.all[0].hash + "||" + logss.all[0].message
 }
 
+/**
+ * Fetches project and deployment data from the internal API server.
+ *
+ * Retries up to 4 times on transient network errors (5xx, 429, 408, connection
+ * resets, DNS failures) with a 3.5-second delay between attempts. Non-retryable
+ * errors (4xx, invalid data) are thrown immediately.
+ *
+ * @param {string} deploymentId - The deployment ObjectId to look up.
+ * @returns {Promise<[object, object]>} Tuple of [projectData, deploymentData].
+ * @throws {ContainerError} If the deployment or project cannot be found, or if
+ *                          the deployment is not in QUEUED state (when enforced).
+ */
 async function fetchProjectData(deploymentId = "") {
 	const API_ENDPOINT = process.env.API_ENDPOINT
 	const baseUrl = `${API_ENDPOINT}/api/internal`
@@ -444,6 +617,18 @@ async function fetchProjectData(deploymentId = "") {
 
 }
 
+/**
+ * Validates that the user-supplied source and output directory paths are safe.
+ *
+ * Resolves both paths relative to taskDir and ensures they remain inside it,
+ * preventing path-traversal attacks (e.g. "../../etc").
+ *
+ * @param {string} taskDir     - Absolute path to the container working directory.
+ * @param {string} buildSource - Relative path to the project root directory.
+ * @param {string} buildOutput - Relative path to the build output directory.
+ * @returns {{ taskDir: string, sourceDir: string, outputDir: string, isValid: boolean }}
+ * @throws {ContainerError} If either path escapes taskDir (cancelled = true).
+ */
 function validateDirectories(taskDir, buildSource = "", buildOutput = "") {
 
 	function isWithinTaskDir(userPath, pathType) {
@@ -471,6 +656,17 @@ function validateDirectories(taskDir, buildSource = "", buildOutput = "") {
 		isValid: true
 	};
 }
+/**
+ * Returns the CLI flag or environment variable needed to set the public base
+ * path to "./" for the given build tool.
+ *
+ * This ensures that asset URLs in the built HTML are relative, which is
+ * required for the static files to load correctly when served from a CDN
+ * sub-path.
+ *
+ * @param {string} tool - Build tool name (e.g. "Vite", "CRA", "Angular CLI").
+ * @returns {string} The flag/env string, or an empty string if not applicable.
+ */
 function getDynamicBuildRoot(tool = "") {
 	tool = tool.toLowerCase();
 
@@ -501,6 +697,18 @@ function getDynamicBuildRoot(tool = "") {
 	}
 }
 
+/**
+ * Inspects a project's package.json dependencies to identify the frontend
+ * framework and build tool in use.
+ *
+ * Detection is based on well-known package names. The result is used to:
+ *   - Log the detected stack to the user.
+ *   - Pass the correct base-path flag to the build command.
+ *   - Report the tech stack in the deployment update event.
+ *
+ * @param {object} pkg - Parsed package.json object.
+ * @returns {{ framework: string, tool: string }} Detected framework and tool names.
+ */
 function detectFrontendBuildConfig(pkg = {}) {
 	const deps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
 	const names = Object.keys(deps).map(n => n.toLowerCase());
@@ -531,6 +739,16 @@ function detectFrontendBuildConfig(pkg = {}) {
 	return { framework, tool };
 }
 
+/**
+ * Reads user-controlled build settings from the project's environment variables
+ * and applies them to the mutable userSettings object.
+ *
+ * Settings are read from the same env map that is passed to the build commands,
+ * so they are consumed before being forwarded to npm. Boolean values accept
+ * "true", "1", "yes", and "on" (case-insensitive).
+ *
+ * @param {Map<string, string>} env - Map of environment variable names to values.
+ */
 function applyUserSettingsChanges(env = new Map()) {
 	function envBool(value, defaultValue = false) {
 		if (value === undefined || value === null) return defaultValue
@@ -576,6 +794,19 @@ function applyUserSettingsChanges(env = new Map()) {
 	}
 }
 
+/**
+ * Merges server-injected environment variables with the user's project env vars
+ * and produces two separate env arrays: one for the install step and one for
+ * the build step.
+ *
+ * Server variables (e.g. LYNFERA_BUILD_ID, CI) take precedence unless the
+ * variable is marked canOverride=true, in which case the user's value wins.
+ * The install step uses NODE_ENV=development; the build step uses NODE_ENV=production.
+ *
+ * @param {{name: string, value: string}[]} envs - User-defined project env vars.
+ * @param {{ project: object, deployment: object, gitData: string }} requiredData
+ * @returns {{ finalEnvsBuild: object[], finalEnvsInstall: object[] }}
+ */
 function getBuildServerEnvsWithUserEnvs(envs = [], requiredData = {}) {
 	const { project, deployment } = requiredData
 	const lynfera = brandName.toUpperCase()
@@ -633,6 +864,21 @@ function getBuildServerEnvsWithUserEnvs(envs = [], requiredData = {}) {
 	return { finalEnvsBuild, finalEnvsInstall }
 }
 
+/**
+ * Reads and validates the project's package.json, then returns the detected
+ * frontend framework and build tool.
+ *
+ * Security checks performed:
+ *   - Scans all npm scripts for dangerous shell patterns (rm -rf, curl|bash, eval, etc.).
+ *   - Blocks scripts that reference shell script files (.sh, .bat, .ps1).
+ *   - Warns (but does not block) on lifecycle hooks: postinstall, preinstall, prepare.
+ *
+ * @param {string} dir     - Absolute path to the directory containing package.json.
+ * @param {string} rootDir - Relative root directory (used in error messages only).
+ * @returns {Promise<{ framework: string, tool: string }>}
+ * @throws {ContainerError} If package.json is missing or contains suspicious scripts
+ *                          (cancelled = true so the deployment is marked CANCELLED).
+ */
 async function validatePackageJsonAndGetFramework(dir, rootDir) {
 	const packageJsonPath = path.join(dir, "package.json")
 	if (userSettings.treatAsGenericProject) {
@@ -745,6 +991,12 @@ If your build fails, ensure this script is required for your project. \x1b[0m`, 
 	return detectFrontendBuildConfig(packageJson)
 }
 
+/**
+ * Forcefully terminates a child process and its entire process group.
+ * Sends SIGTERM first, then SIGKILL after 5 seconds if the process is still alive.
+ *
+ * @param {import('execa').ExecaChildProcess} proc - The child process to kill.
+ */
 function killProcess(proc) {
 	if (!proc || proc.killed) return;
 
@@ -761,6 +1013,8 @@ function killProcess(proc) {
 }
 
 
+// Reference to the currently running child process. Stored so that the
+// shutdown handler can kill it if the container receives SIGTERM/SIGINT.
 let currentProcess = null
 /**
  * Runs a system command as a child process.
@@ -862,6 +1116,14 @@ async function runCommand(command, args, cwd, env = [], timeout = 15) {
 	}
 }
 
+/**
+ * Uploads a zip archive of the build output to a non-S3 (local) storage server.
+ * Only active when settings.sendLocalDeploy is true; used for development/testing.
+ *
+ * @param {string} dir      - Directory containing the zip file.
+ * @param {string} fileName - Name of the zip file to upload.
+ * @throws {ContainerError} If the upload request fails.
+ */
 async function uploadNonAws(dir, fileName) {
 
 	if (!settings.sendLocalDeploy) return
@@ -902,6 +1164,10 @@ async function uploadNonAws(dir, fileName) {
 	}
 
 }
+/**
+ * Glob-style patterns for files and directories that should never be included
+ * in the build output upload. Patterns with "*" are treated as wildcards.
+ */
 const EXCLUDE_PATTERNS = [
 	'node_modules',
 	'.git',
@@ -935,10 +1201,19 @@ const EXCLUDE_PATTERNS = [
 	'*.pid',
 	'*.seed',
 ];
+// Upload size limits enforced before and during the S3 upload phase.
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB per file
 const MAX_TOTAL_SIZE = 280 * 1024 * 1024; // 280MB total
 const WARN_MAX_TOTAL_SIZE = 80 * 1024 * 1024; // give warning on this limit
 const MAX_NO_OF_FILES = 1000
+/**
+ * Returns true if a file or directory should be excluded from the upload.
+ * Checks both the entry name and its relative path against EXCLUDE_PATTERNS.
+ *
+ * @param {string} entryName - The file or directory name (basename).
+ * @param {string} relPath   - The path relative to the output directory root.
+ * @returns {boolean}
+ */
 function shouldExcludeDir(entryName = "", relPath = "") {
 	for (const pattern of EXCLUDE_PATTERNS) {
 		if (pattern.includes('*')) {
@@ -953,6 +1228,20 @@ function shouldExcludeDir(entryName = "", relPath = "") {
 	}
 	return false;
 }
+/**
+ * Validates the build output directory before uploading.
+ *
+ * Walks the directory tree and enforces:
+ *   - No individual file exceeds MAX_FILE_SIZE (20 MB).
+ *   - Total file count does not exceed MAX_NO_OF_FILES (1000).
+ *   - Total size does not exceed MAX_TOTAL_SIZE (280 MB).
+ *   - Warns (but does not fail) when total size exceeds WARN_MAX_TOTAL_SIZE (80 MB).
+ *
+ * This is a dry-run pass; no files are uploaded here.
+ *
+ * @param {string} sourceDir - Absolute path to the build output directory.
+ * @throws {ContainerError} On any limit violation (cancelled = true).
+ */
 async function validateBuilds(sourceDir) {
 	const fileStructure = []
 	let totalSize = 0;
@@ -1035,6 +1324,26 @@ async function validateBuilds(sourceDir) {
 	}
 	await processDirectory(sourceDir);
 }
+/**
+ * Uploads all build output files to S3 (or a local storage server in dev mode).
+ *
+ * For S3 uploads:
+ *   - Files are uploaded concurrently, limited to 8 parallel operations (pLimit).
+ *   - Each file is stored under the key:
+ *     `__app_build_outputs/<PROJECT_ID>/<DEPLOYMENT_ID>/<relPath>`.
+ *   - The correct Content-Type is set using mime-types.
+ *
+ * For local (non-S3) uploads:
+ *   - All files are first archived into a zip file using archiver.
+ *   - The zip is then POSTed to the local storage server via uploadNonAws().
+ *
+ * Excluded files (node_modules, .git, etc.) are skipped and logged.
+ * Path-traversal attempts are detected and skipped with a warning.
+ *
+ * @param {string} sourceDir - Absolute path to the validated build output directory.
+ * @returns {Promise<{ fileStructure: {name: string, size: number}[], totalSize: number }>}
+ * @throws {ContainerError} On upload failure or size/count limit violations.
+ */
 async function uploadOutputFiles(sourceDir) {
 
 	// ====================================================================
@@ -1176,6 +1485,13 @@ async function uploadOutputFiles(sourceDir) {
 	return { fileStructure, totalSize };
 }
 
+/**
+ * Extracts the GitHub owner and repository name from a repository URL.
+ *
+ * @param {string} repoURL - The full repository URL (HTTPS or SSH).
+ * @returns {{ owner: string, repo: string } | null} Parsed owner/repo, or null
+ *          if the URL is falsy.
+ */
 function getRepoInfo(repoURL) {
 	if (!repoURL) return null;
 	const cleaned = repoURL.replace(/\.git$/, "").replace(/\/$/, "");
@@ -1185,6 +1501,18 @@ function getRepoInfo(repoURL) {
 	return { owner, repo };
 }
 
+/**
+ * Creates a GitHub Check Run and marks it as "in_progress" at the start of a build.
+ *
+ * If the commit SHA is not already known (e.g. for manual re-deploys), it is
+ * fetched from the GitHub API using the branch name.
+ *
+ * Only runs for GitHub-hosted projects with a valid installation access token.
+ *
+ * @param {object} project          - Project document from the API server.
+ * @param {string} [commitAvailble] - Pre-known commit SHA (optional).
+ * @returns {Promise<number|undefined>} The GitHub Check Run ID, or undefined on failure.
+ */
 async function sendDeploymentGithubStatusStart(project, commitAvailble = "") {
 	if (!settings.githubCheckRuns.sendStart) return console.log("\nCancelled check runs start\n");
 	const installAccessToken = process.env.INSTALLATION_ACCESS_TOKEN.replace(/\r$/, "")
@@ -1234,6 +1562,20 @@ async function sendDeploymentGithubStatusStart(project, commitAvailble = "") {
 	}
 }
 
+/**
+ * Completes the GitHub Check Run created by sendDeploymentGithubStatusStart().
+ *
+ * Sets the conclusion to "success" or "failure"/"cancelled" depending on
+ * whether the build succeeded. Errors from the GitHub API are logged but
+ * never propagated — a GitHub reporting failure must not fail the deployment.
+ *
+ * @param {object} project                    - Project document from the API server.
+ * @param {{ checkId: number }} meta           - Object containing the Check Run ID.
+ * @param {object} errorData
+ * @param {string} errorData.conclusion        - GitHub conclusion string ("success"|"failure"|"cancelled").
+ * @param {boolean} errorData.isError          - Whether the build ended in error.
+ * @param {string} [errorData.errorMessage]    - Human-readable error description for the Check Run summary.
+ */
 async function sendDeploymentGithubStatusStop(project, meta = { checkId: 0 }, errorData = {
 	conslusion: "", errorMessage: "", errorSummary: "", isError: false,
 }) {
@@ -1281,9 +1623,36 @@ async function sendDeploymentGithubStatusStop(project, meta = { checkId: 0 }, er
 
 // --------------------------------------------------------MAIN_TASK--------------------------------------------------
 
+// Module-level references to the resolved project document and user ID.
+// Set during init() so that the error handler can access them even if the
+// error occurs before the local variables are in scope.
 let projectData = null
 let projectUser = ""
 
+/**
+ * Main build orchestration function.
+ *
+ * Executes the full deployment pipeline in order:
+ *   1. Connects the Kafka producer and publishes a START update.
+ *   2. Fetches project and deployment data from the API server.
+ *   3. Creates a GitHub Check Run (in_progress).
+ *   4. Clones the Git repository.
+ *   5. Reads the latest commit hash from the clone.
+ *   6. Merges server and user environment variables.
+ *   7. Validates package.json and detects the framework.
+ *   8. Runs npm install (with retry logic).
+ *   9. Runs npm run build.
+ *  10. Validates the build output directory.
+ *  11. Uploads output files to S3.
+ *  12. Publishes an END update with timing metrics and file structure.
+ *  13. Completes the GitHub Check Run.
+ *
+ * On any ContainerError the error is reported to Kafka and GitHub, and the
+ * deployment is marked FAILED or CANCELLED. Unexpected errors are reported
+ * as "Internal server error".
+ *
+ * The finally block always flushes remaining logs and disconnects Kafka.
+ */
 async function init() {
 
 	if (settings.sendKafkaMessage) {
@@ -1700,6 +2069,14 @@ async function init() {
 }
 
 
+/**
+ * Initialises the Kafka producer and S3 client from the provided credentials,
+ * clears the credential references from memory, then starts the build pipeline.
+ *
+ * @param {{ kUid: string, kPass: string, aKey: string, aSecret: string, cldEndpoint: string }} external
+ *   Cloud service credentials (Kafka + S3).
+ * @param {{ token: string }} otherScrts - API server container token.
+ */
 function createClients(input) {
 	const { kUid, kPass, aKey, aSecret, cldEndpoint } = input;
 
@@ -1728,6 +2105,13 @@ function createClients(input) {
 
 	return { producer, s3 };
 }
+/**
+ * Wires up the Kafka producer and S3 client, scrubs credentials from memory,
+ * then delegates to init() to run the build pipeline.
+ *
+ * @param {{ kUid: string, kPass: string, aKey: string, aSecret: string, cldEndpoint: string }} external
+ * @param {{ token: string }} otherScrts
+ */
 async function starterFunc(external, otherScrts) {
 	const { producer, s3 } = createClients(external);
 	kafkaProducer = producer;
@@ -1741,6 +2125,16 @@ async function starterFunc(external, otherScrts) {
 	console.log("--------------END-------------")
 }
 
+/**
+ * Gracefully shuts down the process.
+ *
+ * On a clean shutdown (code 0) it disconnects Kafka and exits.
+ * On an error shutdown (code != 0) it attempts to publish a FAILED update
+ * to Kafka before disconnecting, so the API server is always notified.
+ *
+ * @param {number} [code=0]   - Exit code (0 = success, 1 = error).
+ * @param {string} [reason=""] - Human-readable reason for logging.
+ */
 async function shutdown(code = 0, reason = "") {
 	console.log("Shutdown:", reason);
 	if (currentProcess) killProcess(currentProcess);
@@ -1776,12 +2170,33 @@ process.on("uncaughtException", async err => {
 	await shutdown(1, "uncaughtException");
 });
 
+/**
+ * Reads all of stdin synchronously and returns it as a UTF-8 string.
+ * stdin is destroyed immediately after reading to prevent any further reads.
+ *
+ * @returns {string} The raw stdin content.
+ */
 function readStdin() {
 	const input = readFileSync(0, 'utf8');
 	process.stdin.destroy()
 	return input
 }
 
+/**
+ * Parses and validates the six newline-delimited secrets read from stdin.
+ *
+ * Expected order (matching main.sh printf output):
+ *   1. CONTAINER_API_TOKEN
+ *   2. CLOUD_ACCESSKEY
+ *   3. CLOUD_SECRETKEY
+ *   4. CLOUD_ENDPOINT
+ *   5. KAFKA_USERNAME
+ *   6. KAFKA_PASSWORD
+ *
+ * @param {string} input - Raw stdin string.
+ * @returns {string[]} Array of exactly 6 secret strings.
+ * @throws {Error} If the input does not contain exactly 6 non-empty lines.
+ */
 function cleanEnv(input = "") {
 	const scrts = input.trimEnd().split(/\r?\n/);
 
@@ -1822,6 +2237,14 @@ function cleanEnv(input = "") {
 	return scrts
 }
 
+/**
+ * Script entry point (IIFE).
+ *
+ * Reads secrets from stdin, validates them, initialises clients, and starts
+ * the build pipeline. Requires stdin to be a pipe (not a TTY) — running the
+ * script directly in an interactive terminal is rejected to prevent accidental
+ * execution without the required secrets.
+ */
 (async function main() {
 	try {
 		if (!process.stdin.isTTY) {
