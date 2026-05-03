@@ -101,7 +101,7 @@ EMAIL_SENDER_EMAIL=
 
 NOTIFY_EVENTS_API_KEY= // custom notification api key, Visit https://ping-forge.vercel.app/ for more details
 
-USE_REDIS_EMITTER= // true / false // used for internal event emitter; set to true if you have than 1 instance of backend running; Requires redis instance. Set to false to use simple event emitter
+USE_REDIS_EMITTER= // true / false // used for internal event emitter; set to true if you have more than 1 instance of backend running; Requires redis instance. Set to false to use simple event emitter
 
 ```
 
