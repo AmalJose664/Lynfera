@@ -15,6 +15,7 @@ import { LinkComponent } from "./docs/HelperComponents";
 import { Deployment } from "@/types/Deployment";
 import { showToast } from "./Toasts";
 import { AiFillFileExclamation } from "react-icons/ai";
+import { toast } from "sonner";
 
 interface FilesProps {
 	projectId: string,
@@ -55,26 +56,35 @@ const FilesComponent = ({ projectId, projectRepo, deploymentId, children, commit
 	const files = filesData?.fileStructure?.files || []
 	const root = useMemo(() => buildFileTree(files || []), [files]);
 	const downloadFile = useCallback(
-		async (path: string) => {
-			try {
-				const protocol = window.location.protocol
-				const url = `${protocol}//${process.env.NEXT_PUBLIC_PROXY_SERVER}/extras/download-file/${projectId}/${deploymentId}?filePath=${encodeURIComponent(path)}`
-				const result = await axios({ url, method: "GET", responseType: 'blob' })
+		(path: string) => {
+			const protocol = window.location.protocol;
+			const url = `${protocol}//${process.env.NEXT_PUBLIC_PROXY_SERVER}/extras/download-file/${projectId}/${deploymentId}?filePath=${encodeURIComponent(path)}`;
+
+			const promise = axios({
+				url,
+				method: "GET",
+				responseType: "blob",
+			}).then((result) => {
 				const fileUrl = window.URL.createObjectURL(result.data);
-				const a = document.createElement('a');
+				const a = document.createElement("a");
 				a.href = fileUrl;
-				a.download = path.split('/').pop() || 'file';
+				a.download = path.split("/").pop() || "file";
 				document.body.appendChild(a);
 				a.click();
 				document.body.removeChild(a);
 				window.URL.revokeObjectURL(fileUrl);
+			});
 
-			} catch (error) {
-				showToast.error("File Download", "Error on downloading file, file=" + path, <AiFillFileExclamation className="size-4 text-red-400" />)
-				console.warn("error on downloading file  ", error, path)
-			}
-		}, [projectId, deploymentId]
-	)
+			toast.promise(promise, {
+				loading: "Downloading file...",
+				success: "File download success",
+				error: (e) => "Error downloading file; " + e.message,
+			});
+
+			return promise;
+		},
+		[projectId, deploymentId]
+	);
 	const [viewMode, setViewMode] = useState<'tree' | 'list'>('tree');
 
 
