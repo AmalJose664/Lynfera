@@ -96,6 +96,9 @@ export const NewCommitFound = ({ project, currentCommit, newDeploymentDialog }: 
 
 
 	useEffect(() => {
+		if (!projectData?.latestCommitId || !currentCommit?.id) {
+			return
+		}
 		const key = "commit-shown-" + projectData?.latestCommitId
 		const alreadyShown = sessionStorage.getItem(key) === "true"
 
@@ -103,7 +106,7 @@ export const NewCommitFound = ({ project, currentCommit, newDeploymentDialog }: 
 
 		setShowBanner(isNew && !alreadyShown)
 
-	}, [projectData?.latestCommitId, currentCommit])
+	}, [projectData?.latestCommitId, currentCommit?.id])
 
 
 
