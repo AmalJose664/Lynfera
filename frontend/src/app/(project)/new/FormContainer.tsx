@@ -4,7 +4,7 @@ import { ProjectFormInput, ProjectProvider } from "@/types/Project"
 import { useForm, } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ProjectFormSchema } from "@/lib/schema/project";
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence } from "motion/react"
 import { useEffect, useRef, useState } from "react";
 
 import { MdKeyboardArrowRight } from "react-icons/md";
@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { BaseSettings } from "./BasicDetails";
 import { AdvancedSettings } from "./AdvancedDetails";
 import { ConfigPreview } from "./ConfigPreview";
-import { getBranches, repoCheck } from "@/lib/moreUtils/form";
+import { repoCheck } from "@/lib/moreUtils/form";
 import { IoIosCube } from "react-icons/io";
 import BackButton from "@/components/BackButton";
 import { showToast } from "@/components/Toasts";
@@ -23,6 +23,7 @@ import { LinkComponent } from "@/components/docs/HelperComponents";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { fetchBranches } from "@/store/slices/projectSlice";
+import { NewUserDesclaimer } from "@/components/modals/Desclaimer";
 
 
 function ProjectForm() {
@@ -47,6 +48,8 @@ function ProjectForm() {
 	const [createProject, { isLoading, isSuccess }] = useCreateProjectMutation()
 
 	const [showAdvanced, setShowAdvanced] = useState(false)
+	const [showFirstProjectDialog, setShowFirstProjectDialog] = useState(false)
+	const dialogResolver = useRef<((value: boolean) => void) | null>(null)
 
 	const dispatch = useAppDispatch();
 	const { branches, repoUrl: fetchedRepoUrl } = useAppSelector(s => s.project);
@@ -80,6 +83,17 @@ function ProjectForm() {
 
 
 
+	const showDisclaimerDialog = () => {
+		const alreadyShown = localStorage.getItem("dialog_shown") === "true"
+		if (alreadyShown) return Promise.resolve(true)
+
+		setShowFirstProjectDialog(true)
+
+		return new Promise<boolean>((resolve) => {
+			dialogResolver.current = resolve
+		})
+	}
+
 	const onSubmit = async (data: ProjectFormInput) => {
 		const repoExists = await repoCheck(data.repoURL, data.isPrivate)
 		if (!repoExists) {
@@ -91,6 +105,10 @@ function ProjectForm() {
 		}
 		try {
 			const result = await createProject(data).unwrap()
+
+			showToast.message("Project Created", result.name, <IoIosCube />)
+			await showDisclaimerDialog().catch(() => undefined)
+
 			router.push(`/projects/${result._id}`)
 
 		} catch (error: any) {
@@ -119,6 +137,11 @@ function ProjectForm() {
 
 	return (
 		<div className="min-h-screen bg-linear-to-br from-background dark:via-neutral-800 via-neutral-100 to-background text-primary pb-24">
+			<NewUserDesclaimer open={showFirstProjectDialog} onClose={(value: boolean, dontShowAgain: boolean) => {
+				if (dontShowAgain) localStorage.setItem("dialog_shown", "true")
+				setShowFirstProjectDialog(value)
+				dialogResolver.current?.(value)
+			}} />
 			<header className="border-b border-gray-800/50 backdrop-blur-xl  sticky top-0 z-10">
 				<div className="max-w-7xl mx-auto px-8 py-2">
 					<div className="flex items-center gap-4">

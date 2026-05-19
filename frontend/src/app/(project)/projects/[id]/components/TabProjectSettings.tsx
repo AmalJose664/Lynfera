@@ -16,7 +16,6 @@ import { ProjectUpdateFormSchema, ProjectUpdateFormType } from "@/lib/schema/pro
 import { Controller, useFieldArray, useForm, UseFormReturn, useFormState, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getBranches } from "@/lib/moreUtils/form";
 import { useUpdateProjectMutation } from "@/store/services/projectsApi";
 import { ChangeProjectSubdomainDialog } from "@/components/modals/ChangeSubdomain";
 import RightFadeComponent from "@/components/RightFadeComponent";
@@ -26,6 +25,7 @@ import { ClearAnalyticsDialog } from "@/components/modals/ClearAnalytics";
 import { showToast } from "@/components/Toasts";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { fetchBranches } from "@/store/slices/projectSlice";
+import { toast } from "sonner";
 
 
 interface DetailsInterface {
@@ -477,20 +477,22 @@ const EnvVariables = ({ project, form, isUpdateMode, setIsUpdateMode }: { projec
 	)
 }
 
-const SaveBar = memo(({ control, handleSubmit, saveAndDeploy }: { control: any, handleSubmit: (data: any) => any, saveAndDeploy: (data: ProjectUpdateFormType) => void }) => {
+const SaveBar = memo(({ control, handleSubmit, saveAndDeploy, loading: isLoading }: { control: any, loading: boolean, handleSubmit: (data: any) => any, saveAndDeploy: (data: ProjectUpdateFormType) => void }) => {
 	const isDirty = useFormState({ control }).isDirty
 	return isDirty ? (
 		<div className="flex justify-end gap-3 items-center sticky top-0 z-50 bg-background px-6 py-4">
 			{isDirty && <p className="text-sm text-red-300"> unsaved changes</p>}
 
 			<Button
+				disabled={isLoading}
 				type="button"
 				onClick={handleSubmit(saveAndDeploy)}
 			>
-				Save and Deploy
+
+				{isLoading ? "Updating..." : "Save and Deploy"}
 			</Button>
-			<Button type="submit">
-				Save Only
+			<Button type="submit" disabled={isLoading}>
+				{isLoading ? "Updating..." : "Save Only"}
 			</Button>
 		</div>
 
@@ -556,9 +558,19 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 			setIsUpdateModeDetails(false)
 			setIsUpdateModeConf(false)
 			setIsUpdateModeEnv(false)
-			await updateProject({ _id: project._id, ...changed }).unwrap()
-			showToast.success("Project Settings", "Settings saved!")
-			form.reset(data)
+
+			toast.promise(
+				updateProject({ _id: project._id, ...changed }).unwrap(),
+				{
+					loading: "Updating Project...",
+					success: () => {
+						form.reset(data);
+						// showToast.success("Project Settings", "Settings saved!");
+						return ("Project updated!")
+					},
+					error: (err) => "Error updating: " + err?.data?.message || "Unknown error",
+				}
+			);
 		} catch (error: any) {
 			showToast.error("Failed to save ", error.data.message || error.message)
 			console.log(error)
@@ -575,7 +587,7 @@ const ProjectSettings = ({ project, reDeploy, setTabs }: { project: Project, reD
 			<div className="">
 				<form className="flex flex-col gap-3 p-4" noValidate onSubmit={handleSubmit(saveData)}>
 					<LoadingSpinner2 isLoading={isLoading} />
-					<SaveBar control={form.control} handleSubmit={handleSubmit} saveAndDeploy={saveAndDeploy} />
+					<SaveBar control={form.control} loading={isLoading} handleSubmit={handleSubmit} saveAndDeploy={saveAndDeploy} />
 
 					<Details project={project} form={form} isUpdateMode={isUpdateModeDetails} setIsUpdateMode={setIsUpdateModeDetails} />
 					<Configurations project={project} form={form} isUpdateMode={isUpdateModeConf} setIsUpdateMode={setIsUpdateModeConf} />
