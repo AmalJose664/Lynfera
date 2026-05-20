@@ -20,7 +20,13 @@ export const projectApis = createApi({
 			transformResponse(baseQueryReturnValue: any) {
 				return baseQueryReturnValue.projects as Project[]
 			},
-			providesTags: ['Projects'],
+			providesTags: (result) =>
+				result
+					? [
+						...result.map(({ _id }) => ({ type: 'Projects' as const, id: _id })),
+						{ type: 'Projects', id: 'LIST' }
+					]
+					: [{ type: 'Projects', id: 'LIST' }],
 		}),
 		getProjectById: builder.query<Project, { id: string, params: { include?: string } }>({
 			query: ({ id, params }) => ({ url: `/projects/${id}`, method: 'get', params }),
