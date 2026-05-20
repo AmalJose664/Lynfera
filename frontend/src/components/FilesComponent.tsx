@@ -1,4 +1,4 @@
-import { formatBytes, generateRepoUrls } from "@/lib/moreUtils/combined"
+import { formatBytes, generateRepoUrls, isStatusFailure } from "@/lib/moreUtils/combined"
 import { useGetDeploymentFilesQuery } from "@/store/services/deploymentApi"
 
 import { FaFolder, FaRegFileAlt, FaDownload } from "react-icons/fa";
@@ -9,18 +9,18 @@ import { memo, useCallback, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 
-import { TabFilesError, TabFilesLoading, TabFilesNoDeployment } from "@/components/project/TabFilesComponents";
+import { TabFilesDeploymentFailure, TabFilesError, TabFilesLoading, TabFilesNoDeployment } from "@/components/project/TabFilesComponents";
 import { cn } from "@/lib/utils";
 import { LinkComponent } from "./docs/HelperComponents";
 import { Deployment } from "@/types/Deployment";
-import { showToast } from "./Toasts";
-import { AiFillFileExclamation } from "react-icons/ai";
 import { toast } from "sonner";
+import { ProjectStatus } from "@/types/Project";
 
 interface FilesProps {
 	projectId: string,
 	projectRepo: string,
 	deploymentId?: string
+	deploymentStatus?: ProjectStatus
 	commit?: Deployment['commit'],
 	children: React.ReactNode
 }
@@ -47,7 +47,7 @@ type FileTreeNodeProps = {
 
 
 
-const FilesComponent = ({ projectId, projectRepo, deploymentId, children, commit }: FilesProps) => {
+const FilesComponent = ({ projectId, projectRepo, deploymentId, children, commit, deploymentStatus }: FilesProps) => {
 	const { data: filesData, isLoading, error, isError } = useGetDeploymentFilesQuery({ id: deploymentId || "", params: {} }, {
 		skip: !deploymentId
 	})
@@ -93,6 +93,11 @@ const FilesComponent = ({ projectId, projectRepo, deploymentId, children, commit
 	}
 	if (error || isError) {
 		return <TabFilesError error={error} />
+	}
+
+	if (isStatusFailure(deploymentStatus)) {
+		console.log(deploymentStatus, " <")
+		return <TabFilesDeploymentFailure />
 	}
 	if (!deploymentId) {
 		return <TabFilesNoDeployment />

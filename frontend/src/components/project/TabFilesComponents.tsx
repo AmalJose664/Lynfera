@@ -34,7 +34,7 @@ export const TabFilesNoDeployment = () => {
 						key={index}
 						className="flex border items-center  justify-between group gap-4 py-2 px-3 hover:bg-secondary rounded"
 					>
-						<div className="flex items-center gap-2 animate-pulse group-hover:border flex-1 min-w-0">
+						<div className="flex items-center gap-2  group-hover:border flex-1 min-w-0">
 							<FaRegFileAlt size={16} className="text-less shrink-0" />
 							<span className="text-some-less text-sm group-hover:border truncate rounded-md bg-secondary w-[30%] h-4 ">{''}</span>
 						</div>
@@ -44,6 +44,13 @@ export const TabFilesNoDeployment = () => {
 					</div>
 				))}
 			</div>
+		</div>
+	);
+}
+export const TabFilesDeploymentFailure = () => {
+	return (
+		<div className="flex flex-col gap-2 dark:bg-[#111111] border items-center justify-center bg-white text-neutral-400 p-8 rounded-lg text-center">
+			<RiFileWarningLine size={22} />  <p>No Active Successful deployments</p>
 		</div>
 	);
 }

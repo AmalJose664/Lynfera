@@ -5,7 +5,7 @@ import { IoClose, IoGitBranchOutline } from "react-icons/io5"
 import { useEffect, useRef, useState } from "react"
 import { LinkComponent } from "./docs/HelperComponents"
 import { Project, ProjectStatus } from "@/types/Project"
-import { getLatestCommit, isStatusProgress } from "@/lib/moreUtils/combined"
+import { getLatestCommit, isStatusFailure, isStatusProgress } from "@/lib/moreUtils/combined"
 import { RootState, useAppDispatch, useAppSelector } from "@/store/store"
 import { fetchCommit } from "@/store/slices/projectDataSlice"
 import { FaArrowRight } from "react-icons/fa"
@@ -103,7 +103,7 @@ export const NewCommitFound = ({ project, currentCommit, newDeploymentDialog }: 
 		const alreadyShown = sessionStorage.getItem(key) === "true"
 
 		const isNew = projectData?.latestCommitId !== currentCommit?.id
-
+		// console.log({ isNew, alreadyShown }, isNew && !alreadyShown, project)
 		setShowBanner(isNew && !alreadyShown)
 
 	}, [projectData?.latestCommitId, currentCommit?.id])
@@ -111,7 +111,7 @@ export const NewCommitFound = ({ project, currentCommit, newDeploymentDialog }: 
 
 
 
-	if (!showBanner || !currentCommit || project.tempDeployment || project.isPrivateGhRepo || isStatusProgress(project.status)) {
+	if (!showBanner || !currentCommit || project.tempDeployment || project.isPrivateGhRepo || isStatusProgress(project.status) || isStatusFailure(project.status)) {
 		return null
 	}
 	if (!project._id) return null

@@ -2,7 +2,7 @@
 'use client'
 
 import ProjectTabs from "../../../../../components/project/ProjectTabs"
-import { Project } from "@/types/Project"
+import { Project, ProjectStatus } from "@/types/Project"
 import { Deployment } from "@/types/Deployment"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AllDeployments from "./TabAllDeployments"
@@ -185,7 +185,7 @@ export function ProjectContent({
 						<ProjectAnalytics projectId={project._id} />
 					</TabsContent>
 					<TabsContent value="files">
-						<TabFiles projectId={project._id} projectRepo={project.repoURL} deploymentId={deployment?._id} />
+						<TabFiles projectId={project._id} projectRepo={project.repoURL} deploymentId={deployment?._id} deploymentStatus={deployment?.status || lastDeployment?.status as ProjectStatus} />
 					</TabsContent>
 				</main>
 				<div ref={scrollRef}></div>
