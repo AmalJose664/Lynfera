@@ -18,7 +18,7 @@ import { apiRouter } from "./routes/index.js";
 const app = express();
 const httpServer = createServer(app);
 // app.set('trust proxy', true)
-app.set("trust proxy", 1);
+app.set("trust proxy", 2);
 app.use(cors(corsOptions));
 
 app.use(STRIPE_WEBHOOK_REQ_PATH, express.raw({ type: "application/json" }));

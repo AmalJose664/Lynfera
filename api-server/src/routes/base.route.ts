@@ -7,7 +7,8 @@ baseRouter.get("/", (_req, res) => {
 		status: "ok",
 		service: "lynfera-backend",
 		ip: { reqIp: _req.ip },
-		ips: _req.ips
+		ips: _req.ips,
+		for: _req.headers["x-forwarded-for"]
 	});
 	return;
 });
