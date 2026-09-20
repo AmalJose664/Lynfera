@@ -18,6 +18,7 @@ import { apiRouter } from "./routes/index.js";
 const app = express();
 const httpServer = createServer(app);
 // app.set('trust proxy', true)
+app.set("trust proxy", 1);
 app.use(cors(corsOptions));
 
 app.use(STRIPE_WEBHOOK_REQ_PATH, express.raw({ type: "application/json" }));
@@ -31,7 +32,6 @@ app.use(passport.initialize());
 morgan.token("app-id", () => String(process.pid));
 app.use(morgan(":app-id :method :url :status :response-time ms"));
 
-app.set("trust proxy", 1);
 
 app.use("/api", apiRouter);
 app.use("/", baseRouter);

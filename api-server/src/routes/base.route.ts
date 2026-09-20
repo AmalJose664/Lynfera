@@ -7,6 +7,7 @@ baseRouter.get("/", (_req, res) => {
 		status: "ok",
 		service: "lynfera-backend",
 		ip: { reqIp: _req.ip },
+		ips: _req.ips
 	});
 	return;
 });
